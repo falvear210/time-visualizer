@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026–2027</title>
+<link rel="stylesheet" href="style.css?v=6">
+</head>
+<body>
+<header class="topbar">
+  <nav class="tabs" id="tabs">
+    <button class="tab" data-tab="progress" type="button">progress</button>
+    <button class="tab" data-tab="continuous" type="button">continuous</button>
+    <button class="tab" data-tab="weekly" type="button">weekly</button>
+  </nav>
+  <div class="debug-bar">
+    <label class="debug-label">debug time
+      <input type="datetime-local" id="debug-time" class="debug-input">
+    </label>
+    <button id="debug-live" class="ghost-btn" type="button">live</button>
+  </div>
+</header>
+
+<main>
+  <section id="tab-progress" class="tab-panel"></section>
+  <section id="tab-continuous" class="tab-panel" hidden>
+    <div id="grid-continuous" class="grid mode-continuous"></div>
+  </section>
+  <section id="tab-weekly" class="tab-panel" hidden>
+    <div id="grid-weekly" class="grid mode-weekly"></div>
+  </section>
+</main>
+
+<div id="info-panel" class="info-panel" hidden></div>
+
+<script src="data.js"></script>
+<script src="app.js?v=5"></script>
+</body>
+</html>

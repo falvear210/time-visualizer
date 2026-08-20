@@ -1,0 +1,333 @@
+:root {
+  --bg: #0b0b0d;
+  --panel: #17181c;
+  --border: #232429;
+  --track: #1c1d21;
+  --text: #e7e7ea;
+  --text-dim: #6c6d74;
+  --accent: #5b8cff;
+  --done: #35363d;
+  --cell: 16px;
+  --gap: 3px;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 0 1.5rem 2.5rem;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0.9rem 0 0.5rem;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+}
+
+/* --- tabs --- */
+
+.tabs {
+  display: flex;
+  gap: 1.1rem;
+}
+
+.tab {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0 0 0.5rem;
+  margin-bottom: -1px;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.tab:hover { color: var(--text); }
+.tab.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+/* --- debug bar --- */
+
+.debug-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+
+.debug-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.debug-input {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  font-family: inherit;
+  padding: 0.15rem 0.35rem;
+  color-scheme: dark;
+}
+
+.ghost-btn {
+  appearance: none;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.2rem 0.55rem;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ghost-btn:hover { color: var(--text); border-color: var(--text-dim); }
+
+main {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.tab-panel[hidden] { display: none; }
+
+/* --- progress tab --- */
+
+.progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1rem 0 0.5rem;
+}
+
+.bar-row .bar-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.bar-label {
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.bar-pct {
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.bar-track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.bar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.bar-sub {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- grid (continuous + weekly) --- */
+
+.grid {
+  padding-top: 1rem;
+}
+
+.grid.mode-continuous {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--cell));
+  gap: 0;
+}
+
+.grid.mode-weekly {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--gap) * 3);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.grid.mode-weekly::-webkit-scrollbar { display: none; }
+
+.week-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: calc(var(--gap) * 2);
+}
+
+.day-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: var(--gap);
+  width: fit-content;
+  padding-bottom: 3px;
+}
+
+.day-content.is-today-window {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.no-school-slot {
+  width: 100%;
+  height: var(--cell);
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  :root { --cell: 12px; --gap: 2px; }
+}
+@media (max-width: 420px) {
+  :root { --cell: 9px; --gap: 2px; }
+}
+
+.period {
+  position: relative;
+  width: var(--cell);
+  height: var(--cell);
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: transparent;
+  overflow: hidden;
+  flex: 0 0 auto;
+  cursor: default;
+}
+
+.period-fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 0%;
+  background: var(--done);
+  z-index: 0;
+}
+
+.period.is-live {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(91, 140, 255, 0.25);
+}
+.period.is-live .period-fill { background: var(--accent); }
+
+.period.is-today-upcoming {
+  background: #1e1f24;
+}
+
+.period .letter {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: transparent;
+  transition: color 0.1s ease;
+  pointer-events: none;
+}
+
+.period.is-group-hover {
+  border-color: rgba(91, 140, 255, 0.35);
+}
+.period.is-group-hover .letter {
+  color: rgba(231, 231, 234, 0.7);
+}
+
+.period:hover {
+  border-color: var(--accent);
+}
+.period:hover .letter {
+  color: var(--accent);
+}
+
+.semester-divider {
+  grid-column: 1 / -1;
+  height: 0;
+  border-top: 1px solid var(--border);
+  margin: 1.4rem 0;
+}
+
+.grid.mode-weekly .semester-divider {
+  margin: 0.3rem 0 0.7rem;
+}
+
+/* --- hover info panel --- */
+
+.info-panel {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  color: var(--text-dim);
+  min-width: 220px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.info-panel[hidden] { display: none; }
+
+.info-date {
+  color: var(--text);
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.info-period {
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+.info-period .info-cycle {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.2rem;
+}
+.info-row + .info-row { margin-top: 0.1rem; }
+.info-row span:last-child {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
