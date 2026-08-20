@@ -64,6 +64,13 @@ function ordinal(n) {
   return n + (suf[(v - 20) % 10] || suf[v] || suf[0]);
 }
 
+function formatClock(totalSeconds) {
+  totalSeconds = Math.max(0, Math.round(totalSeconds));
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
 // Monday (YYYYMMDD) of the calendar week containing this date, for weekly grouping.
 function mondayOf(dateStr) {
   const { y, m, d } = parseDate(dateStr);
@@ -301,7 +308,10 @@ function main() {
   }
 
   function getNow() {
-    return override || nowInChicago();
+    // debug time is a frozen preview -- seconds stay at :00 rather than
+    // ticking off real wall-clock time from an arbitrary chosen minute.
+    if (override) return { ...override, seconds: 0 };
+    return { ...nowInChicago(), seconds: new Date().getSeconds() };
   }
 
   function showInfo(day, p, evt) {
@@ -502,6 +512,48 @@ function main() {
     return bar(label, prog.pct, `${Math.round(prog.done)} of ${prog.total} periods · ${Math.round(prog.total - prog.done)} left`);
   }
 
+  function findLivePeriod(now) {
+    const today = days.find((d) => d.date === now.dateStr);
+    if (!today) return null;
+    for (const p of today.periods) {
+      if (!isLetterActive(today, p.label)) continue;
+      const prog = periodProgress(today, p, now);
+      if (prog > 0 && prog < 1) return p;
+    }
+    return null;
+  }
+
+  function currentPeriodBarHtml() {
+    const now = getNow();
+    const live = findLivePeriod(now);
+
+    if (!live) {
+      return `
+        <div class="bar-row" id="current-period-bar">
+          <div class="bar-top"><div class="bar-label">Current Period</div><div class="bar-pct">—</div></div>
+          <div class="bar-track"><div class="bar-fill" style="width:0%"></div></div>
+          <div class="bar-sub">No period in progress</div>
+        </div>`;
+    }
+
+    const totalSec = (live.endMinutes - live.startMinutes) * 60;
+    const elapsedSec = Math.min(totalSec, Math.max(0, (now.minutes - live.startMinutes) * 60 + now.seconds));
+    const remainingSec = totalSec - elapsedSec;
+    const pct = (elapsedSec / totalSec) * 100;
+
+    return `
+      <div class="bar-row" id="current-period-bar">
+        <div class="bar-top"><div class="bar-label">Current Period — ${live.label}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <div class="bar-sub">${formatClock(elapsedSec)} elapsed · ${formatClock(remainingSec)} remaining</div>
+      </div>`;
+  }
+
+  function tickCurrentPeriodBar() {
+    const el = document.getElementById("current-period-bar");
+    if (el) el.outerHTML = currentPeriodBarHtml();
+  }
+
   function renderProgress(now) {
     const semester = now.dateStr <= boundary ? 1 : 2;
     const quarter = quarterOfDate(now.dateStr, boundary, qb);
@@ -526,6 +578,7 @@ function main() {
       barOrEmpty(`Quarter ${quarter}`, q, "No school"),
       barOrEmpty("This Week", week, "No school this week"),
       barOrEmpty("Today", dayProg, "No school today"),
+      currentPeriodBarHtml(),
     ].join("");
   }
 
@@ -696,6 +749,7 @@ function main() {
   render();
   setTab("progress");
   setInterval(render, REFRESH_MS);
+  setInterval(tickCurrentPeriodBar, 1000);
 }
 
 main();
