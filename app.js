@@ -26,9 +26,9 @@ function applyAccent(name) {
   localStorage.setItem("tv-accent", c.name);
 }
 
-// defaults to your stated periods (A, B, D, G) so the filter is immediately
-// useful; flip "enabled" off in the settings panel to see everything again.
-const DEFAULT_FILTER = { enabled: true, split: false, s1: ["A", "B", "D", "G"], s2: ["A", "B", "D", "G"] };
+// starts off (shows everyone's periods); the letters pre-fill to A/B/D/G so
+// flipping "Show only my periods" on in settings is immediately useful.
+const DEFAULT_FILTER = { enabled: false, split: false, s1: ["A", "B", "D", "G"], s2: ["A", "B", "D", "G"] };
 
 function loadFilter() {
   try {
