@@ -254,6 +254,47 @@ function main() {
     return progressOf(mapped, now);
   }
 
+  function countVisiblePeriods() {
+    let count = 0;
+    for (const day of days) {
+      for (const p of day.periods) {
+        if (isLetterActive(day, p.label)) count += 1;
+      }
+    }
+    return count;
+  }
+
+  // On desktop, size the grid squares so the continuous view's rows fill
+  // the available viewport height instead of leaving empty space below a
+  // small fixed size. Measured off <main>/<tabs> rather than the grid
+  // itself, since the grid's own container may be display:none on another
+  // tab. Below the desktop breakpoint, defer back to the CSS media queries.
+  const DESKTOP_BREAKPOINT = 768;
+  function fitGridCellSize(count) {
+    if (window.innerWidth < DESKTOP_BREAKPOINT) {
+      document.documentElement.style.removeProperty("--cell");
+      document.documentElement.style.removeProperty("--gap");
+      return;
+    }
+    const mainEl = document.querySelector("main");
+    const tabsEl = document.getElementById("tabs");
+    const availWidth = mainEl.clientWidth;
+    const contentTop = tabsEl.getBoundingClientRect().bottom;
+    // leave room for the semester-divider's own margin, so the grid doesn't
+    // slightly overflow the viewport once it's inserted.
+    const availHeight = Math.max(200, window.innerHeight - contentTop - 24 - 50);
+
+    const minSize = 8, maxSize = 40;
+    let best = minSize;
+    for (let s = maxSize; s >= minSize; s--) {
+      const cols = Math.max(1, Math.floor(availWidth / s));
+      const rows = Math.ceil(count / cols);
+      if (rows * s <= availHeight) { best = s; break; }
+    }
+    document.documentElement.style.setProperty("--cell", best + "px");
+    document.documentElement.style.setProperty("--gap", Math.max(2, Math.round(best / 6)) + "px");
+  }
+
   function getNow() {
     return override || nowInChicago();
   }
@@ -312,7 +353,7 @@ function main() {
     const sq = document.createElement("div");
     sq.className = "period";
     sq.dataset.date = day.date;
-    if (!isLetterActive(day, p.label)) sq.classList.add("is-dimmed");
+    if (!isLetterActive(day, p.label)) sq.classList.add("is-filtered");
 
     const fill = document.createElement("div");
     fill.className = "period-fill";
@@ -488,12 +529,19 @@ function main() {
 
   function render() {
     const now = getNow();
+    fitGridCellSize(countVisiblePeriods());
     gridContinuousEl.innerHTML = "";
     gridWeeklyEl.innerHTML = "";
     continuousTarget = buildContinuous(gridContinuousEl, now);
     weeklyTarget = buildWeekly(gridWeeklyEl, now);
     renderProgress(now);
   }
+
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(render, 150);
+  });
 
   // --- tabs ---
   const tabButtons = [...document.querySelectorAll(".tab")];
