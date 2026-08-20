@@ -36,7 +36,7 @@ no network request, no build step at runtime.
 
 ```
 index.html, style.css, app.js   the site itself
-data.js                          the schedule, embedded as SCHOOL_YEAR_DATA (what the site actually reads)
+data.js                          the schedule, embedded as SCHOOL_YEAR_DATA + QUARTER_MARKS (what the site actually reads)
 
 data/
   school_year_2026_2027.csv      the schedule, hand-editable — THE SOURCE OF TRUTH during the year
@@ -61,6 +61,7 @@ row per school day:
 | `weekday` | just for readability — the build script recomputes this from `date` and ignores what's typed here |
 | `summary` | the day's label / reason for no school (shows on hover for non-school days) |
 | `A_start` … `G_end` | start/end time for each lettered period that meets that day, `HH:MM` in 24-hour time. Leave **both** cells blank for a letter that doesn't meet |
+| `quarter_end` | optional. `1` on Q1's last day, `3` on Q3's last day. Leave blank everywhere else — Q2 always ends at the semester boundary and Q4 at the last day of the year, so they're never marked |
 
 The school's rotation cycles continuously through A→B→C→D→E→F→G→A… — a day
 might run e.g. `[F,G,A,B,C]`, wrapping past G back to A. That's normal; the
@@ -123,12 +124,14 @@ set of files rather than overwriting these:
 - **Semester boundary**: auto-detected as the last day whose calendar
   summary contains "First Semester Exams". No manual configuration needed
   each year, as long as the school keeps using that label.
-- **Quarter boundary**: this year's calendar doesn't carry explicit quarter
-  markers, so quarters are **approximated** by splitting each semester's
-  periods exactly in half by count. It'll be close but isn't guaranteed to
-  match the school's actual grading-period cutoff to the day. If a future
-  year's calendar does carry real quarter markers, this could be made
-  exact — flag it if you want that revisited.
+- **Quarter boundary**: the school's calendar itself doesn't carry quarter
+  markers, so by default Q1/Q3 end dates are *approximated* by splitting
+  each semester's periods exactly in half by count. Once you know the real
+  dates (report cards, registrar, etc.), set them exactly via the CSV's
+  `quarter_end` column — see the table above. This year's CSV already has
+  the real Q1 (Oct 13) and Q3 (Mar 11) dates set. Q2 and Q4 are never
+  approximated — they're always exactly the semester boundary and the last
+  day of the year, respectively.
 - **Cycle** (Progress tab, and "Cycle N out of M" on hover): the A–G letter
   tag was verified to cycle with zero breaks across the entire year's
   period sequence, including across weekends and breaks. "Cycle" is just

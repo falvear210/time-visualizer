@@ -75,8 +75,10 @@ function findSemesterBoundary(days) {
   return boundary;
 }
 
-// SLUH's calendar isn't tagged with quarter boundaries for this year, so we
-// approximate: split each semester's period-stream in half by count.
+// Q1 and Q3 end dates come from data.js's QUARTER_MARKS when the CSV has
+// them (see csv_to_data.py); otherwise fall back to an even split of each
+// semester's period-stream by count. Q2 always ends at the semester
+// boundary and Q4 at the last day of the year, so neither needs a mark.
 function computeQuarterBoundaries(days, boundary) {
   function midpoint(filterFn) {
     const scoped = days.filter((d) => d.periods.length && filterFn(d.date));
@@ -89,9 +91,10 @@ function computeQuarterBoundaries(days, boundary) {
     }
     return scoped.length ? scoped[scoped.length - 1].date : null;
   }
+  const marks = typeof QUARTER_MARKS !== "undefined" ? QUARTER_MARKS : {};
   return {
-    mid1: midpoint((d) => d <= boundary),
-    mid2: midpoint((d) => d > boundary),
+    mid1: marks["1"] || midpoint((d) => d <= boundary),
+    mid2: marks["3"] || midpoint((d) => d > boundary),
   };
 }
 

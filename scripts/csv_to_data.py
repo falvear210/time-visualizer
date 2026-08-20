@@ -7,6 +7,11 @@ changes, whatever. It validates the sheet first and refuses to touch the
 site's data if anything looks broken, so a bad edit can't silently corrupt
 the live page.
 
+An optional "quarter_end" column may mark "1" on Q1's last day and "3" on
+Q3's last day (Q2 always ends at the semester boundary, Q4 at the last day
+of the year, so neither needs marking). Leave it blank/omit the column to
+fall back to an even split-by-period-count approximation.
+
 Usage: python3 csv_to_data.py <input.csv> <output.json> <output.js>
 """
 import csv
@@ -95,7 +100,26 @@ def process_row(row, row_num, errors, warnings):
                     f"row {row_num} ({raw_date}): periods {a['label']} and {b['label']} overlap"
                 )
 
-    return {"date": date_str, "weekday": computed_weekday, "summary": summary, "periods": periods}
+    quarter_end = row.get("quarter_end", "").strip()
+    if quarter_end and quarter_end not in ("1", "3"):
+        errors.append(
+            f"row {row_num} ({raw_date}): quarter_end=\"{quarter_end}\" -- only \"1\" or \"3\" make "
+            f"sense here (Q2 always ends at the semester boundary, Q4 at the last day of the year)"
+        )
+        quarter_end = ""
+
+    return {
+        "date": date_str, "weekday": computed_weekday, "summary": summary,
+        "periods": periods, "quarter_end": quarter_end, "row_num": row_num,
+    }
+
+
+def find_semester_boundary(days):
+    boundary = None
+    for d in days:
+        if "first semester exams" in d["summary"].lower():
+            boundary = d["date"]
+    return boundary
 
 
 def main():
@@ -121,6 +145,26 @@ def main():
             seen_dates.add(entry["date"])
             days.append(entry)
 
+    days.sort(key=lambda d: d["date"])
+    boundary = find_semester_boundary(days)
+
+    quarter_marks = {}
+    for d in days:
+        q = d["quarter_end"]
+        if not q:
+            continue
+        if q in quarter_marks:
+            errors.append(
+                f"row {d['row_num']} ({d['date']}): another row already marked quarter_end={q} "
+                f"({quarter_marks[q]}) -- only one row can mark each quarter"
+            )
+            continue
+        if q == "1" and boundary and d["date"] > boundary:
+            errors.append(f"row {d['row_num']} ({d['date']}): quarter_end=1 falls after the semester boundary ({boundary}) -- Q1 should be in semester 1")
+        if q == "3" and boundary and d["date"] <= boundary:
+            errors.append(f"row {d['row_num']} ({d['date']}): quarter_end=3 falls in or before semester 1 (boundary {boundary}) -- Q3 should be in semester 2")
+        quarter_marks[q] = d["date"]
+
     if warnings:
         print(f"{len(warnings)} warning(s):")
         for w in warnings:
@@ -132,16 +176,22 @@ def main():
             print(f"  - {e}")
         sys.exit(1)
 
-    days.sort(key=lambda d: d["date"])
+    # strip the CSV-only bookkeeping fields before writing the site's data
+    clean_days = [{"date": d["date"], "weekday": d["weekday"], "summary": d["summary"], "periods": d["periods"]} for d in days]
 
     with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(days, f, indent=2)
+        json.dump(clean_days, f, indent=2)
     with open(js_path, "w", encoding="utf-8") as f:
         f.write("const SCHOOL_YEAR_DATA = ")
-        json.dump(days, f)
+        json.dump(clean_days, f)
+        f.write(";\n")
+        f.write("const QUARTER_MARKS = ")
+        json.dump(quarter_marks, f)
         f.write(";\n")
 
-    print(f"\nOK: {len(days)} days -> {json_path} and {js_path}")
+    print(f"\nOK: {len(clean_days)} days -> {json_path} and {js_path}")
+    if quarter_marks:
+        print(f"  explicit quarter boundaries: {quarter_marks}")
 
 
 if __name__ == "__main__":

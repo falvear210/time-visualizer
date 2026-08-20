@@ -66,6 +66,7 @@ def main():
     header = ["date", "weekday", "summary"]
     for letter in LETTERS:
         header += [f"{letter}_start", f"{letter}_end"]
+    header.append("quarter_end")
 
     with open(out_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -82,6 +83,7 @@ def main():
                     row += [minutes_to_hhmm(p["startMinutes"]), minutes_to_hhmm(p["endMinutes"])]
                 else:
                     row += ["", ""]
+            row.append("")  # quarter_end: fill in by hand once real dates are known
             writer.writerow(row)
 
     print(f"Wrote {len(days)} days -> {out_path}")
