@@ -4,6 +4,45 @@ const REFRESH_MS = 30000;
 const MONTH_NAMES = ["January","February","March","April","May","June",
   "July","August","September","October","November","December"];
 const WEEKDAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const ALL_LETTERS = ["A", "B", "C", "D", "E", "F", "G"];
+
+const ACCENT_COLORS = [
+  { name: "blue", hex: "#5b8cff", rgb: "91, 140, 255" },
+  { name: "violet", hex: "#a78bfa", rgb: "167, 139, 250" },
+  { name: "green", hex: "#34d399", rgb: "52, 211, 153" },
+  { name: "amber", hex: "#f59e0b", rgb: "245, 158, 11" },
+  { name: "rose", hex: "#fb7185", rgb: "251, 113, 133" },
+];
+
+function applyTheme(mode) {
+  document.documentElement.setAttribute("data-theme", mode);
+  localStorage.setItem("tv-theme", mode);
+}
+
+function applyAccent(name) {
+  const c = ACCENT_COLORS.find((a) => a.name === name) || ACCENT_COLORS[0];
+  document.documentElement.style.setProperty("--accent", c.hex);
+  document.documentElement.style.setProperty("--accent-rgb", c.rgb);
+  localStorage.setItem("tv-accent", c.name);
+}
+
+// defaults to your stated periods (A, B, D, G) so the filter is immediately
+// useful; flip "enabled" off in the settings panel to see everything again.
+const DEFAULT_FILTER = { enabled: true, split: false, s1: ["A", "B", "D", "G"], s2: ["A", "B", "D", "G"] };
+
+function loadFilter() {
+  try {
+    const raw = localStorage.getItem("tv-filter");
+    if (!raw) return { ...DEFAULT_FILTER };
+    return { ...DEFAULT_FILTER, ...JSON.parse(raw) };
+  } catch (e) {
+    return { ...DEFAULT_FILTER };
+  }
+}
+
+function saveFilter(f) {
+  localStorage.setItem("tv-filter", JSON.stringify(f));
+}
 
 function parseDate(yyyymmdd) {
   const y = +yyyymmdd.slice(0, 4), m = +yyyymmdd.slice(4, 6), d = +yyyymmdd.slice(6, 8);
@@ -195,6 +234,25 @@ function main() {
   const debugLiveBtn = document.getElementById("debug-live");
 
   let override = null; // {dateStr, minutes} while debugging, else null
+  let filterState = loadFilter();
+
+  function isLetterActive(day, letter) {
+    if (!filterState.enabled) return true;
+    const sem = day.date <= boundary ? "s1" : "s2";
+    const set = filterState.split && sem === "s2" ? filterState.s2 : filterState.s1;
+    return set.includes(letter);
+  }
+
+  // same shape progressOf() expects, but with non-matching periods dropped
+  // when the "my periods" filter is on.
+  function progressOfFiltered(dayList, now) {
+    if (!filterState.enabled) return progressOf(dayList, now);
+    const mapped = dayList.map((d) => ({
+      date: d.date,
+      periods: d.periods.filter((p) => isLetterActive(d, p.label)),
+    }));
+    return progressOf(mapped, now);
+  }
 
   function getNow() {
     return override || nowInChicago();
@@ -254,6 +312,7 @@ function main() {
     const sq = document.createElement("div");
     sq.className = "period";
     sq.dataset.date = day.date;
+    if (!isLetterActive(day, p.label)) sq.classList.add("is-dimmed");
 
     const fill = document.createElement("div");
     fill.className = "period-fill";
@@ -401,18 +460,18 @@ function main() {
     const semester = now.dateStr <= boundary ? 1 : 2;
     const quarter = quarterOfDate(now.dateStr, boundary, qb);
 
-    const year = progressOf(days, now);
+    const year = progressOfFiltered(days, now);
     const semDays = days.filter((d) => semester === 1 ? d.date <= boundary : d.date > boundary);
-    const sem = progressOf(semDays, now);
+    const sem = progressOfFiltered(semDays, now);
     const qDays = days.filter((d) => d.periods.length && quarterOfDate(d.date, boundary, qb) === quarter);
-    const q = progressOf(qDays, now);
+    const q = progressOfFiltered(qDays, now);
 
     const mon = mondayOf(now.dateStr);
     const weekDays = days.filter((d) => d.periods.length && mondayOf(d.date) === mon);
-    const week = progressOf(weekDays, now);
+    const week = progressOfFiltered(weekDays, now);
 
     const today = days.find((d) => d.date === now.dateStr);
-    const dayProg = progressOf(today ? [today] : [], now);
+    const dayProg = progressOfFiltered(today ? [today] : [], now);
 
     progressEl.classList.add("progress-list");
     progressEl.innerHTML = [
@@ -469,6 +528,117 @@ function main() {
     debugInput.value = "";
     render();
   });
+
+  // debug controls are only for testing -- keep them out of the way unless
+  // explicitly requested via #debug in the URL.
+  const debugBar = document.getElementById("debug-bar");
+  function updateDebugVisibility() {
+    debugBar.hidden = window.location.hash.toLowerCase() !== "#debug";
+  }
+  updateDebugVisibility();
+  window.addEventListener("hashchange", updateDebugVisibility);
+
+  // --- settings & help overlay ---
+  applyAccent(localStorage.getItem("tv-accent") || ACCENT_COLORS[0].name);
+
+  const overlay = document.getElementById("overlay");
+  const settingsPanel = document.getElementById("settings-panel");
+  const helpPanel = document.getElementById("help-panel");
+  const accentRow = document.getElementById("accent-row");
+  const modeButtons = [...document.querySelectorAll(".mode-btn")];
+  const filterEnabledCb = document.getElementById("filter-enabled");
+  const filterSplitCb = document.getElementById("filter-split");
+  const lettersS1El = document.getElementById("letters-s1");
+  const lettersS2El = document.getElementById("letters-s2");
+
+  ACCENT_COLORS.forEach((c) => {
+    const dot = document.createElement("button");
+    dot.type = "button";
+    dot.className = "accent-dot";
+    dot.style.background = c.hex;
+    dot.title = c.name;
+    dot.addEventListener("click", () => {
+      applyAccent(c.name);
+      refreshSettingsUI();
+    });
+    accentRow.appendChild(dot);
+  });
+
+  modeButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      applyTheme(btn.dataset.mode);
+      refreshSettingsUI();
+    });
+  });
+
+  function renderLetterRow(container, selected, onToggle) {
+    container.innerHTML = "";
+    ALL_LETTERS.forEach((letter) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "letter-chip" + (selected.includes(letter) ? " active" : "");
+      chip.textContent = letter;
+      chip.addEventListener("click", () => onToggle(letter));
+      container.appendChild(chip);
+    });
+  }
+
+  function toggleLetter(list, letter) {
+    const i = list.indexOf(letter);
+    if (i === -1) list.push(letter); else list.splice(i, 1);
+  }
+
+  function refreshSettingsUI() {
+    const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+    modeButtons.forEach((b) => b.classList.toggle("active", b.dataset.mode === currentTheme));
+    const currentAccent = localStorage.getItem("tv-accent") || ACCENT_COLORS[0].name;
+    [...accentRow.children].forEach((dot, i) => dot.classList.toggle("active", ACCENT_COLORS[i].name === currentAccent));
+
+    filterEnabledCb.checked = filterState.enabled;
+    filterSplitCb.checked = filterState.split;
+    lettersS2El.hidden = !filterState.split;
+
+    renderLetterRow(lettersS1El, filterState.s1, (letter) => {
+      toggleLetter(filterState.s1, letter);
+      saveFilter(filterState);
+      refreshSettingsUI();
+      render();
+    });
+    renderLetterRow(lettersS2El, filterState.s2, (letter) => {
+      toggleLetter(filterState.s2, letter);
+      saveFilter(filterState);
+      refreshSettingsUI();
+      render();
+    });
+  }
+
+  filterEnabledCb.addEventListener("change", () => {
+    filterState.enabled = filterEnabledCb.checked;
+    saveFilter(filterState);
+    render();
+  });
+  filterSplitCb.addEventListener("change", () => {
+    filterState.split = filterSplitCb.checked;
+    lettersS2El.hidden = !filterState.split;
+    saveFilter(filterState);
+    render();
+  });
+
+  function openPanel(which) {
+    overlay.hidden = false;
+    settingsPanel.hidden = which !== "settings";
+    helpPanel.hidden = which !== "help";
+    if (which === "settings") refreshSettingsUI();
+  }
+  function closeOverlay() {
+    overlay.hidden = true;
+  }
+
+  document.getElementById("settings-btn").addEventListener("click", () => openPanel("settings"));
+  document.getElementById("help-btn").addEventListener("click", () => openPanel("help"));
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) closeOverlay(); });
+  document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", closeOverlay));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeOverlay(); });
 
   render();
   setTab("progress");

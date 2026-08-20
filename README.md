@@ -23,9 +23,19 @@ The page has three tabs:
   there's no school that day. Winter break is intentionally left
   unexplained on hover — it's the obvious gap between semesters.
 
-There's also a **debug time** field in the header, for previewing how the
-page looks at any date/time without waiting for it — useful when testing a
-schedule edit.
+The **⚙ settings** panel lets you switch light/dark and pick an accent
+color, and filter the grid and progress bars down to just the periods you
+teach — check the letters you teach for Semester 1, optionally check
+"Different periods in Semester 2" if your schedule changes, and everything
+(grid dimming, all five progress bars) recomputes against just those
+periods. All of this is remembered per-browser (`localStorage`), so it
+sticks across reloads. The **? instructions** button has a quick in-page
+explanation of all of the above.
+
+There's also a **debug time** field, for previewing how the page looks at
+any date/time without waiting for it — useful when testing a schedule
+edit. It's hidden by default; add `#debug` to the URL
+(`index.html#debug`) to reveal it.
 
 The page is fully self-contained: `data.js` has the whole year's schedule
 baked in as a JS constant, so `index.html` works by just opening the file
@@ -148,6 +158,9 @@ set of files rather than overwriting these:
 - **Times look off by the AM/PM you expected** — the CSV only accepts
   24-hour `HH:MM` (e.g. `13:20`, not `1:20pm`), specifically to avoid the
   AM/PM ambiguity bugs the original ICS parsing had.
-- **Testing how something will look on a specific date/time** — use the
-  **debug time** field in the page header instead of waiting for real time
-  to pass, or editing your system clock.
+- **Testing how something will look on a specific date/time** — open
+  `index.html#debug` to reveal the **debug time** field instead of waiting
+  for real time to pass, or editing your system clock.
+- **Progress numbers look lower than expected** — check whether "Show only
+  my periods" is on in settings; it filters every bar (and the grid) down
+  to your selected letters.

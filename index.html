@@ -4,22 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>2026–2027</title>
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
+<script>
+  // set the theme before first paint, so there's no flash of the wrong theme
+  (function () {
+    try {
+      var t = localStorage.getItem("tv-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  })();
+</script>
 </head>
 <body>
 <header class="topbar">
-  <nav class="tabs" id="tabs">
-    <button class="tab" data-tab="progress" type="button">progress</button>
-    <button class="tab" data-tab="continuous" type="button">continuous</button>
-    <button class="tab" data-tab="weekly" type="button">weekly</button>
-  </nav>
-  <div class="debug-bar">
-    <label class="debug-label">debug time
-      <input type="datetime-local" id="debug-time" class="debug-input">
-    </label>
-    <button id="debug-live" class="ghost-btn" type="button">live</button>
+  <h1 class="title">SLUH · 2026–2027</h1>
+  <div class="header-controls">
+    <button id="help-btn" class="icon-btn" type="button" title="Instructions" aria-label="Instructions">?</button>
+    <button id="settings-btn" class="icon-btn" type="button" title="Settings" aria-label="Settings">⚙</button>
   </div>
 </header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab" data-tab="progress" type="button">progress</button>
+  <button class="tab" data-tab="continuous" type="button">continuous</button>
+  <button class="tab" data-tab="weekly" type="button">weekly</button>
+</nav>
+
+<div class="debug-bar" id="debug-bar" hidden>
+  <label class="debug-label">debug time
+    <input type="datetime-local" id="debug-time" class="debug-input">
+  </label>
+  <button id="debug-live" class="ghost-btn" type="button">live</button>
+</div>
 
 <main>
   <section id="tab-progress" class="tab-panel"></section>
@@ -33,7 +49,61 @@
 
 <div id="info-panel" class="info-panel" hidden></div>
 
+<div id="overlay" class="overlay" hidden>
+  <div class="panel" id="settings-panel" hidden>
+    <div class="panel-head">
+      <span>Settings</span>
+      <button class="icon-btn" data-close type="button" aria-label="Close">✕</button>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Appearance</div>
+      <div class="theme-row">
+        <button class="mode-btn" data-mode="dark" type="button">Dark</button>
+        <button class="mode-btn" data-mode="light" type="button">Light</button>
+      </div>
+      <div class="accent-row" id="accent-row"></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">
+        <label><input type="checkbox" id="filter-enabled"> Show only my periods</label>
+      </div>
+      <div class="letter-row" id="letters-s1"></div>
+      <div class="panel-label">
+        <label><input type="checkbox" id="filter-split"> Different periods in Semester 2</label>
+      </div>
+      <div class="letter-row" id="letters-s2" hidden></div>
+    </div>
+  </div>
+
+  <div class="panel" id="help-panel" hidden>
+    <div class="panel-head">
+      <span>Instructions</span>
+      <button class="icon-btn" data-close type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="help-body">
+      <p>Each square is one class period. Squares fill in from the bottom
+      up as the period happens — empty means upcoming, solid grey means
+      done, and the current period fills live in accent color.</p>
+      <p><strong>Progress</strong> shows completion bars for the academic
+      year, current semester, quarter, week, and today.</p>
+      <p><strong>Continuous</strong> is every period of the year in one
+      grid, no gaps between days. Hover a square to see its date and where
+      it falls in the semester/year, and to light up the rest of that
+      day's periods.</p>
+      <p><strong>Weekly</strong> lays the same data out as one row per
+      week, Mon–Fri as columns, so short weeks (holidays, breaks) show up
+      as visibly empty columns. Hover an empty column to see why there's
+      no school, and hover a period to light up its 7-period rotation
+      cycle across days.</p>
+      <p>Use the ⚙ settings panel to switch light/dark and accent color,
+      and to filter the grid down to just the periods you teach.</p>
+    </div>
+  </div>
+</div>
+
 <script src="data.js"></script>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>
