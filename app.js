@@ -269,11 +269,14 @@ function main() {
   // small fixed size. Measured off <main>/<tabs> rather than the grid
   // itself, since the grid's own container may be display:none on another
   // tab. Below the desktop breakpoint, defer back to the CSS media queries.
+  // Column count is pinned to a multiple of 7, so every row holds a whole
+  // number of rotation cycles at a glance.
   const DESKTOP_BREAKPOINT = 768;
   function fitGridCellSize(count) {
     if (window.innerWidth < DESKTOP_BREAKPOINT) {
       document.documentElement.style.removeProperty("--cell");
       document.documentElement.style.removeProperty("--gap");
+      document.documentElement.style.removeProperty("--cols");
       return;
     }
     const mainEl = document.querySelector("main");
@@ -285,14 +288,16 @@ function main() {
     const availHeight = Math.max(200, window.innerHeight - contentTop - 24 - 50);
 
     const minSize = 8, maxSize = 40;
-    let best = minSize;
+    let best = { size: minSize, cols: 7 };
     for (let s = maxSize; s >= minSize; s--) {
-      const cols = Math.max(1, Math.floor(availWidth / s));
+      const rawCols = Math.floor(availWidth / s);
+      const cols = Math.max(7, Math.floor(rawCols / 7) * 7);
       const rows = Math.ceil(count / cols);
-      if (rows * s <= availHeight) { best = s; break; }
+      if (rows * s <= availHeight) { best = { size: s, cols }; break; }
     }
-    document.documentElement.style.setProperty("--cell", best + "px");
-    document.documentElement.style.setProperty("--gap", Math.max(2, Math.round(best / 6)) + "px");
+    document.documentElement.style.setProperty("--cell", best.size + "px");
+    document.documentElement.style.setProperty("--gap", Math.max(2, Math.round(best.size / 6)) + "px");
+    document.documentElement.style.setProperty("--cols", String(best.cols));
   }
 
   function getNow() {

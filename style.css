@@ -231,7 +231,7 @@ main {
 
 .grid.mode-continuous {
   display: grid;
-  grid-template-columns: repeat(auto-fill, var(--cell));
+  grid-template-columns: repeat(var(--cols, auto-fill), var(--cell));
   gap: 0;
 }
 
