@@ -818,7 +818,7 @@ function main() {
       barOrEmpty(`Quarter ${quarter}`, q, "No school"),
       nextBreakBarHtml(),
       milestoneBarHtml(now),
-      barOrEmpty("This Week", week, "No school this week"),
+      barOrEmpty("Until Weekend", week, "No school this week"),
       barOrEmpty("Today", dayProg, "No school today"),
       currentPeriodBarHtml(),
     ].join("");
