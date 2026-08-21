@@ -77,12 +77,12 @@ function formatFullDate(yyyymmdd, weekday) {
   return `${weekday}, ${MONTH_NAMES[m - 1]} ${d}, ${y}`;
 }
 
-function formatClockMs(totalMs) {
+function formatClockTenths(totalMs) {
   totalMs = Math.max(0, Math.round(totalMs));
   const m = Math.floor(totalMs / 60000);
   const s = Math.floor((totalMs % 60000) / 1000);
-  const ms = totalMs % 1000;
-  return `${m}:${String(s).padStart(2, "0")}.${String(ms).padStart(3, "0")}`;
+  const tenths = Math.floor((totalMs % 1000) / 100);
+  return `${m}:${String(s).padStart(2, "0")}.${tenths}`;
 }
 
 // Monday (YYYYMMDD) of the calendar week containing this date, for weekly grouping.
@@ -207,6 +207,22 @@ function progressOf(dayList, now) {
   return { total, done, pct: total ? (done / total) * 100 : 0 };
 }
 
+// like progressOf, but counts whole school days instead of periods -- for
+// bars phrased as "N school days left" rather than "N periods left". A day
+// in progress counts as the average of its own periods' progress.
+function schoolDayProgress(dayList, now) {
+  let total = 0, done = 0;
+  for (const day of dayList) {
+    if (!day.periods.length) continue;
+    total += 1;
+    if (day.date < now.dateStr) { done += 1; continue; }
+    if (day.date > now.dateStr) continue;
+    const sum = day.periods.reduce((s, p) => s + periodProgress(day, p, now), 0);
+    done += sum / day.periods.length;
+  }
+  return { total, done, pct: total ? (done / total) * 100 : 0 };
+}
+
 // =============================================================================
 // "Next Break" detection -- a break is 3+ *consecutive calendar days* off,
 // including weekends (which never appear in `days` at all). PD days are
@@ -268,19 +284,19 @@ function daysBetween(a, b) {
   return Math.round((db - da) / 86400000);
 }
 
-// "3d 4h 05m 09.123s" style countdown, for the Next Break bar's live timer.
-// Milliseconds are pure comedy -- nobody needs a break countdown this
+// "3d 4h 05m 09.3s" style countdown, for the Next Break bar's live timer.
+// The tenths digit is pure comedy -- nobody needs a break countdown this
 // precise, which is exactly the point.
-function formatCountdownMs(totalMs) {
+function formatCountdownTenths(totalMs) {
   totalMs = Math.max(0, Math.round(totalMs));
   const d = Math.floor(totalMs / 86400000);
   const h = Math.floor((totalMs % 86400000) / 3600000);
   const m = Math.floor((totalMs % 3600000) / 60000);
   const s = Math.floor((totalMs % 60000) / 1000);
-  const ms = totalMs % 1000;
+  const tenths = Math.floor((totalMs % 1000) / 100);
   const parts = [];
   if (d) parts.push(`${d}d`);
-  parts.push(`${h}h`, `${String(m).padStart(d || h ? 2 : 1, "0")}m`, `${String(s).padStart(2, "0")}.${String(ms).padStart(3, "0")}s`);
+  parts.push(`${h}h`, `${String(m).padStart(d || h ? 2 : 1, "0")}m`, `${String(s).padStart(2, "0")}.${tenths}s`);
   return parts.join(" ");
 }
 
@@ -358,6 +374,16 @@ function main() {
   // 3+ consecutive calendar days off, PD days excluded from counting as
   // "off" -- computed once, since the school calendar itself doesn't change.
   const qualifyingBreaks = findQualifyingBreaks(classifyCalendarDays(days, daysByDate), 3);
+  // the one qualifying break that actually covers Christmas -- the milestone
+  // bar below counts down to this, then flips to counting down to the last
+  // day of the year once it's over.
+  const winterBreak = qualifyingBreaks.find((b) => {
+    for (let d = b.start; d <= b.end; d = addDays(d, 1)) {
+      const entry = daysByDate.get(d);
+      if (entry && /christmas/i.test(entry.summary)) return true;
+    }
+    return false;
+  });
 
   // ---- DOM references ----
   const progressEl = document.getElementById("tab-progress");
@@ -693,7 +719,7 @@ function main() {
       <div class="bar-row" id="current-period-bar">
         <div class="bar-top"><div class="bar-label">Current Period — ${live.label}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
-        <div class="bar-sub">${formatClockMs(elapsedMs)} elapsed · ${formatClockMs(remainingMs)} remaining</div>
+        <div class="bar-sub">${formatClockTenths(elapsedMs)} elapsed · ${formatClockTenths(remainingMs)} remaining</div>
       </div>`;
   }
 
@@ -749,13 +775,41 @@ function main() {
       <div class="bar-row" id="next-break-bar">
         <div class="bar-top"><div class="bar-label">Next Break (3+ days) — ${name}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
-        <div class="bar-sub">${periodsLeft} periods · ${formatCountdownMs(ms)} to go</div>
+        <div class="bar-sub">${periodsLeft} periods · ${formatCountdownTenths(ms)} to go</div>
       </div>`;
   }
 
-  // Current Period and Next Break tick fast enough for their millisecond
-  // digits to actually move (via the interval at the bottom of main());
-  // everything else only needs the 30s full render.
+  // The "big picture" milestone bar: school days left until Winter Break,
+  // then -- once it's over -- school days left until the last day of the
+  // year. Counted in whole school days rather than periods, since that's
+  // the more natural unit for a milestone this far out.
+  function milestoneBarHtml(now) {
+    if (!winterBreak) {
+      const prog = schoolDayProgress(days.filter((d) => d.periods.length), now);
+      const left = Math.max(0, Math.round(prog.total - prog.done));
+      return bar("Until End of Year", prog.pct, `${left} school day${left === 1 ? "" : "s"} left`);
+    }
+
+    if (now.dateStr < winterBreak.start) {
+      const stretch = days.filter((d) => d.periods.length && d.date < winterBreak.start);
+      const prog = schoolDayProgress(stretch, now);
+      const left = Math.max(0, Math.round(prog.total - prog.done));
+      return bar("Until Winter Break", prog.pct, `${left} school day${left === 1 ? "" : "s"} left`);
+    }
+
+    if (now.dateStr <= winterBreak.end) {
+      return bar("Winter Break", 100, "Enjoy the holidays — you earned it.");
+    }
+
+    const stretch = days.filter((d) => d.periods.length && d.date > winterBreak.end);
+    const prog = schoolDayProgress(stretch, now);
+    const left = Math.max(0, Math.round(prog.total - prog.done));
+    return bar("Until End of Year", prog.pct, `${left} school day${left === 1 ? "" : "s"} left`);
+  }
+
+  // Current Period and Next Break tick fast enough for their tenths-of-a-
+  // second digit to actually move (via the interval at the bottom of
+  // main()); everything else only needs the 30s full render.
   function tickCurrentPeriodBar() {
     const el = document.getElementById("current-period-bar");
     if (el) el.outerHTML = currentPeriodBarHtml();
@@ -786,6 +840,7 @@ function main() {
       barOrEmpty(`Semester ${semester}`, sem, "No school"),
       barOrEmpty(`Quarter ${quarter}`, q, "No school"),
       nextBreakBarHtml(),
+      milestoneBarHtml(now),
       barOrEmpty("This Week", week, "No school this week"),
       barOrEmpty("Today", dayProg, "No school today"),
       currentPeriodBarHtml(),
@@ -974,7 +1029,7 @@ function main() {
   render();
   setTab(tabFromHash() || "progress", { fromHash: true });
   setInterval(render, REFRESH_MS);
-  setInterval(tickCurrentPeriodBar, 50);
+  setInterval(tickCurrentPeriodBar, 100);
 }
 
 main();

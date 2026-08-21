@@ -13,9 +13,9 @@ say, the continuous grid specifically as your start page):
 ![Tour of the tabs](docs/tabs-tour.gif)
 
 - **Progress** — stacked bars for Academic Year, current Semester, current
-  Quarter, **Next Break** (see below), This Week, Today, and a live
-  **Current Period** bar with an elapsed/remaining timer for whatever's
-  happening right now.
+  Quarter, **Next Break** and the **Winter Break / End of Year** milestone
+  bar (both below), This Week, Today, and a live **Current Period** bar
+  with an elapsed/remaining timer for whatever's happening right now.
 - **Continuous** — every period of the year in one seamless grid, in
   order, sized to fill the screen on desktop. No gaps between days.
 - **Weekly** — the same data laid out as one row per calendar week, Mon–Fri
@@ -26,8 +26,12 @@ The **Next Break** bar is for anyone counting down to the next stretch of
 3 or more consecutive calendar days off (a PD day or parent-teacher
 conference next to a weekend doesn't count — it's still a workday, so it
 can't create or extend a break). It shows periods remaining *and* a live
-countdown — right down to the millisecond, because if you're going to
+countdown — down to the tenth of a second, because if you're going to
 obsess over how close the break is, you may as well do it properly.
+
+Right below it, a milestone bar tracks the big one: school days left until
+**Winter Break**, then — once break is over — school days left until the
+**End of Year**. It switches over automatically once Winter Break ends.
 
 Hover any square for its date and where it sits in the semester/year —
 in **Continuous** this also lights up the rest of that day; in **Weekly**
