@@ -6,9 +6,9 @@ semester, and year progress. Meant to be bookmarked as a start page.
 
 ## How it works
 
-Three tabs, each independently linkable — add `#progress`, `#continuous`,
-or `#weekly` to the URL to land straight on that view (handy if you want,
-say, the continuous grid specifically as your start page):
+Four tabs, each independently linkable — add `#progress`, `#continuous`,
+`#weekly`, or `#current` to the URL to land straight on that view (handy if
+you want, say, the continuous grid specifically as your start page):
 
 ![Tour of the tabs](docs/tabs-tour.gif)
 
@@ -21,13 +21,15 @@ say, the continuous grid specifically as your start page):
 - **Weekly** — the same data laid out as one row per calendar week, Mon–Fri
   as fixed columns, so a short week (a holiday, a break) shows up as
   visibly empty columns instead of just vanishing.
+- **Current Period** — just the live Current Period bar, full-size, for
+  a glance at how much of the period is left without anything else on
+  screen.
 
 The **Next Break** bar is for anyone counting down to the next stretch of
 3 or more consecutive calendar days off (a PD day or parent-teacher
 conference next to a weekend doesn't count — it's still a workday, so it
-can't create or extend a break). It shows periods remaining *and* a live
-countdown — down to the tenth of a second, because if you're going to
-obsess over how close the break is, you may as well do it properly.
+can't create or extend a break). It shows school days left, counted in
+actual school days rather than raw calendar time.
 
 Right below it, a milestone bar tracks the big one: school days left until
 **Winter Break**, then — once break is over — school days left until the

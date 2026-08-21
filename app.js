@@ -278,43 +278,6 @@ function breakName(startDate, endDate, daysByDate) {
   return "Break";
 }
 
-// Milliseconds of actual school-day span (first period's start to last
-// period's end) remaining between `now` and `beforeDate`, exclusive --
-// nights and weekends don't count, so the Next Break countdown reflects
-// time actually spent at school rather than raw calendar time.
-function schoolHoursRemainingMs(days, now, beforeDate) {
-  const nowMinutes = now.minutes + now.seconds / 60 + now.ms / 60000;
-  let ms = 0;
-  for (const day of days) {
-    if (!day.periods.length || day.date < now.dateStr || day.date >= beforeDate) continue;
-    const dayStart = day.periods[0].startMinutes;
-    const dayEnd = day.periods[day.periods.length - 1].endMinutes;
-    if (day.date === now.dateStr) {
-      if (nowMinutes >= dayEnd) continue;
-      ms += (dayEnd - Math.max(nowMinutes, dayStart)) * 60000;
-    } else {
-      ms += (dayEnd - dayStart) * 60000;
-    }
-  }
-  return ms;
-}
-
-// "3d 4h 05m 09.3s" style countdown, for the Next Break bar's live timer.
-// The tenths digit is pure comedy -- nobody needs a break countdown this
-// precise, which is exactly the point.
-function formatCountdownTenths(totalMs) {
-  totalMs = Math.max(0, Math.round(totalMs));
-  const d = Math.floor(totalMs / 86400000);
-  const h = Math.floor((totalMs % 86400000) / 3600000);
-  const m = Math.floor((totalMs % 3600000) / 60000);
-  const s = Math.floor((totalMs % 60000) / 1000);
-  const tenths = Math.floor((totalMs % 1000) / 100);
-  const parts = [];
-  if (d) parts.push(`${d}d`);
-  parts.push(`${h}h`, `${String(m).padStart(d || h ? 2 : 1, "0")}m`, `${String(s).padStart(2, "0")}.${tenths}s`);
-  return parts.join(" ");
-}
-
 // =============================================================================
 // Per-period metadata -- annotates every period in `days` in place with its
 // position in the rotation/semester/year, used by the hover info panel.
@@ -402,6 +365,7 @@ function main() {
 
   // ---- DOM references ----
   const progressEl = document.getElementById("tab-progress");
+  const currentPeriodEl = document.getElementById("tab-current");
   const gridContinuousEl = document.getElementById("grid-continuous");
   const gridWeeklyEl = document.getElementById("grid-weekly");
   const infoPanel = document.getElementById("info-panel");
@@ -712,13 +676,15 @@ function main() {
     return null;
   }
 
-  function currentPeriodBarHtml() {
+  // `id` lets this render into two places at once (the Progress tab's bar
+  // list, and the standalone Current Period tab) without a duplicate DOM id.
+  function currentPeriodBarHtml(id = "current-period-bar") {
     const now = getNow();
     const live = findLivePeriod(now);
 
     if (!live) {
       return `
-        <div class="bar-row" id="current-period-bar">
+        <div class="bar-row" id="${id}">
           <div class="bar-top"><div class="bar-label">Current Period</div><div class="bar-pct">—</div></div>
           <div class="bar-track"><div class="bar-fill" style="width:0%"></div></div>
           <div class="bar-sub">No period in progress</div>
@@ -731,7 +697,7 @@ function main() {
     const pct = (elapsedMs / totalMs) * 100;
 
     return `
-      <div class="bar-row" id="current-period-bar">
+      <div class="bar-row" id="${id}">
         <div class="bar-top"><div class="bar-label">Current Period — ${live.label}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
         <div class="bar-sub">${formatClockTenths(elapsedMs)} elapsed · ${formatClockTenths(remainingMs)} remaining</div>
@@ -775,16 +741,16 @@ function main() {
     const stretchStart = prevBreak ? addDays(prevBreak.end, 1) : days[0].date;
     const stretchDays = days.filter((d) => d.date >= stretchStart && d.date < nb.start);
     const prog = progressOfFiltered(stretchDays, now);
-    const periodsLeft = Math.max(0, Math.round(prog.total - prog.done));
     const pct = prog.total ? (prog.done / prog.total) * 100 : 100;
 
-    const ms = schoolHoursRemainingMs(days, now, nb.start);
+    const dayProg = schoolDayProgress(stretchDays, now);
+    const daysLeft = Math.max(0, Math.round(dayProg.total - dayProg.done));
 
     return `
       <div class="bar-row" id="next-break-bar">
         <div class="bar-top"><div class="bar-label">Next Break (3+ days) — ${name}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
-        <div class="bar-sub">${periodsLeft} periods · ${formatCountdownTenths(ms)} of school time to go</div>
+        <div class="bar-sub">${daysLeft} school day${daysLeft === 1 ? "" : "s"} left</div>
       </div>`;
   }
 
@@ -822,6 +788,8 @@ function main() {
   function tickCurrentPeriodBar() {
     const el = document.getElementById("current-period-bar");
     if (el) el.outerHTML = currentPeriodBarHtml();
+    const solo = document.getElementById("current-period-bar-solo");
+    if (solo) solo.outerHTML = currentPeriodBarHtml("current-period-bar-solo");
     const nb = document.getElementById("next-break-bar");
     if (nb) nb.outerHTML = nextBreakBarHtml();
   }
@@ -869,6 +837,8 @@ function main() {
     continuousTarget = buildContinuous(gridContinuousEl, now);
     weeklyTarget = buildWeekly(gridWeeklyEl, now);
     renderProgress(now);
+    currentPeriodEl.classList.add("current-solo");
+    currentPeriodEl.innerHTML = currentPeriodBarHtml("current-period-bar-solo");
   }
 
   let resizeTimer = null;
@@ -885,6 +855,7 @@ function main() {
     progress: document.getElementById("tab-progress"),
     continuous: document.getElementById("tab-continuous"),
     weekly: document.getElementById("tab-weekly"),
+    current: document.getElementById("tab-current"),
   };
 
   function setTab(tab, opts = {}) {

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SLUH 26/27 AY Progress</title>
-<link rel="stylesheet" href="style.css?v=18">
+<link rel="stylesheet" href="style.css?v=19">
 <script>
   // set the theme before first paint, so there's no flash of the wrong theme
   (function () {
@@ -28,6 +28,7 @@
   <button class="tab" data-tab="progress" type="button">progress</button>
   <button class="tab" data-tab="continuous" type="button">continuous</button>
   <button class="tab" data-tab="weekly" type="button">weekly</button>
+  <button class="tab" data-tab="current" type="button">current period</button>
 </nav>
 
 <div class="debug-bar" id="debug-bar" hidden>
@@ -45,6 +46,7 @@
   <section id="tab-weekly" class="tab-panel" hidden>
     <div id="grid-weekly" class="grid mode-weekly"></div>
   </section>
+  <section id="tab-current" class="tab-panel" hidden></section>
 </main>
 
 <div id="info-panel" class="info-panel" hidden></div>
@@ -97,16 +99,19 @@
       as visibly empty columns. Hover an empty column to see why there's
       no school, and hover a period to light up its 7-period rotation
       cycle across days.</p>
+      <p><strong>Current Period</strong> is just the one live progress bar,
+      full-size — handy if all you want is a glance at how much of the
+      period is left.</p>
       <p>Use the ⚙ settings panel to switch light/dark and accent color,
       and to filter the grid down to just the periods you teach. Each tab
-      is linkable — add <code>#continuous</code>, <code>#weekly</code>, or
-      <code>#progress</code> to the URL to land on that view directly
-      (handy for a bookmarked start page).</p>
+      is linkable — add <code>#continuous</code>, <code>#weekly</code>,
+      <code>#current</code>, or <code>#progress</code> to the URL to land
+      on that view directly (handy for a bookmarked start page).</p>
     </div>
   </div>
 </div>
 
 <script src="data.js"></script>
-<script src="app.js?v=18"></script>
+<script src="app.js?v=19"></script>
 </body>
 </html>

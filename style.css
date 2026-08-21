@@ -224,6 +224,21 @@ main {
   font-variant-numeric: tabular-nums;
 }
 
+/* --- current period (solo) tab --- */
+
+.current-solo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 6rem);
+  padding: 1rem 0 2rem;
+}
+.current-solo .bar-row { width: 100%; max-width: 420px; }
+.current-solo .bar-label { font-size: 1.3rem; }
+.current-solo .bar-pct { font-size: 1.3rem; }
+.current-solo .bar-track { height: 22px; }
+.current-solo .bar-sub { margin-top: 0.6rem; font-size: 1rem; }
+
 /* --- grid (continuous + weekly) --- */
 
 .grid {
