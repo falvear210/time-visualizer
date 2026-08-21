@@ -24,10 +24,6 @@ LETTERS = ["A", "B", "C", "D", "E", "F", "G"]
 TIME_RE = re.compile(r"^([01]\d|2[0-3]):([0-5]\d)$")
 
 
-class RowIssue(Exception):
-    pass
-
-
 def parse_time(value, row_num, field, errors):
     m = TIME_RE.match(value.strip())
     if not m:

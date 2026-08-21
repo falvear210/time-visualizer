@@ -1,9 +1,12 @@
+// =============================================================================
+// Config
+// =============================================================================
+
 const TIME_ZONE = "America/Chicago";
-const REFRESH_MS = 30000;
+const REFRESH_MS = 30000; // full re-render cadence; live bars tick faster, see bottom
 
 const MONTH_NAMES = ["January","February","March","April","May","June",
   "July","August","September","October","November","December"];
-const WEEKDAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const ALL_LETTERS = ["A", "B", "C", "D", "E", "F", "G"];
 
 const ACCENT_COLORS = [
@@ -13,6 +16,14 @@ const ACCENT_COLORS = [
   { name: "amber", hex: "#f59e0b", rgb: "245, 158, 11" },
   { name: "rose", hex: "#fb7185", rgb: "251, 113, 133" },
 ];
+
+// =============================================================================
+// Theme + accent color -- applied to <html> as a data-attribute / CSS vars,
+// persisted to localStorage. Dark/light theme is also set once, early, by an
+// inline script in <head> (before this file loads) to avoid a flash of the
+// wrong theme; this file re-applies accent color on load and handles both
+// going forward as the settings panel is used.
+// =============================================================================
 
 function applyTheme(mode) {
   document.documentElement.setAttribute("data-theme", mode);
@@ -25,6 +36,12 @@ function applyAccent(name) {
   document.documentElement.style.setProperty("--accent-rgb", c.rgb);
   localStorage.setItem("tv-accent", c.name);
 }
+
+// =============================================================================
+// "My periods" filter -- lets a teacher narrow the grid/progress bars down to
+// just the letters they teach, optionally different in Semester 2. Persisted
+// to localStorage under "tv-filter".
+// =============================================================================
 
 // starts off (shows everyone's periods); the letters pre-fill to A/B/D/G so
 // flipping "Show only my periods" on in settings is immediately useful.
@@ -44,29 +61,20 @@ function saveFilter(f) {
   localStorage.setItem("tv-filter", JSON.stringify(f));
 }
 
+// =============================================================================
+// Date helpers -- dates are passed around as plain "YYYYMMDD" strings
+// throughout this file (matching the JSON schema), since that format sorts
+// and compares correctly as a string with no parsing needed.
+// =============================================================================
+
 function parseDate(yyyymmdd) {
   const y = +yyyymmdd.slice(0, 4), m = +yyyymmdd.slice(4, 6), d = +yyyymmdd.slice(6, 8);
   return { y, m, d };
 }
 
-function weekdayOf(dateStr) {
-  const { y, m, d } = parseDate(dateStr);
-  return WEEKDAY_NAMES[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
-}
-
 function formatFullDate(yyyymmdd, weekday) {
   const { y, m, d } = parseDate(yyyymmdd);
   return `${weekday}, ${MONTH_NAMES[m - 1]} ${d}, ${y}`;
-}
-
-function formatShortDate(yyyymmdd) {
-  const { y, m, d } = parseDate(yyyymmdd);
-  return `${MONTH_NAMES[m - 1].slice(0, 3)} ${d}, ${y}`;
-}
-
-function ordinal(n) {
-  const suf = ["th", "st", "nd", "rd"], v = n % 100;
-  return n + (suf[(v - 20) % 10] || suf[v] || suf[0]);
 }
 
 function formatClock(totalSeconds) {
@@ -103,6 +111,7 @@ function weekdayIndex(dateStr) {
   return dow === 0 ? 6 : dow - 1;
 }
 
+// Chicago wall-clock "now", independent of the visitor's own timezone.
 function nowInChicago() {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: TIME_ZONE, hour12: false,
@@ -116,6 +125,12 @@ function nowInChicago() {
   const minutes = hour * 60 + +get("minute");
   return { dateStr, minutes };
 }
+
+// =============================================================================
+// Semester / quarter boundaries -- derived from the schedule data itself so
+// nothing needs manual updating year to year (except the optional
+// quarter_end CSV column, for when the real Q1/Q3 dates are known).
+// =============================================================================
 
 // last day of "First Semester Exams" marks the semester boundary
 function findSemesterBoundary(days) {
@@ -154,13 +169,23 @@ function quarterOfDate(dateStr, boundary, qb) {
   return dateStr <= qb.mid2 ? 3 : 4;
 }
 
+// =============================================================================
+// Period progress -- the core "how far along is this period/day/range" math
+// that drives every fill bar and progress bar in the app.
+// =============================================================================
+
 const PREVIEW_WINDOW_START = 6 * 60; // 6:00am
 const PREVIEW_WINDOW_END = 15 * 60 + 45; // 3:45pm
 
+// whether to show today's not-yet-started periods in a distinct "coming up"
+// shade (continuous view) / underline today's column (weekly view) -- only
+// during school hours, so it doesn't linger all evening.
 function inTodayPreviewWindow(now) {
   return now.minutes >= PREVIEW_WINDOW_START && now.minutes < PREVIEW_WINDOW_END;
 }
 
+// 0 (hasn't happened), 1 (fully done), or a fraction in between for the
+// currently-live period.
 function periodProgress(day, period, now) {
   if (day.date < now.dateStr) return 1;
   if (day.date > now.dateStr) return 0;
@@ -169,6 +194,7 @@ function periodProgress(day, period, now) {
   return (now.minutes - period.startMinutes) / (period.endMinutes - period.startMinutes);
 }
 
+// sums periodProgress() across a list of days, for the Progress tab's bars.
 function progressOf(dayList, now) {
   let total = 0, done = 0;
   for (const day of dayList) {
@@ -180,6 +206,13 @@ function progressOf(dayList, now) {
   return { total, done, pct: total ? (done / total) * 100 : 0 };
 }
 
+// =============================================================================
+// "Next Break" detection -- a break is 3+ *consecutive calendar days* off,
+// including weekends (which never appear in `days` at all). PD days are
+// deliberately treated like a school day here: still a workday, so one
+// sitting next to a weekend can't masquerade as a break.
+// =============================================================================
+
 // every single calendar day (school days, weekends, everything) from the
 // first to the last school day, classified so a real multi-day break can
 // be found even though weekends never appear in `days` at all.
@@ -190,7 +223,9 @@ function classifyCalendarDays(days, daysByDate) {
     const entry = daysByDate.get(cursor);
     let type;
     if (entry && entry.periods.length) type = "school";
-    else if (entry && /professional development|\bpd\b/i.test(entry.summary)) type = "pd";
+    // parent-teacher conferences are still a work day for teachers, so they
+    // act as a wall too, same as a PD day -- not a real break.
+    else if (entry && /professional development|\bpd\b|parent-teacher conference/i.test(entry.summary)) type = "pd";
     else type = "off"; // break/holiday day, or a weekend (no entry at all)
     seq.push({ date: cursor, type });
   }
@@ -216,6 +251,8 @@ function findQualifyingBreaks(seq, minLen) {
   return breaks;
 }
 
+// the first weekday within [startDate, endDate] that has a calendar summary
+// (weekends never do), cleaned up for display.
 function breakName(startDate, endDate, daysByDate) {
   for (let d = startDate; d <= endDate; d = addDays(d, 1)) {
     const entry = daysByDate.get(d);
@@ -230,6 +267,7 @@ function daysBetween(a, b) {
   return Math.round((db - da) / 86400000);
 }
 
+// "3d 4h 05m 09s" style countdown, for the Next Break bar's live timer.
 function formatCountdown(totalSeconds) {
   totalSeconds = Math.max(0, Math.round(totalSeconds));
   const d = Math.floor(totalSeconds / 86400);
@@ -242,8 +280,12 @@ function formatCountdown(totalSeconds) {
   return parts.join(" ");
 }
 
-// Annotate every period in place with its position in the rotation/semester/year,
-// used by the hover info panel. Returns the totals needed for percentages.
+// =============================================================================
+// Per-period metadata -- annotates every period in `days` in place with its
+// position in the rotation/semester/year, used by the hover info panel.
+// =============================================================================
+
+// Returns the totals needed to turn those positions into percentages.
 function computeMeta(days, boundary) {
   let overall = 0;
   const semCounters = { s1: 0, s2: 0 };
@@ -279,6 +321,10 @@ function computeMeta(days, boundary) {
   return { yearTotal, semesterTotals, letterTotals };
 }
 
+// =============================================================================
+// Shared UI fragment builders
+// =============================================================================
+
 function bar(label, pct, sub) {
   const clamped = Math.max(0, Math.min(100, pct));
   return `
@@ -293,7 +339,13 @@ function cleanBreakLabel(summary) {
   return summary.replace(/^No (School|Classes)-/, "");
 }
 
+// =============================================================================
+// main() -- everything below needs the DOM and SCHOOL_YEAR_DATA to exist,
+// so it's wrapped up and run once at the bottom of this file.
+// =============================================================================
+
 function main() {
+  // ---- data + one-time (non-time-dependent) derived values ----
   const days = SCHOOL_YEAR_DATA;
   const boundary = findSemesterBoundary(days);
   const qb = computeQuarterBoundaries(days, boundary);
@@ -303,6 +355,7 @@ function main() {
   // "off" -- computed once, since the school calendar itself doesn't change.
   const qualifyingBreaks = findQualifyingBreaks(classifyCalendarDays(days, daysByDate), 3);
 
+  // ---- DOM references ----
   const progressEl = document.getElementById("tab-progress");
   const gridContinuousEl = document.getElementById("grid-continuous");
   const gridWeeklyEl = document.getElementById("grid-weekly");
@@ -312,6 +365,8 @@ function main() {
 
   let override = null; // {dateStr, minutes} while debugging, else null
   let filterState = loadFilter();
+
+  // ---- "my periods" filter ----
 
   function isLetterActive(day, letter) {
     if (!filterState.enabled) return true;
@@ -340,6 +395,8 @@ function main() {
     }
     return count;
   }
+
+  // ---- desktop grid sizing ----
 
   // On desktop, size the grid squares so the continuous view's rows fill
   // the available viewport height instead of leaving empty space below a
@@ -383,6 +440,8 @@ function main() {
     if (override) return { ...override, seconds: 0 };
     return { ...nowInChicago(), seconds: new Date().getSeconds() };
   }
+
+  // ---- hover info panel (shared by both grid views) ----
 
   function showInfo(day, p, evt) {
     const meta = p.meta;
@@ -432,6 +491,8 @@ function main() {
     });
   }
 
+  // ---- grid square builder (shared by continuous + weekly) ----
+
   // hovering a period highlights every period that shares its day, so you
   // can see at a glance which squares belong to the same school day.
   function makeSquare(container, day, p, now, showPreview) {
@@ -469,6 +530,8 @@ function main() {
     return sq;
   }
 
+  // ---- continuous view: every period of the year, one flat grid ----
+
   function buildContinuous(container, now) {
     const schoolDays = days.filter((d) => d.periods.length);
     const showPreview = inTodayPreviewWindow(now);
@@ -489,8 +552,10 @@ function main() {
       }
     }
 
-    return liveEl || todaySq;
+    return liveEl || todaySq; // scroll target for the tab switcher
   }
+
+  // ---- weekly view: one row per calendar week, Mon-Fri columns ----
 
   function buildWeekly(container, now) {
     const schoolDays = days.filter((d) => d.periods.length);
@@ -580,8 +645,10 @@ function main() {
       todaySlot.classList.add("is-today-window");
     }
 
-    return liveEl || todaySlot;
+    return liveEl || todaySlot; // scroll target for the tab switcher
   }
+
+  // ---- Progress tab: static bars + two live-ticking bars ----
 
   function barOrEmpty(label, prog, emptyText) {
     if (prog.total === 0) return bar(label, 0, emptyText);
@@ -681,6 +748,8 @@ function main() {
       </div>`;
   }
 
+  // Current Period and Next Break both tick every second (via the interval
+  // at the bottom of main()); everything else only needs the 30s full render.
   function tickCurrentPeriodBar() {
     const el = document.getElementById("current-period-bar");
     if (el) el.outerHTML = currentPeriodBarHtml();
@@ -717,6 +786,8 @@ function main() {
     ].join("");
   }
 
+  // ---- render orchestration ----
+
   let continuousTarget = null;
   let weeklyTarget = null;
 
@@ -736,7 +807,7 @@ function main() {
     resizeTimer = setTimeout(render, 150);
   });
 
-  // --- tabs ---
+  // ---- tabs ----
   // each tab is bookmarkable/linkable via its own #hash (e.g. index.html#continuous
   // to land straight on that view), independent of the #debug hash below.
   const tabButtons = [...document.querySelectorAll(".tab")];
@@ -761,7 +832,7 @@ function main() {
     return panels[h] ? h : null;
   }
 
-  // --- debug time ---
+  // ---- debug time (hidden unless #debug is in the URL) ----
   debugInput.addEventListener("change", () => {
     const val = debugInput.value; // "YYYY-MM-DDTHH:MM"
     if (!val) { override = null; render(); return; }
@@ -791,12 +862,13 @@ function main() {
     if (tab) setTab(tab, { fromHash: true });
   });
 
-  // --- settings & help overlay ---
+  // ---- settings, help, and "add as home page" overlay panels ----
   applyAccent(localStorage.getItem("tv-accent") || ACCENT_COLORS[0].name);
 
   const overlay = document.getElementById("overlay");
   const settingsPanel = document.getElementById("settings-panel");
   const helpPanel = document.getElementById("help-panel");
+  const homepagePanel = document.getElementById("homepage-panel");
   const accentRow = document.getElementById("accent-row");
   const modeButtons = [...document.querySelectorAll(".mode-btn")];
   const filterEnabledCb = document.getElementById("filter-enabled");
@@ -877,8 +949,6 @@ function main() {
     render();
   });
 
-  const homepagePanel = document.getElementById("homepage-panel");
-
   function openPanel(which) {
     overlay.hidden = false;
     settingsPanel.hidden = which !== "settings";
@@ -898,6 +968,9 @@ function main() {
   document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", closeOverlay));
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeOverlay(); });
 
+  // browsers don't expose an API to set the home page programmatically, so
+  // this is the most "automatic" version possible: copy the URL, then the
+  // homepage panel walks through each browser's one-time settings steps.
   document.getElementById("copy-url-btn").addEventListener("click", async (e) => {
     const btn = e.currentTarget;
     const url = document.getElementById("homepage-url").value;
@@ -910,6 +983,7 @@ function main() {
     setTimeout(() => { btn.textContent = "Copy"; }, 1800);
   });
 
+  // ---- startup ----
   render();
   setTab(tabFromHash() || "progress", { fromHash: true });
   setInterval(render, REFRESH_MS);

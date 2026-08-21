@@ -14,7 +14,7 @@ import os
 import sys
 from datetime import datetime
 
-from parse_ics import parse_events, parse_periods, is_break
+from parse_ics import parse_events, parse_periods
 
 LETTERS = ["A", "B", "C", "D", "E", "F", "G"]
 

@@ -1,17 +1,13 @@
-#!/usr/bin/env python3
-"""Parse the SLUH 'School Day Schedule' public Google Calendar ICS export
-into a JSON file of school days with their period schedules, for use by
-the time-visualizer front end.
-
-Usage: python3 parse_ics.py <input.ics> <output.json> [--from YYYYMMDD] [--to YYYYMMDD]
+"""Shared ICS-parsing helpers, imported by ics_to_csv.py. Not run directly
+-- there's no CLI entry point here on purpose, so there's only one path
+from a fresh ICS to the site's data (ics_to_csv.py -> csv_to_data.py)
+instead of a second one that could silently produce a stale schema.
 """
-import json
 import re
-import sys
-from datetime import datetime
 
 
 def unfold(raw: str) -> list[str]:
+    """Undo RFC5545 line folding (continuation lines start with a space)."""
     lines = raw.replace("\r\n", "\n").split("\n")
     out = []
     for line in lines:
@@ -23,6 +19,8 @@ def unfold(raw: str) -> list[str]:
 
 
 def parse_events(raw: str):
+    """Turn a raw ICS file into a list of {ICS-property-name: value} dicts,
+    one per VEVENT."""
     lines = unfold(raw)
     events = []
     cur = None
@@ -94,66 +92,3 @@ def parse_periods(description: str):
         }
 
     return [seen[k] for k in sorted(seen, key=lambda k: seen[k]["startMinutes"])]
-
-
-BREAK_KEYWORDS = ["break", "no school", "no classes", "holiday"]
-
-
-def is_break(summary: str) -> bool:
-    s = summary.lower()
-    return any(k in s for k in BREAK_KEYWORDS)
-
-
-def main():
-    if len(sys.argv) < 3:
-        print(__doc__)
-        sys.exit(1)
-    in_path, out_path = sys.argv[1], sys.argv[2]
-    date_from = date_to = None
-    for i, arg in enumerate(sys.argv):
-        if arg == "--from":
-            date_from = sys.argv[i + 1]
-        if arg == "--to":
-            date_to = sys.argv[i + 1]
-
-    raw = open(in_path, encoding="utf-8").read()
-    events = parse_events(raw)
-
-    days = {}
-    for ev in events:
-        dtstart = ev.get("DTSTART")
-        if not dtstart or len(dtstart) < 8:
-            continue
-        d = dtstart[:8]
-        if date_from and d < date_from:
-            continue
-        if date_to and d > date_to:
-            continue
-        summary = ev.get("SUMMARY", "").strip()
-        description = ev.get("DESCRIPTION", "").strip()
-        periods = parse_periods(description)
-        weekday = datetime.strptime(d, "%Y%m%d").strftime("%A")
-        entry = {
-            "date": d,
-            "weekday": weekday,
-            "summary": summary,
-            "isBreak": is_break(summary) or not periods,
-            "periods": periods,
-        }
-        # if duplicate date appears, prefer the one with periods
-        if d not in days or (not days[d]["periods"] and periods):
-            days[d] = entry
-
-    ordered = [days[d] for d in sorted(days)]
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(ordered, f, indent=2)
-
-    print(f"Parsed {len(ordered)} days -> {out_path}")
-    breaks = [d for d in ordered if d["isBreak"]]
-    print(f"  {len(breaks)} marked as break/no-school")
-    with_periods = [d for d in ordered if d["periods"]]
-    print(f"  {len(with_periods)} with a parsed period schedule")
-
-
-if __name__ == "__main__":
-    main()
