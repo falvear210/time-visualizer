@@ -36,6 +36,14 @@
 
 * { box-sizing: border-box; }
 
+html {
+  /* keep the scrollbar gutter reserved always, so switching to a tab with
+     less content (and no scrollbar) doesn't shift the whole centered
+     layout sideways */
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
