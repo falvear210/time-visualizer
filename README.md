@@ -4,49 +4,75 @@ A single-page, no-build website that shows the shape of the school year as a
 grid of squares — one per class period — filling in as the day, week,
 semester, and year progress. Meant to be bookmarked as a start page.
 
-## What it does
+## How it works
 
-The page has three tabs:
+Four tabs, each independently linkable — add `#progress`, `#continuous`,
+`#weekly`, or `#facts` to the URL to land straight on that view (handy if
+you want, say, the continuous grid specifically as your start page):
 
-- **Progress** — stacked progress bars for Academic Year, current Semester,
-  current Quarter, This Week, and Today. Each shows percent complete and
-  periods left, updating live.
-- **Continuous** — every period of the year in one seamless grid, in order.
-  No gaps between days. Hover a square to see its date and where it sits in
-  the semester/year; during the school day (6:00am–3:45pm) today's
-  not-yet-started periods get a distinct shade so you can see the day's
-  shape before it starts.
+![Tour of the four tabs](docs/tabs-tour.gif)
+
+- **Progress** — stacked bars for Academic Year, current Semester, current
+  Quarter, This Week, Today, and a live **Current Period** bar with a
+  second-by-second elapsed/remaining timer for whatever's happening right
+  now.
+- **Continuous** — every period of the year in one seamless grid, in
+  order, sized to fill the screen on desktop. No gaps between days.
 - **Weekly** — the same data laid out as one row per calendar week, Mon–Fri
-  as fixed columns. A short week (holiday, etc.) shows as visibly empty
-  columns instead of just vanishing. Hovering an empty column that has a
-  reason on the calendar (Labor Day, a retreat, a PD day, etc.) shows why
-  there's no school that day. Winter break is intentionally left
-  unexplained on hover — it's the obvious gap between semesters.
+  as fixed columns, so a short week (a holiday, a break) shows up as
+  visibly empty columns instead of just vanishing.
+- **Fun Facts** — trivia computed from the schedule itself: the most
+  common first/last period, what's usually in session at 11:30am lunch
+  (and right after), how that shifts between semesters, the longest
+  streaks of 4-day and 5-day weeks, and a few totals.
 
-The **⚙ settings** panel lets you switch light/dark and pick an accent
-color, and filter the grid and progress bars down to just the periods you
-teach — check the letters you teach for Semester 1, optionally check
-"Different periods in Semester 2" if your schedule changes, and everything
-(grid dimming, all five progress bars) recomputes against just those
-periods. All of this is remembered per-browser (`localStorage`), so it
-sticks across reloads. The **? instructions** button has a quick in-page
-explanation of all of the above.
+Hover any square for its date and where it sits in the semester/year —
+in **Continuous** this also lights up the rest of that day; in **Weekly**
+it lights up the same square's 7-period rotation cycle across days
+instead, since day boundaries are already obvious there from the columns.
+Hovering an empty (no-school) cell in Weekly explains why, pulled straight
+from the calendar (Labor Day, a retreat, a PD day, etc.) — except winter
+break, which is left alone since the semester divider already makes it
+obvious:
+
+![Hovering a period shows its date, stats, and lights up its day](docs/hover-demo.gif)
+
+The **⚙ settings** panel switches light/dark and accent color, and can
+filter the grid and every Progress bar down to just the periods you teach
+— check your letters for Semester 1, optionally check "Different periods
+in Semester 2" if your schedule changes there. Filtered-out squares
+disappear entirely rather than just fading, so the grid tightens up around
+what's actually yours. Everything here is remembered per-browser, so it
+sticks across reloads:
+
+![Switching theme, accent color, and filtering to specific periods](docs/settings-demo.gif)
+
+The **? instructions** button has a shorter in-page version of all of the
+above, for anyone who lands on the page without this README handy.
 
 There's also a **debug time** field, for previewing how the page looks at
 any date/time without waiting for it — useful when testing a schedule
-edit. It's hidden by default; add `#debug` to the URL
-(`index.html#debug`) to reveal it.
+edit. It's hidden by default; add `#debug` to the URL (`index.html#debug`)
+to reveal it. This is independent of the tab hashes above — `#debug` just
+shows the field, it doesn't select a tab.
 
 The page is fully self-contained: `data.js` has the whole year's schedule
 baked in as a JS constant, so `index.html` works by just opening the file
 directly (double-click, or set as your browser's start page) — no server,
 no network request, no build step at runtime.
 
+---
+
+The rest of this document is the technical/maintenance side: how the data
+pipeline works, how to handle a snow day, and how to bootstrap a new
+academic year.
+
 ## Project structure
 
 ```
 index.html, style.css, app.js   the site itself
 data.js                          the schedule, embedded as SCHOOL_YEAR_DATA + QUARTER_MARKS (what the site actually reads)
+docs/                            README screenshots/GIFs
 
 data/
   school_year_2026_2027.csv      the schedule, hand-editable — THE SOURCE OF TRUTH during the year
@@ -125,7 +151,7 @@ set of files rather than overwriting these:
    python3 csv_to_data.py ../data/school_year_2027_2028.csv \
      ../data/school_year_2027_2028.json ../data.js
    ```
-5. Update the `<title>` in `index.html` and the header text if you want it
+5. Update the `<title>` and header `<h1>` in `index.html` if you want them
    to say the new year.
 6. Commit.
 
@@ -146,6 +172,15 @@ set of files rather than overwriting these:
   tag was verified to cycle with zero breaks across the entire year's
   period sequence, including across weekends and breaks. "Cycle" is just
   `periods completed ÷ 7`.
+- **Fun Facts**: computed once at load from the full, unfiltered schedule
+  (the "my periods" filter only affects Progress and the grids, not this
+  tab, since these are meant to be trivia about the school's schedule in
+  general). "Usually in session at lunch" means whichever lettered period's
+  time range spans 11:30am; "usually right after lunch" is just the next
+  period chronologically. Week-length streaks walk every calendar week
+  between the first and last school day (including 0-day weeks, so a
+  streak can't jump across e.g. spring break) and report the longest run
+  of weeks with exactly 4 or exactly 5 school days.
 
 ## Troubleshooting
 
@@ -161,6 +196,6 @@ set of files rather than overwriting these:
 - **Testing how something will look on a specific date/time** — open
   `index.html#debug` to reveal the **debug time** field instead of waiting
   for real time to pass, or editing your system clock.
-- **Progress numbers look lower than expected** — check whether "Show only
-  my periods" is on in settings; it filters every bar (and the grid) down
-  to your selected letters.
+- **Progress numbers look lower than expected, or squares are missing from
+  the grid** — check whether "Show only my periods" is on in settings; it
+  filters every bar and hides non-matching squares entirely.
