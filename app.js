@@ -278,10 +278,25 @@ function breakName(startDate, endDate, daysByDate) {
   return "Break";
 }
 
-function daysBetween(a, b) {
-  const da = Date.UTC(+a.slice(0, 4), +a.slice(4, 6) - 1, +a.slice(6, 8));
-  const db = Date.UTC(+b.slice(0, 4), +b.slice(4, 6) - 1, +b.slice(6, 8));
-  return Math.round((db - da) / 86400000);
+// Milliseconds of actual school-day span (first period's start to last
+// period's end) remaining between `now` and `beforeDate`, exclusive --
+// nights and weekends don't count, so the Next Break countdown reflects
+// time actually spent at school rather than raw calendar time.
+function schoolHoursRemainingMs(days, now, beforeDate) {
+  const nowMinutes = now.minutes + now.seconds / 60 + now.ms / 60000;
+  let ms = 0;
+  for (const day of days) {
+    if (!day.periods.length || day.date < now.dateStr || day.date >= beforeDate) continue;
+    const dayStart = day.periods[0].startMinutes;
+    const dayEnd = day.periods[day.periods.length - 1].endMinutes;
+    if (day.date === now.dateStr) {
+      if (nowMinutes >= dayEnd) continue;
+      ms += (dayEnd - Math.max(nowMinutes, dayStart)) * 60000;
+    } else {
+      ms += (dayEnd - dayStart) * 60000;
+    }
+  }
+  return ms;
 }
 
 // "3d 4h 05m 09.3s" style countdown, for the Next Break bar's live timer.
@@ -763,19 +778,13 @@ function main() {
     const periodsLeft = Math.max(0, Math.round(prog.total - prog.done));
     const pct = prog.total ? (prog.done / prog.total) * 100 : 100;
 
-    const lastSchoolDay = [...days].reverse().find((d) => d.periods.length && d.date < nb.start);
-    let ms = 0;
-    if (lastSchoolDay) {
-      const lastPeriod = lastSchoolDay.periods[lastSchoolDay.periods.length - 1];
-      ms = daysBetween(now.dateStr, lastSchoolDay.date) * 86400000
-        + (lastPeriod.endMinutes * 60000 - (now.minutes * 60000 + now.seconds * 1000 + now.ms));
-    }
+    const ms = schoolHoursRemainingMs(days, now, nb.start);
 
     return `
       <div class="bar-row" id="next-break-bar">
         <div class="bar-top"><div class="bar-label">Next Break (3+ days) — ${name}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
-        <div class="bar-sub">${periodsLeft} periods · ${formatCountdownTenths(ms)} to go</div>
+        <div class="bar-sub">${periodsLeft} periods · ${formatCountdownTenths(ms)} of school time to go</div>
       </div>`;
   }
 
