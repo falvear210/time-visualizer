@@ -88,6 +88,7 @@ body {
   line-height: 1;
 }
 .icon-btn:hover { color: var(--text); border-color: var(--text-dim); }
+#settings-btn { font-size: 1.15rem; }
 
 /* --- tabs --- */
 
