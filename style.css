@@ -1,6 +1,6 @@
 :root {
-  --accent: #5b8cff;
-  --accent-rgb: 91, 140, 255;
+  --accent: #005588; /* SLUH Blue */
+  --accent-rgb: 0, 85, 136;
   --cell: 16px;
   --gap: 3px;
 }
@@ -19,16 +19,18 @@
   color-scheme: dark;
 }
 
+/* SLUH brand palette: Navy #003366 (anchor -> text), Blue #005588 (accent),
+   Spirit Blue #88ccec, Dark Gray #777777, Light Gray #eeeeee, Warm Gray #ccccbb */
 [data-theme="light"] {
   --bg: #ffffff;
   --panel: #ffffff;
-  --border: #e2e2e7;
-  --track: #ececef;
-  --text: #16171a;
-  --text-dim: #77787f;
-  --done: #d8d9dd;
-  --today-upcoming: #f1f2f5;
-  --overlay-bg: rgba(20, 20, 24, 0.35);
+  --border: #dcdcd6;
+  --track: #eeeeee;
+  --text: #003366;
+  --text-dim: #777777;
+  --done: #ccccbb;
+  --today-upcoming: #eeeeee;
+  --overlay-bg: rgba(0, 51, 102, 0.35);
   color-scheme: light;
 }
 
@@ -269,10 +271,17 @@ main {
   width: 100%;
   height: var(--cell);
   cursor: default;
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+
+.no-school-slot.is-active {
+  border-color: var(--accent);
 }
 
 @media (max-width: 640px) {
   :root { --cell: 12px; --gap: 2px; }
+  .progress-list { justify-content: flex-start; min-height: auto; }
 }
 @media (max-width: 420px) {
   :root { --cell: 9px; --gap: 2px; }

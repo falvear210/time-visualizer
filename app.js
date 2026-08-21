@@ -7,7 +7,7 @@ const WEEKDAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Frida
 const ALL_LETTERS = ["A", "B", "C", "D", "E", "F", "G"];
 
 const ACCENT_COLORS = [
-  { name: "blue", hex: "#5b8cff", rgb: "91, 140, 255" },
+  { name: "blue", hex: "#005588", rgb: "0, 85, 136" }, // SLUH Blue
   { name: "violet", hex: "#a78bfa", rgb: "167, 139, 250" },
   { name: "green", hex: "#34d399", rgb: "52, 211, 153" },
   { name: "amber", hex: "#f59e0b", rgb: "245, 158, 11" },
@@ -486,9 +486,15 @@ function main() {
           if (info && !/christmas/i.test(info.summary)) {
             contentEl = document.createElement("div");
             contentEl.className = "no-school-slot";
-            contentEl.addEventListener("mouseenter", (e) => showBreakInfo(info, e));
+            contentEl.addEventListener("mouseenter", (e) => {
+              showBreakInfo(info, e);
+              contentEl.classList.add("is-active");
+            });
             contentEl.addEventListener("mousemove", positionInfo);
-            contentEl.addEventListener("mouseleave", hideInfo);
+            contentEl.addEventListener("mouseleave", () => {
+              hideInfo();
+              contentEl.classList.remove("is-active");
+            });
             slot.appendChild(contentEl);
           }
         }
