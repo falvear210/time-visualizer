@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SLUH 26/27 AY Progress</title>
-<link rel="stylesheet" href="style.css?v=16">
+<link rel="stylesheet" href="style.css?v=17">
 <script>
   // set the theme before first paint, so there's no flash of the wrong theme
   (function () {
@@ -19,7 +19,6 @@
 <header class="topbar">
   <h1 class="title">SLUH 26/27 AY Progress</h1>
   <div class="header-controls">
-    <button id="homepage-btn" class="ghost-btn" type="button">🏠 Add as Home Page</button>
     <button id="help-btn" class="icon-btn" type="button" title="Instructions" aria-label="Instructions">?</button>
     <button id="settings-btn" class="icon-btn" type="button" title="Settings" aria-label="Settings">⚙</button>
   </div>
@@ -105,33 +104,9 @@
       (handy for a bookmarked start page).</p>
     </div>
   </div>
-
-  <div class="panel" id="homepage-panel" hidden>
-    <div class="panel-head">
-      <span>Add as Home Page</span>
-      <button class="icon-btn" data-close type="button" aria-label="Close">✕</button>
-    </div>
-    <div class="help-body">
-      <p>Browsers don't let a page set itself as your home page — you'll
-      need to do it once in your browser's settings. Copy this page's URL
-      first:</p>
-      <div class="url-row">
-        <input type="text" id="homepage-url" class="debug-input" readonly>
-        <button id="copy-url-btn" class="ghost-btn" type="button">Copy</button>
-      </div>
-      <p><strong>Safari</strong> — Safari menu → Settings → General → paste
-      into "Homepage", then set "New windows open with" and "New tabs open
-      with" to Homepage.</p>
-      <p><strong>Chrome</strong> — Menu (⋮) → Settings → On startup →
-      "Open a specific page or set of pages" → Add a new page → paste the
-      URL.</p>
-      <p><strong>Firefox</strong> — Menu (☰) → Settings → Home →
-      "Homepage and new windows" → Custom URLs… → paste the URL.</p>
-    </div>
-  </div>
 </div>
 
 <script src="data.js"></script>
-<script src="app.js?v=15"></script>
+<script src="app.js?v=16"></script>
 </body>
 </html>

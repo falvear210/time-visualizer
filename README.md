@@ -8,18 +8,14 @@ semester, and year progress. Meant to be bookmarked as a start page.
 
 Three tabs, each independently linkable — add `#progress`, `#continuous`,
 or `#weekly` to the URL to land straight on that view (handy if you want,
-say, the continuous grid specifically as your start page). There's also a
-**🏠 Add as Home Page** button in the header — browsers don't let a page
-set itself as your home page automatically, so it copies the page's URL
-and walks through the one-time settings steps for Safari, Chrome, and
-Firefox:
+say, the continuous grid specifically as your start page):
 
 ![Tour of the tabs](docs/tabs-tour.gif)
 
 - **Progress** — stacked bars for Academic Year, current Semester, current
   Quarter, **Next Break** (see below), This Week, Today, and a live
-  **Current Period** bar with a second-by-second elapsed/remaining timer
-  for whatever's happening right now.
+  **Current Period** bar with an elapsed/remaining timer for whatever's
+  happening right now.
 - **Continuous** — every period of the year in one seamless grid, in
   order, sized to fill the screen on desktop. No gaps between days.
 - **Weekly** — the same data laid out as one row per calendar week, Mon–Fri
@@ -27,11 +23,11 @@ Firefox:
   visibly empty columns instead of just vanishing.
 
 The **Next Break** bar is for anyone counting down to the next stretch of
-3 or more consecutive calendar days off (a PD day next to a weekend
-doesn't count — it's still a workday, so it can't create or extend a
-break). It shows periods remaining *and* a live down-to-the-second
-countdown, because if you're going to obsess over how close the break is,
-you may as well do it properly.
+3 or more consecutive calendar days off (a PD day or parent-teacher
+conference next to a weekend doesn't count — it's still a workday, so it
+can't create or extend a break). It shows periods remaining *and* a live
+countdown — right down to the millisecond, because if you're going to
+obsess over how close the break is, you may as well do it properly.
 
 Hover any square for its date and where it sits in the semester/year —
 in **Continuous** this also lights up the rest of that day; in **Weekly**

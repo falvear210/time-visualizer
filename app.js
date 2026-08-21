@@ -77,11 +77,12 @@ function formatFullDate(yyyymmdd, weekday) {
   return `${weekday}, ${MONTH_NAMES[m - 1]} ${d}, ${y}`;
 }
 
-function formatClock(totalSeconds) {
-  totalSeconds = Math.max(0, Math.round(totalSeconds));
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  return `${m}:${String(s).padStart(2, "0")}`;
+function formatClockMs(totalMs) {
+  totalMs = Math.max(0, Math.round(totalMs));
+  const m = Math.floor(totalMs / 60000);
+  const s = Math.floor((totalMs % 60000) / 1000);
+  const ms = totalMs % 1000;
+  return `${m}:${String(s).padStart(2, "0")}.${String(ms).padStart(3, "0")}`;
 }
 
 // Monday (YYYYMMDD) of the calendar week containing this date, for weekly grouping.
@@ -267,16 +268,19 @@ function daysBetween(a, b) {
   return Math.round((db - da) / 86400000);
 }
 
-// "3d 4h 05m 09s" style countdown, for the Next Break bar's live timer.
-function formatCountdown(totalSeconds) {
-  totalSeconds = Math.max(0, Math.round(totalSeconds));
-  const d = Math.floor(totalSeconds / 86400);
-  const h = Math.floor((totalSeconds % 86400) / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  const s = totalSeconds % 60;
+// "3d 4h 05m 09.123s" style countdown, for the Next Break bar's live timer.
+// Milliseconds are pure comedy -- nobody needs a break countdown this
+// precise, which is exactly the point.
+function formatCountdownMs(totalMs) {
+  totalMs = Math.max(0, Math.round(totalMs));
+  const d = Math.floor(totalMs / 86400000);
+  const h = Math.floor((totalMs % 86400000) / 3600000);
+  const m = Math.floor((totalMs % 3600000) / 60000);
+  const s = Math.floor((totalMs % 60000) / 1000);
+  const ms = totalMs % 1000;
   const parts = [];
   if (d) parts.push(`${d}d`);
-  parts.push(`${h}h`, `${String(m).padStart(d || h ? 2 : 1, "0")}m`, `${String(s).padStart(2, "0")}s`);
+  parts.push(`${h}h`, `${String(m).padStart(d || h ? 2 : 1, "0")}m`, `${String(s).padStart(2, "0")}.${String(ms).padStart(3, "0")}s`);
   return parts.join(" ");
 }
 
@@ -435,10 +439,11 @@ function main() {
   }
 
   function getNow() {
-    // debug time is a frozen preview -- seconds stay at :00 rather than
+    // debug time is a frozen preview -- seconds/ms stay at 0 rather than
     // ticking off real wall-clock time from an arbitrary chosen minute.
-    if (override) return { ...override, seconds: 0 };
-    return { ...nowInChicago(), seconds: new Date().getSeconds() };
+    if (override) return { ...override, seconds: 0, ms: 0 };
+    const d = new Date();
+    return { ...nowInChicago(), seconds: d.getSeconds(), ms: d.getMilliseconds() };
   }
 
   // ---- hover info panel (shared by both grid views) ----
@@ -679,16 +684,16 @@ function main() {
         </div>`;
     }
 
-    const totalSec = (live.endMinutes - live.startMinutes) * 60;
-    const elapsedSec = Math.min(totalSec, Math.max(0, (now.minutes - live.startMinutes) * 60 + now.seconds));
-    const remainingSec = totalSec - elapsedSec;
-    const pct = (elapsedSec / totalSec) * 100;
+    const totalMs = (live.endMinutes - live.startMinutes) * 60000;
+    const elapsedMs = Math.min(totalMs, Math.max(0, (now.minutes - live.startMinutes) * 60000 + now.seconds * 1000 + now.ms));
+    const remainingMs = totalMs - elapsedMs;
+    const pct = (elapsedMs / totalMs) * 100;
 
     return `
       <div class="bar-row" id="current-period-bar">
         <div class="bar-top"><div class="bar-label">Current Period — ${live.label}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
-        <div class="bar-sub">${formatClock(elapsedSec)} elapsed · ${formatClock(remainingSec)} remaining</div>
+        <div class="bar-sub">${formatClockMs(elapsedMs)} elapsed · ${formatClockMs(remainingMs)} remaining</div>
       </div>`;
   }
 
@@ -733,23 +738,24 @@ function main() {
     const pct = prog.total ? (prog.done / prog.total) * 100 : 100;
 
     const lastSchoolDay = [...days].reverse().find((d) => d.periods.length && d.date < nb.start);
-    let secs = 0;
+    let ms = 0;
     if (lastSchoolDay) {
       const lastPeriod = lastSchoolDay.periods[lastSchoolDay.periods.length - 1];
-      secs = daysBetween(now.dateStr, lastSchoolDay.date) * 86400
-        + (lastPeriod.endMinutes * 60 - (now.minutes * 60 + now.seconds));
+      ms = daysBetween(now.dateStr, lastSchoolDay.date) * 86400000
+        + (lastPeriod.endMinutes * 60000 - (now.minutes * 60000 + now.seconds * 1000 + now.ms));
     }
 
     return `
       <div class="bar-row" id="next-break-bar">
         <div class="bar-top"><div class="bar-label">Next Break (3+ days) — ${name}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
-        <div class="bar-sub">${periodsLeft} periods · ${formatCountdown(secs)} to go</div>
+        <div class="bar-sub">${periodsLeft} periods · ${formatCountdownMs(ms)} to go</div>
       </div>`;
   }
 
-  // Current Period and Next Break both tick every second (via the interval
-  // at the bottom of main()); everything else only needs the 30s full render.
+  // Current Period and Next Break tick fast enough for their millisecond
+  // digits to actually move (via the interval at the bottom of main());
+  // everything else only needs the 30s full render.
   function tickCurrentPeriodBar() {
     const el = document.getElementById("current-period-bar");
     if (el) el.outerHTML = currentPeriodBarHtml();
@@ -862,13 +868,12 @@ function main() {
     if (tab) setTab(tab, { fromHash: true });
   });
 
-  // ---- settings, help, and "add as home page" overlay panels ----
+  // ---- settings and help overlay panels ----
   applyAccent(localStorage.getItem("tv-accent") || ACCENT_COLORS[0].name);
 
   const overlay = document.getElementById("overlay");
   const settingsPanel = document.getElementById("settings-panel");
   const helpPanel = document.getElementById("help-panel");
-  const homepagePanel = document.getElementById("homepage-panel");
   const accentRow = document.getElementById("accent-row");
   const modeButtons = [...document.querySelectorAll(".mode-btn")];
   const filterEnabledCb = document.getElementById("filter-enabled");
@@ -953,9 +958,7 @@ function main() {
     overlay.hidden = false;
     settingsPanel.hidden = which !== "settings";
     helpPanel.hidden = which !== "help";
-    homepagePanel.hidden = which !== "homepage";
     if (which === "settings") refreshSettingsUI();
-    if (which === "homepage") document.getElementById("homepage-url").value = window.location.href;
   }
   function closeOverlay() {
     overlay.hidden = true;
@@ -963,31 +966,15 @@ function main() {
 
   document.getElementById("settings-btn").addEventListener("click", () => openPanel("settings"));
   document.getElementById("help-btn").addEventListener("click", () => openPanel("help"));
-  document.getElementById("homepage-btn").addEventListener("click", () => openPanel("homepage"));
   overlay.addEventListener("click", (e) => { if (e.target === overlay) closeOverlay(); });
   document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", closeOverlay));
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeOverlay(); });
-
-  // browsers don't expose an API to set the home page programmatically, so
-  // this is the most "automatic" version possible: copy the URL, then the
-  // homepage panel walks through each browser's one-time settings steps.
-  document.getElementById("copy-url-btn").addEventListener("click", async (e) => {
-    const btn = e.currentTarget;
-    const url = document.getElementById("homepage-url").value;
-    try {
-      await navigator.clipboard.writeText(url);
-      btn.textContent = "Copied!";
-    } catch (err) {
-      btn.textContent = "Select & copy manually";
-    }
-    setTimeout(() => { btn.textContent = "Copy"; }, 1800);
-  });
 
   // ---- startup ----
   render();
   setTab(tabFromHash() || "progress", { fromHash: true });
   setInterval(render, REFRESH_MS);
-  setInterval(tickCurrentPeriodBar, 1000);
+  setInterval(tickCurrentPeriodBar, 50);
 }
 
 main();
