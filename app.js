@@ -59,6 +59,11 @@ function formatFullDate(yyyymmdd, weekday) {
   return `${weekday}, ${MONTH_NAMES[m - 1]} ${d}, ${y}`;
 }
 
+function formatShortDate(yyyymmdd) {
+  const { y, m, d } = parseDate(yyyymmdd);
+  return `${MONTH_NAMES[m - 1].slice(0, 3)} ${d}, ${y}`;
+}
+
 function ordinal(n) {
   const suf = ["th", "st", "nd", "rd"], v = n % 100;
   return n + (suf[(v - 20) % 10] || suf[v] || suf[0]);
@@ -175,6 +180,113 @@ function progressOf(dayList, now) {
   return { total, done, pct: total ? (done / total) * 100 : 0 };
 }
 
+const LUNCH_MARK_MINUTES = 11 * 60 + 30; // 11:30am
+
+function tally(arr) {
+  const counts = {};
+  for (const x of arr) counts[x] = (counts[x] || 0) + 1;
+  return counts;
+}
+
+// works for both frequency tallies and summed durations -- just the largest
+// value wins, alphabetical letter breaks any tie so it's deterministic.
+function topOf(counts) {
+  let bestKey = null, bestVal = -1;
+  for (const k of Object.keys(counts).sort()) {
+    if (counts[k] > bestVal) { bestVal = counts[k]; bestKey = k; }
+  }
+  return { key: bestKey, value: bestVal };
+}
+
+function computeFirstLastStats(days, boundary) {
+  const firsts = [], lasts = [], firstsS1 = [], lastsS1 = [], firstsS2 = [], lastsS2 = [];
+  for (const day of days) {
+    if (!day.periods.length) continue;
+    const first = day.periods[0].label;
+    const last = day.periods[day.periods.length - 1].label;
+    firsts.push(first);
+    lasts.push(last);
+    if (day.date <= boundary) { firstsS1.push(first); lastsS1.push(last); }
+    else { firstsS2.push(first); lastsS2.push(last); }
+  }
+  return {
+    first: { counts: tally(firsts), total: firsts.length },
+    last: { counts: tally(lasts), total: lasts.length },
+    firstS1: { counts: tally(firstsS1), total: firstsS1.length },
+    lastS1: { counts: tally(lastsS1), total: lastsS1.length },
+    firstS2: { counts: tally(firstsS2), total: firstsS2.length },
+    lastS2: { counts: tally(lastsS2), total: lastsS2.length },
+  };
+}
+
+// "lunch period" = whichever lettered period's time range spans 11:30am;
+// "after lunch" = the very next period that day, chronologically.
+function computeLunchStats(days) {
+  const lunchLetters = [], afterLetters = [];
+  for (const day of days) {
+    const idx = day.periods.findIndex((p) => p.startMinutes <= LUNCH_MARK_MINUTES && LUNCH_MARK_MINUTES < p.endMinutes);
+    if (idx === -1) continue;
+    lunchLetters.push(day.periods[idx].label);
+    if (idx + 1 < day.periods.length) afterLetters.push(day.periods[idx + 1].label);
+  }
+  return {
+    lunch: { counts: tally(lunchLetters), total: lunchLetters.length },
+    after: { counts: tally(afterLetters), total: afterLetters.length },
+  };
+}
+
+// longest consecutive run of calendar weeks with exactly `target` school
+// days in them (weeks with 0 school days -- e.g. spring break -- included
+// in the walk so a streak can't jump across a gap).
+function computeWeekLengthStreaks(days) {
+  const schoolDays = days.filter((d) => d.periods.length);
+  if (!schoolDays.length) return null;
+  const counts = new Map();
+  for (const day of schoolDays) {
+    const mon = mondayOf(day.date);
+    counts.set(mon, (counts.get(mon) || 0) + 1);
+  }
+  const firstMon = mondayOf(schoolDays[0].date);
+  const lastMon = mondayOf(schoolDays[schoolDays.length - 1].date);
+  const weeks = [];
+  for (let cursor = firstMon; cursor <= lastMon; cursor = addDays(cursor, 7)) {
+    weeks.push({ monday: cursor, count: counts.get(cursor) || 0 });
+  }
+
+  function longestStreak(target) {
+    let best = { length: 0, startMon: null, endMon: null };
+    let curLen = 0, curStart = null;
+    for (const w of weeks) {
+      if (w.count === target) {
+        if (curLen === 0) curStart = w.monday;
+        curLen += 1;
+        if (curLen > best.length) best = { length: curLen, startMon: curStart, endMon: w.monday };
+      } else {
+        curLen = 0;
+      }
+    }
+    return best;
+  }
+
+  return { fiveDay: longestStreak(5), fourDay: longestStreak(4) };
+}
+
+function computeTotals(days) {
+  let schoolDays = 0, periods = 0, minutes = 0;
+  const letterMinutes = {};
+  for (const day of days) {
+    if (!day.periods.length) continue;
+    schoolDays += 1;
+    for (const p of day.periods) {
+      periods += 1;
+      const dur = p.endMinutes - p.startMinutes;
+      minutes += dur;
+      letterMinutes[p.label] = (letterMinutes[p.label] || 0) + dur;
+    }
+  }
+  return { schoolDays, periods, hours: minutes / 60, letterMinutes };
+}
+
 // Annotate every period in place with its position in the rotation/semester/year,
 // used by the hover info panel. Returns the totals needed for percentages.
 function computeMeta(days, boundary) {
@@ -234,6 +346,7 @@ function main() {
   const daysByDate = new Map(days.map((d) => [d.date, d]));
 
   const progressEl = document.getElementById("tab-progress");
+  const factsEl = document.getElementById("tab-facts");
   const gridContinuousEl = document.getElementById("grid-continuous");
   const gridWeeklyEl = document.getElementById("grid-weekly");
   const infoPanel = document.getElementById("info-panel");
@@ -560,6 +673,75 @@ function main() {
     if (el) el.outerHTML = currentPeriodBarHtml();
   }
 
+  function factRow(label, value, sub) {
+    return `
+      <div class="fact-row">
+        <div class="fact-label">${label}</div>
+        <div class="fact-value">${value}</div>
+        ${sub ? `<div class="fact-sub">${sub}</div>` : ""}
+      </div>`;
+  }
+
+  // computed once at load -- these are static properties of the schedule
+  // itself, not time-dependent like the Progress bars.
+  function renderFunFacts() {
+    const fl = computeFirstLastStats(days, boundary);
+    const lunch = computeLunchStats(days);
+    const streaks = computeWeekLengthStreaks(days);
+    const totals = computeTotals(days);
+    const pct = (n, total) => (total ? Math.round((n / total) * 100) : 0);
+
+    const topFirst = topOf(fl.first.counts);
+    const topLast = topOf(fl.last.counts);
+    const topFirstS1 = topOf(fl.firstS1.counts);
+    const topFirstS2 = topOf(fl.firstS2.counts);
+    const topLastS1 = topOf(fl.lastS1.counts);
+    const topLastS2 = topOf(fl.lastS2.counts);
+    const topLunch = topOf(lunch.lunch.counts);
+    const topAfter = topOf(lunch.after.counts);
+    const topByTime = topOf(totals.letterMinutes);
+
+    const rows = [
+      factRow("Most common first period", topFirst.key,
+        `${pct(topFirst.value, fl.first.total)}% of school days start with ${topFirst.key}`),
+      factRow("Most common last period", topLast.key,
+        `${pct(topLast.value, fl.last.total)}% of school days end with ${topLast.key}`),
+      factRow("Usually in session at lunch (11:30am)", topLunch.key,
+        `${pct(topLunch.value, lunch.lunch.total)}% of days have ${topLunch.key} spanning 11:30am`),
+      factRow("Usually the period right after lunch", topAfter.key,
+        `${pct(topAfter.value, lunch.after.total)}% of days`),
+    ];
+
+    if (topFirstS1.key !== topFirstS2.key || topLastS1.key !== topLastS2.key) {
+      const bits = [];
+      if (topFirstS1.key !== topFirstS2.key) bits.push(`first period ${topFirstS1.key} → ${topFirstS2.key}`);
+      if (topLastS1.key !== topLastS2.key) bits.push(`last period ${topLastS1.key} → ${topLastS2.key}`);
+      rows.push(factRow("Semester 1 vs. Semester 2", "It shifts", bits.join("; ")));
+    } else {
+      rows.push(factRow("Semester 1 vs. Semester 2", "No change",
+        `${topFirstS1.key} still opens and ${topLastS1.key} still closes the day in Semester 2`));
+    }
+
+    if (streaks) {
+      if (streaks.fiveDay.length) {
+        rows.push(factRow("Longest run of full 5-day weeks", `${streaks.fiveDay.length} weeks`,
+          `${formatShortDate(streaks.fiveDay.startMon)} – ${formatShortDate(addDays(streaks.fiveDay.endMon, 4))}`));
+      }
+      if (streaks.fourDay.length) {
+        rows.push(factRow("Longest run of 4-day weeks", `${streaks.fourDay.length} week${streaks.fourDay.length > 1 ? "s" : ""}`,
+          `${formatShortDate(streaks.fourDay.startMon)} – ${formatShortDate(addDays(streaks.fourDay.endMon, 4))}`));
+      }
+    }
+
+    rows.push(factRow("Total school days", totals.schoolDays, `${totals.periods} total class periods`));
+    rows.push(factRow("Total instructional time", `${Math.round(totals.hours)} hours`, "across the whole year"));
+    rows.push(factRow("Most-scheduled letter, by time", topByTime.key,
+      `${Math.round(totals.letterMinutes[topByTime.key] / 60)} hours across the year`));
+
+    factsEl.classList.add("progress-list", "facts-list");
+    factsEl.innerHTML = rows.join("");
+  }
+
   function renderProgress(now) {
     const semester = now.dateStr <= boundary ? 1 : 2;
     const quarter = quarterOfDate(now.dateStr, boundary, qb);
@@ -608,21 +790,30 @@ function main() {
   });
 
   // --- tabs ---
+  // each tab is bookmarkable/linkable via its own #hash (e.g. index.html#continuous
+  // to land straight on that view), independent of the #debug hash below.
   const tabButtons = [...document.querySelectorAll(".tab")];
   const panels = {
     progress: document.getElementById("tab-progress"),
     continuous: document.getElementById("tab-continuous"),
     weekly: document.getElementById("tab-weekly"),
+    facts: document.getElementById("tab-facts"),
   };
 
-  function setTab(tab) {
+  function setTab(tab, opts = {}) {
     tabButtons.forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
     Object.entries(panels).forEach(([k, el]) => { el.hidden = k !== tab; });
     if (tab === "continuous" && continuousTarget) continuousTarget.scrollIntoView({ block: "center" });
     if (tab === "weekly" && weeklyTarget) weeklyTarget.scrollIntoView({ block: "center" });
+    if (!opts.fromHash) history.replaceState(null, "", "#" + tab);
   }
 
   tabButtons.forEach((b) => b.addEventListener("click", () => setTab(b.dataset.tab)));
+
+  function tabFromHash() {
+    const h = window.location.hash.slice(1);
+    return panels[h] ? h : null;
+  }
 
   // --- debug time ---
   debugInput.addEventListener("change", () => {
@@ -648,7 +839,11 @@ function main() {
     debugBar.hidden = window.location.hash.toLowerCase() !== "#debug";
   }
   updateDebugVisibility();
-  window.addEventListener("hashchange", updateDebugVisibility);
+  window.addEventListener("hashchange", () => {
+    updateDebugVisibility();
+    const tab = tabFromHash();
+    if (tab) setTab(tab, { fromHash: true });
+  });
 
   // --- settings & help overlay ---
   applyAccent(localStorage.getItem("tv-accent") || ACCENT_COLORS[0].name);
@@ -753,7 +948,8 @@ function main() {
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeOverlay(); });
 
   render();
-  setTab("progress");
+  renderFunFacts();
+  setTab(tabFromHash() || "progress", { fromHash: true });
   setInterval(render, REFRESH_MS);
   setInterval(tickCurrentPeriodBar, 1000);
 }

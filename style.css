@@ -225,6 +225,37 @@ main {
   font-variant-numeric: tabular-nums;
 }
 
+/* --- fun facts tab --- */
+
+.facts-list {
+  max-width: 480px;
+}
+
+.fact-row {
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+.fact-row:last-child { border-bottom: none; }
+
+.fact-label {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-bottom: 0.25rem;
+}
+
+.fact-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.fact-sub {
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
 /* --- grid (continuous + weekly) --- */
 
 .grid {
@@ -537,3 +568,10 @@ main {
 .help-body p { margin: 0 0 0.8rem; }
 .help-body p:last-child { margin-bottom: 0; }
 .help-body strong { color: var(--text); }
+.help-body code {
+  background: var(--track);
+  border-radius: 3px;
+  padding: 0.05rem 0.3rem;
+  font-size: 0.75rem;
+  color: var(--text);
+}

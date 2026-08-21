@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SLUH 26/27 AY Progress</title>
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 <script>
   // set the theme before first paint, so there's no flash of the wrong theme
   (function () {
@@ -28,6 +28,7 @@
   <button class="tab" data-tab="progress" type="button">progress</button>
   <button class="tab" data-tab="continuous" type="button">continuous</button>
   <button class="tab" data-tab="weekly" type="button">weekly</button>
+  <button class="tab" data-tab="facts" type="button">fun facts</button>
 </nav>
 
 <div class="debug-bar" id="debug-bar" hidden>
@@ -45,6 +46,7 @@
   <section id="tab-weekly" class="tab-panel" hidden>
     <div id="grid-weekly" class="grid mode-weekly"></div>
   </section>
+  <section id="tab-facts" class="tab-panel" hidden></section>
 </main>
 
 <div id="info-panel" class="info-panel" hidden></div>
@@ -97,13 +99,19 @@
       as visibly empty columns. Hover an empty column to see why there's
       no school, and hover a period to light up its 7-period rotation
       cycle across days.</p>
+      <p><strong>Fun Facts</strong> is a set of trivia computed from the
+      schedule itself — most common first/last period, what's usually in
+      session at lunchtime, longest streaks of short/full weeks, and more.</p>
       <p>Use the ⚙ settings panel to switch light/dark and accent color,
-      and to filter the grid down to just the periods you teach.</p>
+      and to filter the grid down to just the periods you teach. Each tab
+      is linkable — add <code>#continuous</code>, <code>#weekly</code>,
+      <code>#progress</code>, or <code>#facts</code> to the URL to land on
+      that view directly (handy for a bookmarked start page).</p>
     </div>
   </div>
 </div>
 
 <script src="data.js"></script>
-<script src="app.js?v=11"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>
