@@ -6,11 +6,15 @@ semester, and year progress. Meant to be bookmarked as a start page.
 
 ## How it works
 
-Four tabs, each independently linkable — add `#progress`, `#continuous`,
-`#weekly`, or `#facts` to the URL to land straight on that view (handy if
-you want, say, the continuous grid specifically as your start page):
+Three tabs, each independently linkable — add `#progress`, `#continuous`,
+or `#weekly` to the URL to land straight on that view (handy if you want,
+say, the continuous grid specifically as your start page). There's also a
+**🏠 Add as Home Page** button in the header — browsers don't let a page
+set itself as your home page automatically, so it copies the page's URL
+and walks through the one-time settings steps for Safari, Chrome, and
+Firefox:
 
-![Tour of the four tabs](docs/tabs-tour.gif)
+![Tour of the tabs](docs/tabs-tour.gif)
 
 - **Progress** — stacked bars for Academic Year, current Semester, current
   Quarter, **Next Break** (see below), This Week, Today, and a live
@@ -21,12 +25,6 @@ you want, say, the continuous grid specifically as your start page):
 - **Weekly** — the same data laid out as one row per calendar week, Mon–Fri
   as fixed columns, so a short week (a holiday, a break) shows up as
   visibly empty columns instead of just vanishing.
-- **Fun Facts** — trivia computed from the schedule itself: most vs. least
-  common first/last period, what's usually in session at 11:30am lunch
-  (and right after) — each shown as a pair so the top result reads in
-  context — how the first/last period shifts between semesters, the
-  longest streaks of 4-day and 5-day weeks, every individual week with 3
-  days of school or less, and a couple of totals.
 
 The **Next Break** bar is for anyone counting down to the next stretch of
 3 or more consecutive calendar days off (a PD day next to a weekend
@@ -181,15 +179,12 @@ set of files rather than overwriting these:
   tag was verified to cycle with zero breaks across the entire year's
   period sequence, including across weekends and breaks. "Cycle" is just
   `periods completed ÷ 7`.
-- **Fun Facts**: computed once at load from the full, unfiltered schedule
-  (the "my periods" filter only affects Progress and the grids, not this
-  tab, since these are meant to be trivia about the school's schedule in
-  general). "Usually in session at lunch" means whichever lettered period's
-  time range spans 11:30am; "usually right after lunch" is just the next
-  period chronologically. Week-length streaks walk every calendar week
-  between the first and last school day (including 0-day weeks, so a
-  streak can't jump across e.g. spring break) and report the longest run
-  of weeks with exactly 4 or exactly 5 school days.
+- **Next Break**: a "break" is 3+ *consecutive calendar days* off (school
+  days, weekends, and holidays all included in that count), computed once
+  at load by walking every calendar day from the first to the last school
+  day. PD days are deliberately treated like a school day for this walk —
+  they're still a workday, so one sitting next to a weekend can't
+  masquerade as a break.
 
 ## Troubleshooting
 

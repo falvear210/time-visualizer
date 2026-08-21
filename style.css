@@ -225,64 +225,6 @@ main {
   font-variant-numeric: tabular-nums;
 }
 
-/* --- fun facts tab --- */
-
-.facts-list {
-  max-width: 480px;
-}
-
-.fact-row {
-  padding-bottom: 0.6rem;
-  border-bottom: 1px solid var(--border);
-}
-.fact-row:last-child { border-bottom: none; }
-
-.fact-label {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  margin-bottom: 0.25rem;
-}
-
-.fact-value {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--accent);
-  font-variant-numeric: tabular-nums;
-}
-
-.fact-sub {
-  margin-top: 0.2rem;
-  font-size: 0.72rem;
-  color: var(--text-dim);
-}
-
-.fact-pair {
-  display: flex;
-  gap: 2rem;
-}
-
-.fact-pair-tag {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-dim);
-  margin-bottom: 0.15rem;
-}
-
-.fact-value-minor {
-  font-size: 1.05rem;
-  color: var(--text-dim);
-}
-
-.fact-list {
-  margin: 0.4rem 0 0;
-  padding: 0;
-  list-style: none;
-  font-size: 0.72rem;
-  color: var(--text-dim);
-  line-height: 1.7;
-}
-
 /* --- grid (continuous + weekly) --- */
 
 .grid {
@@ -601,4 +543,18 @@ main {
   padding: 0.05rem 0.3rem;
   font-size: 0.75rem;
   color: var(--text);
+}
+
+.url-row {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.6rem 0 1rem;
+}
+.url-row .debug-input {
+  flex: 1;
+  min-width: 0;
+}
+.url-row .ghost-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }

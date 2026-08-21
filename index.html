@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SLUH 26/27 AY Progress</title>
-<link rel="stylesheet" href="style.css?v=13">
+<link rel="stylesheet" href="style.css?v=14">
 <script>
   // set the theme before first paint, so there's no flash of the wrong theme
   (function () {
@@ -19,6 +19,7 @@
 <header class="topbar">
   <h1 class="title">SLUH 26/27 AY Progress</h1>
   <div class="header-controls">
+    <button id="homepage-btn" class="ghost-btn" type="button">🏠 Add as Home Page</button>
     <button id="help-btn" class="icon-btn" type="button" title="Instructions" aria-label="Instructions">?</button>
     <button id="settings-btn" class="icon-btn" type="button" title="Settings" aria-label="Settings">⚙</button>
   </div>
@@ -28,7 +29,6 @@
   <button class="tab" data-tab="progress" type="button">progress</button>
   <button class="tab" data-tab="continuous" type="button">continuous</button>
   <button class="tab" data-tab="weekly" type="button">weekly</button>
-  <button class="tab" data-tab="facts" type="button">fun facts</button>
 </nav>
 
 <div class="debug-bar" id="debug-bar" hidden>
@@ -46,7 +46,6 @@
   <section id="tab-weekly" class="tab-panel" hidden>
     <div id="grid-weekly" class="grid mode-weekly"></div>
   </section>
-  <section id="tab-facts" class="tab-panel" hidden></section>
 </main>
 
 <div id="info-panel" class="info-panel" hidden></div>
@@ -99,19 +98,40 @@
       as visibly empty columns. Hover an empty column to see why there's
       no school, and hover a period to light up its 7-period rotation
       cycle across days.</p>
-      <p><strong>Fun Facts</strong> is a set of trivia computed from the
-      schedule itself — most common first/last period, what's usually in
-      session at lunchtime, longest streaks of short/full weeks, and more.</p>
       <p>Use the ⚙ settings panel to switch light/dark and accent color,
       and to filter the grid down to just the periods you teach. Each tab
-      is linkable — add <code>#continuous</code>, <code>#weekly</code>,
-      <code>#progress</code>, or <code>#facts</code> to the URL to land on
-      that view directly (handy for a bookmarked start page).</p>
+      is linkable — add <code>#continuous</code>, <code>#weekly</code>, or
+      <code>#progress</code> to the URL to land on that view directly
+      (handy for a bookmarked start page).</p>
+    </div>
+  </div>
+
+  <div class="panel" id="homepage-panel" hidden>
+    <div class="panel-head">
+      <span>Add as Home Page</span>
+      <button class="icon-btn" data-close type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="help-body">
+      <p>Browsers don't let a page set itself as your home page — you'll
+      need to do it once in your browser's settings. Copy this page's URL
+      first:</p>
+      <div class="url-row">
+        <input type="text" id="homepage-url" class="debug-input" readonly>
+        <button id="copy-url-btn" class="ghost-btn" type="button">Copy</button>
+      </div>
+      <p><strong>Safari</strong> — Safari menu → Settings → General → paste
+      into "Homepage", then set "New windows open with" and "New tabs open
+      with" to Homepage.</p>
+      <p><strong>Chrome</strong> — Menu (⋮) → Settings → On startup →
+      "Open a specific page or set of pages" → Add a new page → paste the
+      URL.</p>
+      <p><strong>Firefox</strong> — Menu (☰) → Settings → Home →
+      "Homepage and new windows" → Custom URLs… → paste the URL.</p>
     </div>
   </div>
 </div>
 
 <script src="data.js"></script>
-<script src="app.js?v=13"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>
