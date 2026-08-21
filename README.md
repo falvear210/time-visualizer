@@ -13,18 +13,27 @@ you want, say, the continuous grid specifically as your start page):
 ![Tour of the four tabs](docs/tabs-tour.gif)
 
 - **Progress** — stacked bars for Academic Year, current Semester, current
-  Quarter, This Week, Today, and a live **Current Period** bar with a
-  second-by-second elapsed/remaining timer for whatever's happening right
-  now.
+  Quarter, **Next Break** (see below), This Week, Today, and a live
+  **Current Period** bar with a second-by-second elapsed/remaining timer
+  for whatever's happening right now.
 - **Continuous** — every period of the year in one seamless grid, in
   order, sized to fill the screen on desktop. No gaps between days.
 - **Weekly** — the same data laid out as one row per calendar week, Mon–Fri
   as fixed columns, so a short week (a holiday, a break) shows up as
   visibly empty columns instead of just vanishing.
-- **Fun Facts** — trivia computed from the schedule itself: the most
+- **Fun Facts** — trivia computed from the schedule itself: most vs. least
   common first/last period, what's usually in session at 11:30am lunch
-  (and right after), how that shifts between semesters, the longest
-  streaks of 4-day and 5-day weeks, and a few totals.
+  (and right after) — each shown as a pair so the top result reads in
+  context — how the first/last period shifts between semesters, the
+  longest streaks of 4-day and 5-day weeks, every individual week with 3
+  days of school or less, and a couple of totals.
+
+The **Next Break** bar is for anyone counting down to the next stretch of
+3 or more consecutive calendar days off (a PD day next to a weekend
+doesn't count — it's still a workday, so it can't create or extend a
+break). It shows periods remaining *and* a live down-to-the-second
+countdown, because if you're going to obsess over how close the break is,
+you may as well do it properly.
 
 Hover any square for its date and where it sits in the semester/year —
 in **Continuous** this also lights up the rest of that day; in **Weekly**

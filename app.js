@@ -198,6 +198,14 @@ function topOf(counts) {
   return { key: bestKey, value: bestVal };
 }
 
+function bottomOf(counts) {
+  let bestKey = null, bestVal = Infinity;
+  for (const k of Object.keys(counts).sort()) {
+    if (counts[k] < bestVal) { bestVal = counts[k]; bestKey = k; }
+  }
+  return { key: bestKey, value: bestVal };
+}
+
 function computeFirstLastStats(days, boundary) {
   const firsts = [], lasts = [], firstsS1 = [], lastsS1 = [], firstsS2 = [], lastsS2 = [];
   for (const day of days) {
@@ -272,19 +280,103 @@ function computeWeekLengthStreaks(days) {
 }
 
 function computeTotals(days) {
-  let schoolDays = 0, periods = 0, minutes = 0;
-  const letterMinutes = {};
+  let schoolDays = 0, periods = 0;
   for (const day of days) {
     if (!day.periods.length) continue;
     schoolDays += 1;
-    for (const p of day.periods) {
-      periods += 1;
-      const dur = p.endMinutes - p.startMinutes;
-      minutes += dur;
-      letterMinutes[p.label] = (letterMinutes[p.label] || 0) + dur;
+    periods += day.periods.length;
+  }
+  return { schoolDays, periods };
+}
+
+// weeks with 1-3 school days -- a 0-day week (a full break like spring
+// break) is deliberately excluded, since that's a different, more obvious
+// thing than an irregular short week.
+function computeShortWeeks(days) {
+  const schoolDays = days.filter((d) => d.periods.length);
+  if (!schoolDays.length) return [];
+  const counts = new Map();
+  for (const day of schoolDays) {
+    const mon = mondayOf(day.date);
+    counts.set(mon, (counts.get(mon) || 0) + 1);
+  }
+  const firstMon = mondayOf(schoolDays[0].date);
+  const lastMon = mondayOf(schoolDays[schoolDays.length - 1].date);
+  const shortWeeks = [];
+  for (let cursor = firstMon; cursor <= lastMon; cursor = addDays(cursor, 7)) {
+    const count = counts.get(cursor) || 0;
+    if (count >= 1 && count <= 3) shortWeeks.push({ monday: cursor, count });
+  }
+  return shortWeeks;
+}
+
+function formatWeekRange(monday) {
+  const fri = addDays(monday, 4);
+  const a = parseDate(monday), b = parseDate(fri);
+  if (a.m === b.m) return `${MONTH_NAMES[a.m - 1].slice(0, 3)} ${a.d}–${b.d}, ${b.y}`;
+  return `${MONTH_NAMES[a.m - 1].slice(0, 3)} ${a.d} – ${MONTH_NAMES[b.m - 1].slice(0, 3)} ${b.d}, ${b.y}`;
+}
+
+// every single calendar day (school days, weekends, everything) from the
+// first to the last school day, classified so a real multi-day break can
+// be found even though weekends never appear in `days` at all.
+function classifyCalendarDays(days, daysByDate) {
+  const first = days[0].date, last = days[days.length - 1].date;
+  const seq = [];
+  for (let cursor = first; cursor <= last; cursor = addDays(cursor, 1)) {
+    const entry = daysByDate.get(cursor);
+    let type;
+    if (entry && entry.periods.length) type = "school";
+    else if (entry && /professional development|\bpd\b/i.test(entry.summary)) type = "pd";
+    else type = "off"; // break/holiday day, or a weekend (no entry at all)
+    seq.push({ date: cursor, type });
+  }
+  return seq;
+}
+
+// consecutive runs of "off" days (PD days act as a wall, same as a school
+// day -- they don't count toward or extend a break) of at least `minLen`
+// calendar days.
+function findQualifyingBreaks(seq, minLen) {
+  const breaks = [];
+  let runStart = null, runLen = 0;
+  for (let i = 0; i <= seq.length; i++) {
+    const isOff = i < seq.length && seq[i].type === "off";
+    if (isOff) {
+      if (runLen === 0) runStart = seq[i].date;
+      runLen += 1;
+    } else {
+      if (runLen >= minLen) breaks.push({ start: runStart, end: seq[i - 1].date, length: runLen });
+      runLen = 0;
     }
   }
-  return { schoolDays, periods, hours: minutes / 60, letterMinutes };
+  return breaks;
+}
+
+function breakName(startDate, endDate, daysByDate) {
+  for (let d = startDate; d <= endDate; d = addDays(d, 1)) {
+    const entry = daysByDate.get(d);
+    if (entry && entry.summary) return cleanBreakLabel(entry.summary);
+  }
+  return "Break";
+}
+
+function daysBetween(a, b) {
+  const da = Date.UTC(+a.slice(0, 4), +a.slice(4, 6) - 1, +a.slice(6, 8));
+  const db = Date.UTC(+b.slice(0, 4), +b.slice(4, 6) - 1, +b.slice(6, 8));
+  return Math.round((db - da) / 86400000);
+}
+
+function formatCountdown(totalSeconds) {
+  totalSeconds = Math.max(0, Math.round(totalSeconds));
+  const d = Math.floor(totalSeconds / 86400);
+  const h = Math.floor((totalSeconds % 86400) / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  const parts = [];
+  if (d) parts.push(`${d}d`);
+  parts.push(`${h}h`, `${String(m).padStart(d || h ? 2 : 1, "0")}m`, `${String(s).padStart(2, "0")}s`);
+  return parts.join(" ");
 }
 
 // Annotate every period in place with its position in the rotation/semester/year,
@@ -344,6 +436,9 @@ function main() {
   const qb = computeQuarterBoundaries(days, boundary);
   const { yearTotal, semesterTotals, letterTotals } = computeMeta(days, boundary);
   const daysByDate = new Map(days.map((d) => [d.date, d]));
+  // 3+ consecutive calendar days off, PD days excluded from counting as
+  // "off" -- computed once, since the school calendar itself doesn't change.
+  const qualifyingBreaks = findQualifyingBreaks(classifyCalendarDays(days, daysByDate), 3);
 
   const progressEl = document.getElementById("tab-progress");
   const factsEl = document.getElementById("tab-facts");
@@ -668,9 +763,67 @@ function main() {
       </div>`;
   }
 
+  // For tired teachers: how far through the current stretch we are until
+  // the next break of 3+ calendar days (PD days don't count as part of a
+  // break -- they're a workday, so they can't extend or create one).
+  function nextBreakBarHtml() {
+    const now = getNow();
+
+    let nb = null;
+    for (const b of qualifyingBreaks) {
+      if (b.end >= now.dateStr) { nb = b; break; }
+    }
+
+    if (!nb) {
+      return `
+        <div class="bar-row" id="next-break-bar">
+          <div class="bar-top"><div class="bar-label">Next Break (3+ days)</div><div class="bar-pct">—</div></div>
+          <div class="bar-track"><div class="bar-fill" style="width:0%"></div></div>
+          <div class="bar-sub">No more qualifying breaks left this year</div>
+        </div>`;
+    }
+
+    const name = breakName(nb.start, nb.end, daysByDate);
+    const onBreak = nb.start <= now.dateStr && now.dateStr <= nb.end;
+
+    if (onBreak) {
+      return `
+        <div class="bar-row" id="next-break-bar">
+          <div class="bar-top"><div class="bar-label">${name}</div><div class="bar-pct">🎉</div></div>
+          <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+          <div class="bar-sub">You made it. Enjoy every last minute.</div>
+        </div>`;
+    }
+
+    const idx = qualifyingBreaks.indexOf(nb);
+    const prevBreak = idx > 0 ? qualifyingBreaks[idx - 1] : null;
+    const stretchStart = prevBreak ? addDays(prevBreak.end, 1) : days[0].date;
+    const stretchDays = days.filter((d) => d.date >= stretchStart && d.date < nb.start);
+    const prog = progressOfFiltered(stretchDays, now);
+    const periodsLeft = Math.max(0, Math.round(prog.total - prog.done));
+    const pct = prog.total ? (prog.done / prog.total) * 100 : 100;
+
+    const lastSchoolDay = [...days].reverse().find((d) => d.periods.length && d.date < nb.start);
+    let secs = 0;
+    if (lastSchoolDay) {
+      const lastPeriod = lastSchoolDay.periods[lastSchoolDay.periods.length - 1];
+      secs = daysBetween(now.dateStr, lastSchoolDay.date) * 86400
+        + (lastPeriod.endMinutes * 60 - (now.minutes * 60 + now.seconds));
+    }
+
+    return `
+      <div class="bar-row" id="next-break-bar">
+        <div class="bar-top"><div class="bar-label">Next Break (3+ days) — ${name}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <div class="bar-sub">${periodsLeft} periods · ${formatCountdown(secs)} to go</div>
+      </div>`;
+  }
+
   function tickCurrentPeriodBar() {
     const el = document.getElementById("current-period-bar");
     if (el) el.outerHTML = currentPeriodBarHtml();
+    const nb = document.getElementById("next-break-bar");
+    if (nb) nb.outerHTML = nextBreakBarHtml();
   }
 
   function factRow(label, value, sub) {
@@ -682,34 +835,57 @@ function main() {
       </div>`;
   }
 
+  // shows the most- and least-common letter for the same distribution side
+  // by side, so the top one reads in context instead of floating alone.
+  function factPairRow(label, stat) {
+    const top = topOf(stat.counts), bottom = bottomOf(stat.counts);
+    const pct = (n) => (stat.total ? Math.round((n / stat.total) * 100) : 0);
+    return `
+      <div class="fact-row">
+        <div class="fact-label">${label}</div>
+        <div class="fact-pair">
+          <div class="fact-pair-item">
+            <div class="fact-pair-tag">most common</div>
+            <div class="fact-value">${top.key}</div>
+            <div class="fact-sub">${pct(top.value)}% of days</div>
+          </div>
+          <div class="fact-pair-item">
+            <div class="fact-pair-tag">least common</div>
+            <div class="fact-value fact-value-minor">${bottom.key}</div>
+            <div class="fact-sub">${pct(bottom.value)}% of days</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function factListRow(label, value, items) {
+    return `
+      <div class="fact-row">
+        <div class="fact-label">${label}</div>
+        <div class="fact-value">${value}</div>
+        <ul class="fact-list">${items.map((i) => `<li>${i}</li>`).join("")}</ul>
+      </div>`;
+  }
+
   // computed once at load -- these are static properties of the schedule
   // itself, not time-dependent like the Progress bars.
   function renderFunFacts() {
     const fl = computeFirstLastStats(days, boundary);
     const lunch = computeLunchStats(days);
     const streaks = computeWeekLengthStreaks(days);
+    const shortWeeks = computeShortWeeks(days);
     const totals = computeTotals(days);
-    const pct = (n, total) => (total ? Math.round((n / total) * 100) : 0);
 
-    const topFirst = topOf(fl.first.counts);
-    const topLast = topOf(fl.last.counts);
     const topFirstS1 = topOf(fl.firstS1.counts);
     const topFirstS2 = topOf(fl.firstS2.counts);
     const topLastS1 = topOf(fl.lastS1.counts);
     const topLastS2 = topOf(fl.lastS2.counts);
-    const topLunch = topOf(lunch.lunch.counts);
-    const topAfter = topOf(lunch.after.counts);
-    const topByTime = topOf(totals.letterMinutes);
 
     const rows = [
-      factRow("Most common first period", topFirst.key,
-        `${pct(topFirst.value, fl.first.total)}% of school days start with ${topFirst.key}`),
-      factRow("Most common last period", topLast.key,
-        `${pct(topLast.value, fl.last.total)}% of school days end with ${topLast.key}`),
-      factRow("Usually in session at lunch (11:30am)", topLunch.key,
-        `${pct(topLunch.value, lunch.lunch.total)}% of days have ${topLunch.key} spanning 11:30am`),
-      factRow("Usually the period right after lunch", topAfter.key,
-        `${pct(topAfter.value, lunch.after.total)}% of days`),
+      factPairRow("First period of the day", fl.first),
+      factPairRow("Last period of the day", fl.last),
+      factPairRow("In session at lunch (11:30am)", lunch.lunch),
+      factPairRow("Right after lunch", lunch.after),
     ];
 
     if (topFirstS1.key !== topFirstS2.key || topLastS1.key !== topLastS2.key) {
@@ -733,10 +909,15 @@ function main() {
       }
     }
 
+    rows.push(factListRow(
+      "Weeks with 3 days of school or less",
+      shortWeeks.length,
+      shortWeeks.length
+        ? shortWeeks.map((w) => `${formatWeekRange(w.monday)} — ${w.count} day${w.count > 1 ? "s" : ""}`)
+        : ["None this year"]
+    ));
+
     rows.push(factRow("Total school days", totals.schoolDays, `${totals.periods} total class periods`));
-    rows.push(factRow("Total instructional time", `${Math.round(totals.hours)} hours`, "across the whole year"));
-    rows.push(factRow("Most-scheduled letter, by time", topByTime.key,
-      `${Math.round(totals.letterMinutes[topByTime.key] / 60)} hours across the year`));
 
     factsEl.classList.add("progress-list", "facts-list");
     factsEl.innerHTML = rows.join("");
@@ -764,6 +945,7 @@ function main() {
       barOrEmpty("Academic Year", year, "No school"),
       barOrEmpty(`Semester ${semester}`, sem, "No school"),
       barOrEmpty(`Quarter ${quarter}`, q, "No school"),
+      nextBreakBarHtml(),
       barOrEmpty("This Week", week, "No school this week"),
       barOrEmpty("Today", dayProg, "No school today"),
       currentPeriodBarHtml(),

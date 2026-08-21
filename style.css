@@ -256,6 +256,33 @@ main {
   color: var(--text-dim);
 }
 
+.fact-pair {
+  display: flex;
+  gap: 2rem;
+}
+
+.fact-pair-tag {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  margin-bottom: 0.15rem;
+}
+
+.fact-value-minor {
+  font-size: 1.05rem;
+  color: var(--text-dim);
+}
+
+.fact-list {
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
 /* --- grid (continuous + weekly) --- */
 
 .grid {
