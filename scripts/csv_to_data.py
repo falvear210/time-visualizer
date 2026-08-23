@@ -12,6 +12,16 @@ Q3's last day (Q2 always ends at the semester boundary, Q4 at the last day
 of the year, so neither needs marking). Leave it blank/omit the column to
 fall back to an even split-by-period-count approximation.
 
+On most days, one period runs twice at different clock times -- once for
+freshmen/sophomores (class, then lunch) and once for juniors/seniors
+(lunch, then class). Optional "split_letter"/"jrsr_start"/"jrsr_end"
+columns record that day's Jr/Sr variant (the {letter}_start/{letter}_end
+columns already hold the Fr/So time for that letter).
+
+An optional "senior_s2" column marks "start" on the first day seniors'
+second-semester schedule resumes and "end" on their last day of classes,
+for periods a teacher marks as seniors-only in Settings.
+
 Usage: python3 csv_to_data.py <input.csv> <output.json> <output.js>
 """
 import csv
@@ -104,9 +114,39 @@ def process_row(row, row_num, errors, warnings):
         )
         quarter_end = ""
 
+    split_letter = row.get("split_letter", "").strip().upper()
+    jrsr_start_raw = row.get("jrsr_start", "").strip()
+    jrsr_end_raw = row.get("jrsr_end", "").strip()
+    if split_letter or jrsr_start_raw or jrsr_end_raw:
+        if not (split_letter and jrsr_start_raw and jrsr_end_raw):
+            errors.append(
+                f"row {row_num} ({raw_date}): split_letter/jrsr_start/jrsr_end must all be filled "
+                f"in together, or all left blank"
+            )
+        elif split_letter not in LETTERS:
+            errors.append(f"row {row_num} ({raw_date}): split_letter=\"{split_letter}\" is not a period letter A-G")
+        else:
+            match = next((p for p in periods if p["label"] == split_letter), None)
+            if not match:
+                errors.append(f"row {row_num} ({raw_date}): split_letter={split_letter} isn't one of this day's periods")
+            else:
+                jrsr_start = parse_time(jrsr_start_raw, row_num, "jrsr_start", errors)
+                jrsr_end = parse_time(jrsr_end_raw, row_num, "jrsr_end", errors)
+                if jrsr_start is not None and jrsr_end is not None:
+                    if jrsr_end <= jrsr_start:
+                        errors.append(f"row {row_num} ({raw_date}): jrsr_end is at or before jrsr_start ({jrsr_start_raw}-{jrsr_end_raw})")
+                    else:
+                        match["jrsrStartMinutes"] = jrsr_start
+                        match["jrsrEndMinutes"] = jrsr_end
+
+    senior_s2 = row.get("senior_s2", "").strip().lower()
+    if senior_s2 and senior_s2 not in ("start", "end"):
+        errors.append(f"row {row_num} ({raw_date}): senior_s2=\"{senior_s2}\" -- only \"start\" or \"end\" make sense here")
+        senior_s2 = ""
+
     return {
         "date": date_str, "weekday": computed_weekday, "summary": summary,
-        "periods": periods, "quarter_end": quarter_end, "row_num": row_num,
+        "periods": periods, "quarter_end": quarter_end, "senior_s2": senior_s2, "row_num": row_num,
     }
 
 
@@ -161,6 +201,23 @@ def main():
             errors.append(f"row {d['row_num']} ({d['date']}): quarter_end=3 falls in or before semester 1 (boundary {boundary}) -- Q3 should be in semester 2")
         quarter_marks[q] = d["date"]
 
+    senior_s2 = {}
+    for d in days:
+        s = d["senior_s2"]
+        if not s:
+            continue
+        if s in senior_s2:
+            errors.append(
+                f"row {d['row_num']} ({d['date']}): another row already marked senior_s2={s} "
+                f"({senior_s2[s]}) -- only one row can mark each"
+            )
+            continue
+        if boundary and d["date"] <= boundary:
+            errors.append(f"row {d['row_num']} ({d['date']}): senior_s2={s} falls in or before semester 1 (boundary {boundary}) -- this is a second-semester-only concept")
+        senior_s2[s] = d["date"]
+    if "start" in senior_s2 and "end" in senior_s2 and senior_s2["start"] > senior_s2["end"]:
+        errors.append(f"senior_s2 start ({senior_s2['start']}) is after senior_s2 end ({senior_s2['end']})")
+
     if warnings:
         print(f"{len(warnings)} warning(s):")
         for w in warnings:
@@ -184,10 +241,15 @@ def main():
         f.write("const QUARTER_MARKS = ")
         json.dump(quarter_marks, f)
         f.write(";\n")
+        f.write("const SENIOR_S2 = ")
+        json.dump(senior_s2, f)
+        f.write(";\n")
 
     print(f"\nOK: {len(clean_days)} days -> {json_path} and {js_path}")
     if quarter_marks:
         print(f"  explicit quarter boundaries: {quarter_marks}")
+    if senior_s2:
+        print(f"  senior second-semester window: {senior_s2}")
 
 
 if __name__ == "__main__":

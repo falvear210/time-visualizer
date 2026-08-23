@@ -232,6 +232,34 @@ main {
   font-variant-numeric: tabular-nums;
 }
 
+.bar-wave-toggle {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.bar-wave-label {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+
+.wave-pill {
+  appearance: none;
+  background: var(--track);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+.wave-pill.active {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
 /* --- current period (solo) tab --- */
 
 .current-solo {
@@ -246,6 +274,8 @@ main {
 .current-solo .bar-pct { font-size: 1.3rem; }
 .current-solo .bar-track { height: 22px; }
 .current-solo .bar-sub { margin-top: 0.6rem; font-size: 1rem; }
+.current-solo .bar-wave-label { font-size: 0.85rem; }
+.current-solo .wave-pill { font-size: 0.85rem; padding: 0.2rem 0.9rem; }
 
 /* --- grid (continuous + weekly) --- */
 
@@ -485,13 +515,21 @@ main {
 }
 .panel-label input[type="checkbox"] { accent-color: var(--accent); }
 
+.panel-hint {
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+}
+
 .theme-row {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 0.7rem;
 }
 
-.mode-btn {
+.mode-btn,
+.wave-btn {
   appearance: none;
   flex: 1;
   background: var(--track);
@@ -503,7 +541,8 @@ main {
   font-family: inherit;
   cursor: pointer;
 }
-.mode-btn.active {
+.mode-btn.active,
+.wave-btn.active {
   color: var(--text);
   border-color: var(--accent);
 }

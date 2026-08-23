@@ -47,6 +47,11 @@ LINE_RE = re.compile(
 # this naturally excludes exam periods, advisory, studium, activity period, zero
 # hour, mass, lunch, homeroom, etc. -- none of those carry a letter tag.
 LETTER_RE = re.compile(r"\[([A-G])\]\s*$")
+# most days, one period (whichever sits next to lunch) runs twice: once for
+# freshmen/sophomores (class, then lunch) and once for juniors/seniors (lunch,
+# then class) -- same letter, two different clock times. e.g.
+# "Period 2 (Fr/So) [G]" and "Period 2 (Jr/Sr) [G]".
+GRADE_RE = re.compile(r"\((Fr/So|Jr/Sr)\)", re.IGNORECASE)
 
 
 def to_minutes(hour: int, minute: int, meridiem: str) -> int:
@@ -58,9 +63,11 @@ def to_minutes(hour: int, minute: int, meridiem: str) -> int:
 
 def parse_periods(description: str):
     """Return one square per lettered class (A-G) in the day, in chronological
-    order, using the *first* variant encountered when a letter appears twice
-    (e.g. split Fr/So vs Jr/Sr lunch-wave sections of the same class)."""
-    seen = {}
+    order. When a letter is split into Fr/So and Jr/Sr lunch-wave variants,
+    the Fr/So time is used as the period's primary startMinutes/endMinutes
+    (matching plain, unsplit periods) and the Jr/Sr time is attached as
+    jrsrStartMinutes/jrsrEndMinutes."""
+    frso, jrsr, plain = {}, {}, {}
     for line in description.split("\n"):
         line = line.strip()
         m = LINE_RE.match(line)
@@ -83,12 +90,26 @@ def parse_periods(description: str):
             if start_minutes > end_minutes:
                 start_minutes = to_minutes(int(sh), int(sm), "am" if emer.lower() == "pm" else "pm")
 
-        if letter in seen:
-            continue
-        seen[letter] = {
-            "label": letter,
-            "startMinutes": start_minutes,
-            "endMinutes": end_minutes,
-        }
+        entry = {"startMinutes": start_minutes, "endMinutes": end_minutes}
+        gm = GRADE_RE.search(label)
+        if gm and gm.group(1).lower() == "fr/so":
+            frso.setdefault(letter, entry)
+        elif gm and gm.group(1).lower() == "jr/sr":
+            jrsr.setdefault(letter, entry)
+        else:
+            plain.setdefault(letter, entry)
 
-    return [seen[k] for k in sorted(seen, key=lambda k: seen[k]["startMinutes"])]
+    periods = {}
+    for letter, entry in plain.items():
+        periods[letter] = {"label": letter, **entry}
+    for letter, entry in frso.items():
+        p = {"label": letter, **entry}
+        if letter in jrsr:
+            p["jrsrStartMinutes"] = jrsr[letter]["startMinutes"]
+            p["jrsrEndMinutes"] = jrsr[letter]["endMinutes"]
+        periods[letter] = p
+    for letter, entry in jrsr.items():
+        if letter not in periods:  # a Jr/Sr line with no matching Fr/So line
+            periods[letter] = {"label": letter, **entry}
+
+    return sorted(periods.values(), key=lambda p: p["startMinutes"])

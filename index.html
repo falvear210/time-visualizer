@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SLUH 26/27 AY Progress</title>
-<link rel="stylesheet" href="style.css?v=20">
+<link rel="stylesheet" href="style.css?v=21">
 <script>
   // set the theme before first paint, so there's no flash of the wrong theme
   (function () {
@@ -77,6 +77,25 @@
       </div>
       <div class="letter-row" id="letters-s2" hidden></div>
     </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Lunch Wave</div>
+      <div class="panel-hint">Most days, one period runs twice at different
+      times — once for Fr/So (class, then lunch), once for Jr/Sr (lunch,
+      then class). Pick which one your classes follow.</div>
+      <div class="theme-row">
+        <button class="wave-btn" data-wave="frso" type="button">Fr/So</button>
+        <button class="wave-btn" data-wave="jrsr" type="button">Jr/Sr</button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Seniors-only periods</div>
+      <div class="panel-hint">Mark any periods above that meet with seniors
+      only. Seniors follow a shorter second-semester schedule, so those
+      periods won't meet outside that window.</div>
+      <div class="letter-row" id="letters-senior"></div>
+    </div>
   </div>
 
   <div class="panel" id="help-panel" hidden>
@@ -112,6 +131,6 @@
 </div>
 
 <script src="data.js"></script>
-<script src="app.js?v=20"></script>
+<script src="app.js?v=21"></script>
 </body>
 </html>

@@ -45,7 +45,14 @@ function applyAccent(name) {
 
 // starts off (shows everyone's periods); the letters pre-fill to A/B/D/G so
 // flipping "Show only my periods" on in settings is immediately useful.
-const DEFAULT_FILTER = { enabled: false, split: false, s1: ["A", "B", "D", "G"], s2: ["A", "B", "D", "G"] };
+// `wave`: which lunch-wave clock time to use for periods that split
+// (see resolvePeriodTimes). `seniorLetters`: periods marked as seniors-only
+// sections, which don't meet in Semester 2 outside the SENIOR_S2 window.
+const DEFAULT_FILTER = {
+  enabled: false, split: false,
+  s1: ["A", "B", "D", "G"], s2: ["A", "B", "D", "G"],
+  wave: "frso", seniorLetters: [],
+};
 
 function loadFilter() {
   try {
@@ -185,23 +192,36 @@ function inTodayPreviewWindow(now) {
   return now.minutes >= PREVIEW_WINDOW_START && now.minutes < PREVIEW_WINDOW_END;
 }
 
+// On most days, one period runs twice at different clock times -- once for
+// freshmen/sophomores (class, then lunch) and once for juniors/seniors
+// (lunch, then class) -- same letter, different startMinutes/endMinutes.
+// `wave` ("frso" | "jrsr") picks which one applies; a period with no
+// jrsrStartMinutes/jrsrEndMinutes (i.e. it never splits) ignores wave.
+function resolvePeriodTimes(period, wave) {
+  if (wave === "jrsr" && period.jrsrStartMinutes != null) {
+    return { startMinutes: period.jrsrStartMinutes, endMinutes: period.jrsrEndMinutes };
+  }
+  return { startMinutes: period.startMinutes, endMinutes: period.endMinutes };
+}
+
 // 0 (hasn't happened), 1 (fully done), or a fraction in between for the
 // currently-live period.
-function periodProgress(day, period, now) {
+function periodProgress(day, period, now, wave) {
+  const { startMinutes, endMinutes } = resolvePeriodTimes(period, wave);
   if (day.date < now.dateStr) return 1;
   if (day.date > now.dateStr) return 0;
-  if (now.minutes < period.startMinutes) return 0;
-  if (now.minutes >= period.endMinutes) return 1;
-  return (now.minutes - period.startMinutes) / (period.endMinutes - period.startMinutes);
+  if (now.minutes < startMinutes) return 0;
+  if (now.minutes >= endMinutes) return 1;
+  return (now.minutes - startMinutes) / (endMinutes - startMinutes);
 }
 
 // sums periodProgress() across a list of days, for the Progress tab's bars.
-function progressOf(dayList, now) {
+function progressOf(dayList, now, wave) {
   let total = 0, done = 0;
   for (const day of dayList) {
     for (const p of day.periods) {
       total += 1;
-      done += periodProgress(day, p, now);
+      done += periodProgress(day, p, now, wave);
     }
   }
   return { total, done, pct: total ? (done / total) * 100 : 0 };
@@ -347,6 +367,10 @@ function main() {
   const days = SCHOOL_YEAR_DATA;
   const boundary = findSemesterBoundary(days);
   const qb = computeQuarterBoundaries(days, boundary);
+  // when set (see csv_to_data.py's senior_s2 column), the date range seniors'
+  // second-semester schedule actually runs -- outside it, periods marked as
+  // seniors-only in Settings don't meet at all.
+  const seniorS2 = typeof SENIOR_S2 !== "undefined" && SENIOR_S2.start && SENIOR_S2.end ? SENIOR_S2 : null;
   const { yearTotal, semesterTotals, letterTotals } = computeMeta(days, boundary);
   const daysByDate = new Map(days.map((d) => [d.date, d]));
   // 3+ consecutive calendar days off, PD days excluded from counting as
@@ -374,6 +398,10 @@ function main() {
 
   let override = null; // {dateStr, minutes} while debugging, else null
   let filterState = loadFilter();
+  // lets anyone viewing a split period switch which lunch wave's clock time
+  // the Current Period bar reflects, without changing their saved setting.
+  // Resets to the Settings default on reload.
+  let liveWaveOverride = null;
 
   // ---- "my periods" filter ----
 
@@ -381,18 +409,26 @@ function main() {
     if (!filterState.enabled) return true;
     const sem = day.date <= boundary ? "s1" : "s2";
     const set = filterState.split && sem === "s2" ? filterState.s2 : filterState.s1;
-    return set.includes(letter);
+    if (!set.includes(letter)) return false;
+    // a period marked seniors-only doesn't meet in S2 outside the window
+    // seniors actually attend (see csv_to_data.py's senior_s2 column).
+    if (sem === "s2" && seniorS2 && (filterState.seniorLetters || []).includes(letter)) {
+      return day.date >= seniorS2.start && day.date <= seniorS2.end;
+    }
+    return true;
   }
 
   // same shape progressOf() expects, but with non-matching periods dropped
-  // when the "my periods" filter is on.
+  // when the "my periods" filter is on, and always resolved to the
+  // configured lunch wave.
   function progressOfFiltered(dayList, now) {
-    if (!filterState.enabled) return progressOf(dayList, now);
+    const wave = filterState.wave || "frso";
+    if (!filterState.enabled) return progressOf(dayList, now, wave);
     const mapped = dayList.map((d) => ({
       date: d.date,
       periods: d.periods.filter((p) => isLetterActive(d, p.label)),
     }));
-    return progressOf(mapped, now);
+    return progressOf(mapped, now, wave);
   }
 
   function countVisiblePeriods() {
@@ -513,7 +549,7 @@ function main() {
 
     const fill = document.createElement("div");
     fill.className = "period-fill";
-    const progress = periodProgress(day, p, now);
+    const progress = periodProgress(day, p, now, filterState.wave || "frso");
     fill.style.height = (progress * 100) + "%";
     if (progress > 0 && progress < 1) {
       sq.classList.add("is-live");
@@ -665,12 +701,25 @@ function main() {
     return bar(label, prog.pct, `${Math.round(prog.done)} of ${prog.total} periods · ${Math.round(prog.total - prog.done)} left`);
   }
 
-  function findLivePeriod(now) {
+  // like barOrEmpty, but adds a school-days-left count alongside the
+  // periods-left count -- for the big-picture bars (year/semester/quarter)
+  // where "how many days" is at least as useful as "how many periods".
+  function barWithSchoolDays(label, dayList, now, emptyText) {
+    const periodProg = progressOfFiltered(dayList, now);
+    if (periodProg.total === 0) return bar(label, 0, emptyText);
+    const periodsLeft = Math.round(periodProg.total - periodProg.done);
+    const dayProg = schoolDayProgress(dayList, now);
+    const daysLeft = Math.max(0, Math.round(dayProg.total - dayProg.done));
+    return bar(label, periodProg.pct,
+      `${Math.round(periodProg.done)} of ${periodProg.total} periods · ${periodsLeft} left · ${daysLeft} school day${daysLeft === 1 ? "" : "s"} left`);
+  }
+
+  function findLivePeriod(now, wave) {
     const today = days.find((d) => d.date === now.dateStr);
     if (!today) return null;
     for (const p of today.periods) {
       if (!isLetterActive(today, p.label)) continue;
-      const prog = periodProgress(today, p, now);
+      const prog = periodProgress(today, p, now, wave);
       if (prog > 0 && prog < 1) return p;
     }
     return null;
@@ -680,7 +729,8 @@ function main() {
   // list, and the standalone Current Period tab) without a duplicate DOM id.
   function currentPeriodBarHtml(id = "current-period-bar") {
     const now = getNow();
-    const live = findLivePeriod(now);
+    const wave = liveWaveOverride || filterState.wave || "frso";
+    const live = findLivePeriod(now, wave);
 
     if (!live) {
       return `
@@ -691,16 +741,27 @@ function main() {
         </div>`;
     }
 
-    const totalMs = (live.endMinutes - live.startMinutes) * 60000;
-    const elapsedMs = Math.min(totalMs, Math.max(0, (now.minutes - live.startMinutes) * 60000 + now.seconds * 1000 + now.ms));
+    const { startMinutes, endMinutes } = resolvePeriodTimes(live, wave);
+    const totalMs = (endMinutes - startMinutes) * 60000;
+    const elapsedMs = Math.min(totalMs, Math.max(0, (now.minutes - startMinutes) * 60000 + now.seconds * 1000 + now.ms));
     const remainingMs = totalMs - elapsedMs;
     const pct = (elapsedMs / totalMs) * 100;
+
+    // only offer the wave toggle when this specific period actually splits
+    // -- most periods don't, and the control would just be noise on them.
+    const waveToggle = live.jrsrStartMinutes != null ? `
+        <div class="bar-wave-toggle">
+          <span class="bar-wave-label">Lunch wave</span>
+          <button class="wave-pill${wave === "frso" ? " active" : ""}" data-wave="frso" type="button">Fr/So</button>
+          <button class="wave-pill${wave === "jrsr" ? " active" : ""}" data-wave="jrsr" type="button">Jr/Sr</button>
+        </div>` : "";
 
     return `
       <div class="bar-row" id="${id}">
         <div class="bar-top"><div class="bar-label">Current Period — ${live.label}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
         <div class="bar-sub">${formatClockTenths(elapsedMs)} elapsed · ${formatClockTenths(remainingMs)} remaining</div>
+        ${waveToggle}
       </div>`;
   }
 
@@ -798,11 +859,8 @@ function main() {
     const semester = now.dateStr <= boundary ? 1 : 2;
     const quarter = quarterOfDate(now.dateStr, boundary, qb);
 
-    const year = progressOfFiltered(days, now);
     const semDays = days.filter((d) => semester === 1 ? d.date <= boundary : d.date > boundary);
-    const sem = progressOfFiltered(semDays, now);
     const qDays = days.filter((d) => d.periods.length && quarterOfDate(d.date, boundary, qb) === quarter);
-    const q = progressOfFiltered(qDays, now);
 
     const mon = mondayOf(now.dateStr);
     const weekDays = days.filter((d) => d.periods.length && mondayOf(d.date) === mon);
@@ -813,9 +871,9 @@ function main() {
 
     progressEl.classList.add("progress-list");
     progressEl.innerHTML = [
-      barOrEmpty("Academic Year", year, "No school"),
-      barOrEmpty(`Semester ${semester}`, sem, "No school"),
-      barOrEmpty(`Quarter ${quarter}`, q, "No school"),
+      barWithSchoolDays("Academic Year", days, now, "No school"),
+      barWithSchoolDays(`Semester ${semester}`, semDays, now, "No school"),
+      barWithSchoolDays(`Quarter ${quarter}`, qDays, now, "No school"),
       nextBreakBarHtml(),
       milestoneBarHtml(now),
       barOrEmpty("Until Weekend", week, "No school this week"),
@@ -915,6 +973,8 @@ function main() {
   const filterSplitCb = document.getElementById("filter-split");
   const lettersS1El = document.getElementById("letters-s1");
   const lettersS2El = document.getElementById("letters-s2");
+  const waveButtons = [...document.querySelectorAll(".wave-btn")];
+  const lettersSeniorEl = document.getElementById("letters-senior");
 
   ACCENT_COLORS.forEach((c) => {
     const dot = document.createElement("button");
@@ -962,6 +1022,7 @@ function main() {
     filterEnabledCb.checked = filterState.enabled;
     filterSplitCb.checked = filterState.split;
     lettersS2El.hidden = !filterState.split;
+    waveButtons.forEach((b) => b.classList.toggle("active", b.dataset.wave === (filterState.wave || "frso")));
 
     renderLetterRow(lettersS1El, filterState.s1, (letter) => {
       toggleLetter(filterState.s1, letter);
@@ -975,7 +1036,23 @@ function main() {
       refreshSettingsUI();
       render();
     });
+    renderLetterRow(lettersSeniorEl, filterState.seniorLetters || [], (letter) => {
+      filterState.seniorLetters = filterState.seniorLetters || [];
+      toggleLetter(filterState.seniorLetters, letter);
+      saveFilter(filterState);
+      refreshSettingsUI();
+      render();
+    });
   }
+
+  waveButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      filterState.wave = btn.dataset.wave;
+      saveFilter(filterState);
+      refreshSettingsUI();
+      render();
+    });
+  });
 
   filterEnabledCb.addEventListener("change", () => {
     filterState.enabled = filterEnabledCb.checked;
@@ -987,6 +1064,16 @@ function main() {
     lettersS2El.hidden = !filterState.split;
     saveFilter(filterState);
     render();
+  });
+
+  // event delegation, since the Current Period bar's whole DOM node is
+  // replaced on every tick -- a listener attached directly to the button
+  // would be gone within 100ms.
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".wave-pill");
+    if (!btn) return;
+    liveWaveOverride = btn.dataset.wave;
+    tickCurrentPeriodBar();
   });
 
   function openPanel(which) {

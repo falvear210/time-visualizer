@@ -66,7 +66,7 @@ def main():
     header = ["date", "weekday", "summary"]
     for letter in LETTERS:
         header += [f"{letter}_start", f"{letter}_end"]
-    header.append("quarter_end")
+    header += ["quarter_end", "split_letter", "jrsr_start", "jrsr_end", "senior_s2"]
 
     with open(out_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -77,13 +77,20 @@ def main():
             weekday = datetime.strptime(d, "%Y%m%d").strftime("%A")
             by_letter = {p["label"]: p for p in entry["periods"]}
             row = [iso_date, weekday, entry["summary"]]
+            split_letter, jrsr_start, jrsr_end = "", "", ""
             for letter in LETTERS:
                 p = by_letter.get(letter)
                 if p:
                     row += [minutes_to_hhmm(p["startMinutes"]), minutes_to_hhmm(p["endMinutes"])]
+                    if "jrsrStartMinutes" in p:
+                        split_letter = letter
+                        jrsr_start = minutes_to_hhmm(p["jrsrStartMinutes"])
+                        jrsr_end = minutes_to_hhmm(p["jrsrEndMinutes"])
                 else:
                     row += ["", ""]
             row.append("")  # quarter_end: fill in by hand once real dates are known
+            row += [split_letter, jrsr_start, jrsr_end]
+            row.append("")  # senior_s2: fill in by hand once real dates are known
             writer.writerow(row)
 
     print(f"Wrote {len(days)} days -> {out_path}")

@@ -17,7 +17,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -49,7 +51,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -76,7 +80,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -108,7 +114,9 @@
       {
         "label": "C",
         "startMinutes": 701,
-        "endMinutes": 759
+        "endMinutes": 759,
+        "jrsrStartMinutes": 721,
+        "jrsrEndMinutes": 779
       },
       {
         "label": "D",
@@ -167,7 +175,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -199,7 +209,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -226,7 +238,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -258,7 +272,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -285,7 +301,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -317,7 +335,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -349,7 +369,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -376,7 +398,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -408,7 +432,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -440,7 +466,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -467,7 +495,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -500,7 +530,9 @@
       {
         "label": "F",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "G",
@@ -532,7 +564,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -559,7 +593,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -591,7 +627,9 @@
       {
         "label": "F",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "G",
@@ -624,7 +662,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -656,7 +696,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -688,7 +730,9 @@
       {
         "label": "F",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "G",
@@ -720,7 +764,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -752,7 +798,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -779,7 +827,9 @@
       {
         "label": "F",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "G",
@@ -811,7 +861,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -838,7 +890,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -870,7 +924,9 @@
       {
         "label": "F",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "G",
@@ -902,7 +958,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -929,7 +987,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -961,7 +1021,9 @@
       {
         "label": "F",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "G",
@@ -988,7 +1050,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -1020,7 +1084,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -1052,7 +1118,9 @@
       {
         "label": "F",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "G",
@@ -1079,7 +1147,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -1111,7 +1181,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -1170,7 +1242,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -1202,7 +1276,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -1229,7 +1305,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -1261,7 +1339,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -1305,7 +1385,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -1332,7 +1414,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -1364,7 +1448,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -1408,7 +1494,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -1435,7 +1523,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -1467,7 +1557,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -1494,7 +1586,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -1526,7 +1620,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -1558,7 +1654,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -1585,7 +1683,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -1617,7 +1717,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -1649,7 +1751,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -1681,7 +1785,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -1713,7 +1819,9 @@
       {
         "label": "F",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "G",
@@ -1740,7 +1848,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -1772,7 +1882,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -1799,7 +1911,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -1831,7 +1945,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -1863,7 +1979,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -1890,7 +2008,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -1922,7 +2042,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -1949,7 +2071,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -1981,7 +2105,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -2013,7 +2139,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -2040,7 +2168,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -2090,7 +2220,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -2117,7 +2249,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -2149,7 +2283,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -2176,7 +2312,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -2208,7 +2346,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -2240,7 +2380,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -2267,7 +2409,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -2299,7 +2443,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -2326,7 +2472,9 @@
       {
         "label": "F",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "G",
@@ -2358,7 +2506,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -2390,7 +2540,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -2528,7 +2680,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -2560,7 +2714,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -2587,7 +2743,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -2619,7 +2777,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -2651,7 +2811,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -2678,7 +2840,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -2710,7 +2874,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -2742,7 +2908,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -2781,7 +2949,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -2813,7 +2983,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -2840,7 +3012,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -2872,7 +3046,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -2904,7 +3080,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -2931,7 +3109,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -2963,7 +3143,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -2995,7 +3177,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -3027,7 +3211,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -3054,7 +3240,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -3081,7 +3269,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -3113,7 +3303,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -3140,7 +3332,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -3178,7 +3372,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -3205,7 +3401,9 @@
       {
         "label": "F",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "G",
@@ -3232,7 +3430,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -3264,7 +3464,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -3296,7 +3498,9 @@
       {
         "label": "F",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "G",
@@ -3329,7 +3533,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -3361,7 +3567,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -3388,7 +3596,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -3420,7 +3630,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -3452,7 +3664,9 @@
       {
         "label": "A",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "B",
@@ -3479,7 +3693,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -3511,7 +3727,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -3570,7 +3788,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -3602,7 +3822,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -3629,7 +3851,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -3661,7 +3885,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -3688,7 +3914,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -3720,7 +3948,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -3752,7 +3982,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -3779,7 +4011,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -3811,7 +4045,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -3843,7 +4079,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -3911,7 +4149,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -3938,7 +4178,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -3970,7 +4212,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -4015,7 +4259,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -4047,7 +4293,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -4074,7 +4322,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -4112,7 +4362,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -4139,7 +4391,9 @@
       {
         "label": "F",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "G",
@@ -4171,7 +4425,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -4215,7 +4471,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -4242,7 +4500,9 @@
       {
         "label": "F",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "G",
@@ -4274,7 +4534,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -4306,7 +4568,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -4338,7 +4602,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -4370,7 +4636,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -4397,7 +4665,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -4429,7 +4699,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -4456,7 +4728,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -4510,7 +4784,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -4537,7 +4813,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -4569,7 +4847,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -4596,7 +4876,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -4628,7 +4910,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -4660,7 +4944,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -4692,7 +4978,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -4724,7 +5012,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -4751,7 +5041,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -4783,7 +5075,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -4815,7 +5109,9 @@
       {
         "label": "C",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "D",
@@ -4842,7 +5138,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -4874,7 +5172,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -4901,7 +5201,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -4933,7 +5235,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -4965,7 +5269,9 @@
       {
         "label": "E",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "F",
@@ -4992,7 +5298,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
@@ -5024,7 +5332,9 @@
       {
         "label": "G",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "A",
@@ -5051,7 +5361,9 @@
       {
         "label": "D",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "E",
@@ -5083,7 +5395,9 @@
       {
         "label": "B",
         "startMinutes": 690,
-        "endMinutes": 750
+        "endMinutes": 750,
+        "jrsrStartMinutes": 715,
+        "jrsrEndMinutes": 775
       },
       {
         "label": "C",
