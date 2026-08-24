@@ -1046,6 +1046,7 @@ function main() {
   const lettersS1El = document.getElementById("letters-s1");
   const lettersS2El = document.getElementById("letters-s2");
   const lettersJrsrEl = document.getElementById("letters-jrsr");
+  const seniorSectionEl = document.getElementById("senior-section");
   const lettersSeniorEl = document.getElementById("letters-senior");
 
   ACCENT_COLORS.forEach((c) => {
@@ -1094,6 +1095,9 @@ function main() {
     filterEnabledCb.checked = filterState.enabled;
     filterSplitCb.checked = filterState.split;
     lettersS2El.hidden = !filterState.split;
+    // seniors-only marking only means anything once the grid is actually
+    // filtered down to specific periods -- hide it otherwise.
+    seniorSectionEl.hidden = !filterState.enabled;
 
     renderLetterRow(lettersS1El, filterState.s1, (letter) => {
       toggleLetter(filterState.s1, letter);
@@ -1125,6 +1129,7 @@ function main() {
 
   filterEnabledCb.addEventListener("change", () => {
     filterState.enabled = filterEnabledCb.checked;
+    seniorSectionEl.hidden = !filterState.enabled;
     saveFilter(filterState);
     render();
   });
