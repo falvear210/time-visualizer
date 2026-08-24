@@ -732,11 +732,18 @@ function main() {
 
   // `celebrate` lights the bar up and, once it hits 0 left, adds a couple
   // of emoji -- for the last school day before a weekend.
+  // `prog.done` is a sum of fractional per-period progress (the live period
+  // contributes e.g. 0.6, not 1), since that's what drives the smooth
+  // percentage fill. The "X of Y periods" count is a different thing --
+  // a period should only count as completed once it's actually done, so
+  // it floors rather than rounds (rounding would count a live period as
+  // "done" the moment it crossed the halfway mark).
   function barOrEmpty(label, prog, emptyText, celebrate) {
     if (prog.total === 0) return bar(label, 0, emptyText);
-    const left = Math.round(prog.total - prog.done);
+    const completed = Math.floor(prog.done);
+    const left = prog.total - completed;
     const emoji = celebrate && left === 0 ? " 🎉🙌" : "";
-    return bar(label, prog.pct, `${Math.round(prog.done)} of ${prog.total} periods · ${left} left${emoji}`, celebrate);
+    return bar(label, prog.pct, `${completed} of ${prog.total} periods · ${left} left${emoji}`, celebrate);
   }
 
   // like barOrEmpty, but swaps the periods-left count for a school-days-left
@@ -745,10 +752,11 @@ function main() {
   function barWithSchoolDays(label, dayList, now, emptyText) {
     const periodProg = progressOfFiltered(dayList, now);
     if (periodProg.total === 0) return bar(label, 0, emptyText);
+    const completed = Math.floor(periodProg.done);
     const dayProg = schoolDayProgress(dayList, now);
     const daysLeft = Math.max(0, Math.round(dayProg.total - dayProg.done));
     return bar(label, periodProg.pct,
-      `${Math.round(periodProg.done)} of ${periodProg.total} periods · ${daysLeft} school day${daysLeft === 1 ? "" : "s"} left`);
+      `${completed} of ${periodProg.total} periods · ${daysLeft} school day${daysLeft === 1 ? "" : "s"} left`);
   }
 
   // always uses each period's own configured wave -- this determines which
