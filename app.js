@@ -209,9 +209,9 @@ function resolvePeriodTimes(period, wave) {
 
 // 0 (hasn't happened), 1 (fully done), or a fraction in between for the
 // currently-live period. `wave` is either a plain "frso"/"jrsr" string, or
-// a (letter) => wave function for when it varies by period.
+// a (period, day) => wave function for when it varies by period.
 function periodProgress(day, period, now, wave) {
-  const resolvedWave = typeof wave === "function" ? wave(period.label) : wave;
+  const resolvedWave = typeof wave === "function" ? wave(period, day) : wave;
   const { startMinutes, endMinutes } = resolvePeriodTimes(period, resolvedWave);
   if (day.date < now.dateStr) return 1;
   if (day.date > now.dateStr) return 0;
@@ -455,14 +455,31 @@ function main() {
 
   // same shape progressOf() expects, but with non-matching periods dropped
   // when the "my periods" filter is on, and always resolved to each
-  // period's configured lunch wave.
+  // period's effective wave (see effectiveWave).
   function progressOfFiltered(dayList, now) {
-    if (!filterState.enabled) return progressOf(dayList, now, (letter) => waveFor(letter));
+    const wave = (period, day) => effectiveWave(day, period, now);
+    if (!filterState.enabled) return progressOf(dayList, now, wave);
     const mapped = dayList.map((d) => ({
       date: d.date,
       periods: d.periods.filter((p) => isLetterActive(d, p)),
     }));
-    return progressOf(mapped, now, (letter) => waveFor(letter));
+    return progressOf(mapped, now, wave);
+  }
+
+  // which wave counts a period as "done" for progress purposes -- for
+  // today's currently-live period specifically, that should match
+  // whatever the Current Period bar is actually showing (an explicit
+  // toggle override if one's set, otherwise whichever wave is naturally
+  // in progress), not just the configured default. A period whose default
+  // wave (say Fr/So) already finished shouldn't count as complete in the
+  // Progress tab's totals while its Jr/Sr half is still running. For any
+  // other day this is moot -- periodProgress returns 0 or 1 either way.
+  function effectiveWave(day, period, now) {
+    if (day.date !== now.dateStr) return waveFor(period.label);
+    const live = findLivePeriod(now);
+    const natural = liveWaveOf(day, period, now);
+    if (live && period.label === live.label) return liveWaveOverride || natural || waveFor(period.label);
+    return natural || waveFor(period.label);
   }
 
   function countVisiblePeriods() {
@@ -583,7 +600,7 @@ function main() {
 
     const fill = document.createElement("div");
     fill.className = "period-fill";
-    const progress = periodProgress(day, p, now, waveFor(p.label));
+    const progress = periodProgress(day, p, now, effectiveWave(day, p, now));
     fill.style.height = (progress * 100) + "%";
     if (progress > 0 && progress < 1) {
       sq.classList.add("is-live");
@@ -813,7 +830,7 @@ function main() {
     // the toggle only ever changes which of THIS period's two times is
     // displayed -- it never changes which period counts as live (above).
     const today = days.find((d) => d.date === now.dateStr);
-    const wave = liveWaveOverride || liveWaveOf(today, live, now) || waveFor(live.label);
+    const wave = effectiveWave(today, live, now);
     const { startMinutes, endMinutes } = resolvePeriodTimes(live, wave);
     const totalMs = (endMinutes - startMinutes) * 60000;
     const elapsedMs = Math.min(totalMs, Math.max(0, (now.minutes - startMinutes) * 60000 + now.seconds * 1000 + now.ms));
@@ -978,7 +995,7 @@ function main() {
     if (!live) return;
 
     const today = days.find((d) => d.date === now.dateStr);
-    const wave = liveWaveOverride || liveWaveOf(today, live, now) || waveFor(live.label);
+    const wave = effectiveWave(today, live, now);
     const { startMinutes, endMinutes } = resolvePeriodTimes(live, wave);
     const totalMs = (endMinutes - startMinutes) * 60000;
     const elapsedMs = Math.min(totalMs, Math.max(0, (now.minutes - startMinutes) * 60000 + now.seconds * 1000 + now.ms));
