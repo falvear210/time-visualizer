@@ -759,8 +759,25 @@ function main() {
     if (!today) return null;
     for (const p of today.periods) {
       if (!isLetterActive(today, p)) continue;
-      const prog = periodProgress(today, p, now, waveFor(p.label));
-      if (prog > 0 && prog < 1) return p;
+      if (liveWaveOf(today, p, now)) return p;
+    }
+    return null;
+  }
+
+  // which wave is actually in progress for this period right now: the
+  // configured default if that's the one currently running, otherwise --
+  // for a period that splits -- whichever of the two currently is. The
+  // Fr/So and Jr/Sr windows never overlap, so at most one is ever live at
+  // once; without this, a period whose default wave already finished
+  // would look "not live" even while its other wave is still running.
+  function liveWaveOf(day, period, now) {
+    const defaultWave = waveFor(period.label);
+    const progDefault = periodProgress(day, period, now, defaultWave);
+    if (progDefault > 0 && progDefault < 1) return defaultWave;
+    if (period.jrsrStartMinutes != null) {
+      const altWave = defaultWave === "jrsr" ? "frso" : "jrsr";
+      const progAlt = periodProgress(day, period, now, altWave);
+      if (progAlt > 0 && progAlt < 1) return altWave;
     }
     return null;
   }
@@ -787,7 +804,8 @@ function main() {
 
     // the toggle only ever changes which of THIS period's two times is
     // displayed -- it never changes which period counts as live (above).
-    const wave = liveWaveOverride || waveFor(live.label);
+    const today = days.find((d) => d.date === now.dateStr);
+    const wave = liveWaveOverride || liveWaveOf(today, live, now) || waveFor(live.label);
     const { startMinutes, endMinutes } = resolvePeriodTimes(live, wave);
     const totalMs = (endMinutes - startMinutes) * 60000;
     const elapsedMs = Math.min(totalMs, Math.max(0, (now.minutes - startMinutes) * 60000 + now.seconds * 1000 + now.ms));
@@ -951,7 +969,8 @@ function main() {
     }
     if (!live) return;
 
-    const wave = liveWaveOverride || waveFor(live.label);
+    const today = days.find((d) => d.date === now.dateStr);
+    const wave = liveWaveOverride || liveWaveOf(today, live, now) || waveFor(live.label);
     const { startMinutes, endMinutes } = resolvePeriodTimes(live, wave);
     const totalMs = (endMinutes - startMinutes) * 60000;
     const elapsedMs = Math.min(totalMs, Math.max(0, (now.minutes - startMinutes) * 60000 + now.seconds * 1000 + now.ms));
