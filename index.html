@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SLUH 26/27 AY Progress</title>
-<link rel="stylesheet" href="style.css?v=22">
+<link rel="stylesheet" href="style.css?v=23">
 <script>
   // set the theme before first paint, so there's no flash of the wrong theme
   (function () {
@@ -32,6 +32,7 @@
   <button class="tab" data-tab="continuous" type="button">continuous</button>
   <button class="tab" data-tab="weekly" type="button">weekly</button>
   <button class="tab" data-tab="current" type="button">current period</button>
+  <button class="tab" data-tab="dashboard" type="button">dashboard</button>
 </nav>
 
 <div class="debug-bar" id="debug-bar" hidden>
@@ -50,6 +51,7 @@
     <div id="grid-weekly" class="grid mode-weekly"></div>
   </section>
   <section id="tab-current" class="tab-panel" hidden></section>
+  <section id="tab-dashboard" class="tab-panel" hidden></section>
 </main>
 
 <div id="info-panel" class="info-panel" hidden></div>
@@ -123,16 +125,22 @@
       <p><strong>Current Period</strong> is just the one live progress bar,
       full-size — handy if all you want is a glance at how much of the
       period is left.</p>
+      <p><strong>Dashboard</strong> is built for a large 16:9 screen — the
+      whole school day laid out as one bar (each period sized to its own
+      length, gaps for lunch/passing time included, a line marking right
+      now), a live countdown to whatever's next, and a few at-a-glance
+      stats below it.</p>
       <p>Use the ⚙ settings panel to switch light/dark and accent color,
       and to filter the grid down to just the periods you teach. Each tab
       is linkable — add <code>#continuous</code>, <code>#weekly</code>,
-      <code>#current</code>, or <code>#progress</code> to the URL to land
-      on that view directly (handy for a bookmarked start page).</p>
+      <code>#current</code>, <code>#dashboard</code>, or <code>#progress</code>
+      to the URL to land on that view directly (handy for a bookmarked
+      start page).</p>
     </div>
   </div>
 </div>
 
 <script src="data.js"></script>
-<script src="app.js?v=29"></script>
+<script src="app.js?v=30"></script>
 </body>
 </html>

@@ -316,6 +316,106 @@ main {
 .current-solo .bar-wave-label { font-size: 0.85rem; }
 .current-solo .wave-pill { font-size: 0.85rem; padding: 0.2rem 0.9rem; }
 
+/* --- dashboard tab (big 16:9 screen) --- */
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding: 1.5rem 0 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.dashboard-daily { text-align: center; }
+
+.daily-bar-wrap { position: relative; }
+
+.daily-bar {
+  display: grid;
+  gap: 6px;
+  height: 200px;
+}
+
+.daily-segment {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--track);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.daily-segment.is-live {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.25);
+}
+
+.daily-segment-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  background: var(--done);
+}
+.daily-segment.is-live .daily-segment-fill { background: var(--accent); }
+
+.daily-segment-label {
+  position: relative;
+  z-index: 1;
+  padding-bottom: 0.6rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.daily-gap { background: transparent; }
+
+.daily-now-marker {
+  position: absolute;
+  top: -10px;
+  bottom: -10px;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.daily-status {
+  margin-top: 1.5rem;
+  font-size: 2rem;
+  color: var(--text-dim);
+}
+
+.daily-countdown { margin-top: 1.5rem; }
+.daily-countdown-label { font-size: 1.3rem; color: var(--text-dim); }
+.daily-countdown-clock {
+  font-size: 5rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+.daily-countdown-sub { font-size: 1.1rem; color: var(--text-dim); }
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+.dashboard-stats .bar-label { font-size: 1.1rem; }
+.dashboard-stats .bar-pct { font-size: 1.1rem; }
+.dashboard-stats .bar-track { height: 14px; }
+.dashboard-stats .bar-sub { font-size: 0.9rem; margin-top: 0.5rem; }
+
+@media (max-width: 900px) {
+  .dashboard-stats { grid-template-columns: 1fr; }
+  .daily-bar { height: 140px; }
+  .daily-segment-label { font-size: 1.3rem; }
+  .daily-countdown-clock { font-size: 3.5rem; }
+}
+
 /* --- grid (continuous + weekly) --- */
 
 .grid {

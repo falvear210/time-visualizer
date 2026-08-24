@@ -95,6 +95,18 @@ function formatClockTenths(totalMs) {
   return `${m}:${String(s).padStart(2, "0")}.${tenths}`;
 }
 
+// "1:23:45" or "23:45" -- whole seconds only, meant to be read from across
+// a room (the Dashboard tab's next-period countdown), unlike the tenths
+// precision used for up-close bars elsewhere.
+function formatCountdownClock(totalMs) {
+  const totalSec = Math.max(0, Math.round(totalMs / 1000));
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const mm = h > 0 ? String(m).padStart(2, "0") : m;
+  return (h > 0 ? `${h}:` : "") + `${mm}:${String(s).padStart(2, "0")}`;
+}
+
 // Monday (YYYYMMDD) of the calendar week containing this date, for weekly grouping.
 function mondayOf(dateStr) {
   const { y, m, d } = parseDate(dateStr);
@@ -403,6 +415,7 @@ function main() {
   // ---- DOM references ----
   const progressEl = document.getElementById("tab-progress");
   const currentPeriodEl = document.getElementById("tab-current");
+  const dashboardEl = document.getElementById("tab-dashboard");
   const gridContinuousEl = document.getElementById("grid-continuous");
   const gridWeeklyEl = document.getElementById("grid-weekly");
   const infoPanel = document.getElementById("info-panel");
@@ -858,7 +871,7 @@ function main() {
   // For tired teachers: how far through the current stretch we are until
   // the next break of 3+ calendar days (PD days don't count as part of a
   // break -- they're a workday, so they can't extend or create one).
-  function nextBreakBarHtml() {
+  function nextBreakBarHtml(id = "next-break-bar") {
     const now = getNow();
 
     let nb = null;
@@ -868,7 +881,7 @@ function main() {
 
     if (!nb) {
       return `
-        <div class="bar-row" id="next-break-bar">
+        <div class="bar-row" id="${id}">
           <div class="bar-top"><div class="bar-label">Next Break (3+ days)</div><div class="bar-pct">—</div></div>
           <div class="bar-track"><div class="bar-fill" style="width:0%"></div></div>
           <div class="bar-sub">No more qualifying breaks left this year</div>
@@ -880,7 +893,7 @@ function main() {
 
     if (onBreak) {
       return `
-        <div class="bar-row" id="next-break-bar">
+        <div class="bar-row" id="${id}">
           <div class="bar-top"><div class="bar-label">${name}</div><div class="bar-pct">🎉</div></div>
           <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
           <div class="bar-sub">You made it. Enjoy every last minute.</div>
@@ -899,7 +912,7 @@ function main() {
     const isLastDay = stretchDays.length > 0 && now.dateStr === stretchDays[stretchDays.length - 1].date;
 
     return `
-      <div class="bar-row${isLastDay ? " is-celebrating" : ""}" id="next-break-bar">
+      <div class="bar-row${isLastDay ? " is-celebrating" : ""}" id="${id}">
         <div class="bar-top"><div class="bar-label">Next Break (3+ days) — ${name}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
         <div class="bar-sub">${daysLeft} school day${daysLeft === 1 ? "" : "s"} left${isLastDay ? " 🎉🙌" : ""}</div>
@@ -934,6 +947,109 @@ function main() {
     const prog = schoolDayProgress(stretch, now);
     const left = Math.max(0, Math.round(prog.total - prog.done));
     return bar("Until End of Year", prog.pct, `${left} school day${left === 1 ? "" : "s"} left`);
+  }
+
+  // ---- Dashboard tab: a big-screen (16:9) view combining the day's whole
+  // period layout with a live countdown and a few at-a-glance stats. ----
+
+  // one segment per today's (filtered) period, sized proportionally to its
+  // own duration, with the real gaps between periods (lunch, passing time,
+  // activity period, etc.) rendered as blank space of the correct width --
+  // so the bar's shape reflects the literal school day layout, not just an
+  // evenly-spaced row of periods.
+  function dailyBarHtml(now) {
+    const today = days.find((d) => d.date === now.dateStr);
+    const periods = today ? today.periods.filter((p) => isLetterActive(today, p)) : [];
+    if (!periods.length) {
+      return `<div class="daily-status">No school today</div>`;
+    }
+
+    const dayStart = periods[0].startMinutes;
+    const dayEnd = periods[periods.length - 1].endMinutes;
+    const cols = [];
+    const segments = [];
+    periods.forEach((p, i) => {
+      if (i > 0) {
+        const gapMin = p.startMinutes - periods[i - 1].endMinutes;
+        if (gapMin > 0) {
+          cols.push(`${gapMin}fr`);
+          segments.push(`<div class="daily-gap"></div>`);
+        }
+      }
+      // segment width always reflects the period's own (Fr/So-default)
+      // duration, so the bar's layout doesn't jump around depending on
+      // which lunch wave happens to be live -- only the fill amount does.
+      cols.push(`${p.endMinutes - p.startMinutes}fr`);
+      const progress = periodProgress(today, p, now, effectiveWave(today, p, now));
+      const isLive = progress > 0 && progress < 1;
+      segments.push(`
+        <div class="daily-segment${isLive ? " is-live" : ""}">
+          <div class="daily-segment-fill" style="height:${progress * 100}%"></div>
+          <div class="daily-segment-label">${p.label}</div>
+        </div>`);
+    });
+
+    const totalSpan = dayEnd - dayStart;
+    const nowPct = ((now.minutes - dayStart) / totalSpan) * 100;
+    const marker = nowPct >= 0 && nowPct <= 100
+      ? `<div class="daily-now-marker" style="left:${nowPct}%"></div>` : "";
+
+    return `
+      <div class="daily-bar-wrap">
+        <div class="daily-bar" style="grid-template-columns:${cols.join(" ")}">${segments.join("")}</div>
+        ${marker}
+      </div>`;
+  }
+
+  // below the daily bar: either a big readout of the live period's
+  // progress, a countdown to whichever (filtered) period starts next
+  // today, or a status message when there's nothing left to count down to.
+  function dailyStatusHtml(now) {
+    const today = days.find((d) => d.date === now.dateStr);
+    const periods = today ? today.periods.filter((p) => isLetterActive(today, p)) : [];
+    if (!periods.length) return "";
+
+    const live = findLivePeriod(now);
+    if (live) {
+      const wave = effectiveWave(today, live, now);
+      const { startMinutes, endMinutes } = resolvePeriodTimes(live, wave);
+      const totalMs = (endMinutes - startMinutes) * 60000;
+      const elapsedMs = Math.min(totalMs, Math.max(0, (now.minutes - startMinutes) * 60000 + now.seconds * 1000 + now.ms));
+      const pct = Math.round((elapsedMs / totalMs) * 100);
+      return `
+        <div class="daily-countdown">
+          <div class="daily-countdown-label">Period ${live.label} in progress</div>
+          <div class="daily-countdown-clock">${formatCountdownClock(totalMs - elapsedMs)}</div>
+          <div class="daily-countdown-sub">${pct}% done</div>
+        </div>`;
+    }
+
+    const upcoming = periods.find((p) => resolvePeriodTimes(p, effectiveWave(today, p, now)).startMinutes > now.minutes);
+    if (!upcoming) {
+      return `<div class="daily-status">School's out for today 🎉</div>`;
+    }
+    const { startMinutes } = resolvePeriodTimes(upcoming, effectiveWave(today, upcoming, now));
+    const msToStart = (startMinutes - now.minutes) * 60000 - now.seconds * 1000 - now.ms;
+    return `
+      <div class="daily-countdown">
+        <div class="daily-countdown-label">Next: Period ${upcoming.label}</div>
+        <div class="daily-countdown-clock">${formatCountdownClock(msToStart)}</div>
+      </div>`;
+  }
+
+  function dashboardHtml(now) {
+    return `
+      <div class="dashboard">
+        <div class="dashboard-daily">
+          ${dailyBarHtml(now)}
+          ${dailyStatusHtml(now)}
+        </div>
+        <div class="dashboard-stats">
+          ${nextBreakBarHtml("next-break-bar-dash")}
+          ${untilWeekendBarHtml(now)}
+          ${barWithSchoolDays("Academic Year", days, now, "No school")}
+        </div>
+      </div>`;
   }
 
   const CONFETTI_COLORS = ["#005588", "#88ccec", "#f59e0b", "#34d399", "#fb7185", "#a78bfa"];
@@ -1020,6 +1136,18 @@ function main() {
     updateCurrentPeriodBar("current-period-bar-solo", now);
     const nb = document.getElementById("next-break-bar");
     if (nb) nb.outerHTML = nextBreakBarHtml();
+    // no buttons live inside the dashboard, so a full rebuild every tick
+    // is safe (nothing to click, nothing to lose) -- only bother while
+    // it's actually the visible tab.
+    if (!dashboardEl.hidden) dashboardEl.innerHTML = dashboardHtml(now);
+  }
+
+  function untilWeekendBarHtml(now) {
+    const mon = mondayOf(now.dateStr);
+    const weekDays = days.filter((d) => d.periods.length && mondayOf(d.date) === mon);
+    const week = progressOfFiltered(weekDays, now);
+    const isLastDayOfWeek = weekDays.length > 0 && now.dateStr === weekDays[weekDays.length - 1].date;
+    return barOrEmpty("Until Weekend", week, "No school this week", isLastDayOfWeek);
   }
 
   function renderProgress(now) {
@@ -1028,11 +1156,6 @@ function main() {
 
     const semDays = days.filter((d) => semester === 1 ? d.date <= boundary : d.date > boundary);
     const qDays = days.filter((d) => d.periods.length && quarterOfDate(d.date, boundary, qb) === quarter);
-
-    const mon = mondayOf(now.dateStr);
-    const weekDays = days.filter((d) => d.periods.length && mondayOf(d.date) === mon);
-    const week = progressOfFiltered(weekDays, now);
-    const isLastDayOfWeek = weekDays.length > 0 && now.dateStr === weekDays[weekDays.length - 1].date;
 
     const today = days.find((d) => d.date === now.dateStr);
     const dayProg = progressOfFiltered(today ? [today] : [], now);
@@ -1044,7 +1167,7 @@ function main() {
       barWithSchoolDays(`Quarter ${quarter}`, qDays, now, "No school"),
       nextBreakBarHtml(),
       milestoneBarHtml(now),
-      barOrEmpty("Until Weekend", week, "No school this week", isLastDayOfWeek),
+      untilWeekendBarHtml(now),
       barOrEmpty("Today", dayProg, "No school today"),
       currentPeriodBarHtml(),
     ].join("");
@@ -1065,6 +1188,7 @@ function main() {
     renderProgress(now);
     currentPeriodEl.classList.add("current-solo");
     currentPeriodEl.innerHTML = currentPeriodBarHtml("current-period-bar-solo");
+    dashboardEl.innerHTML = dashboardHtml(now);
   }
 
   let resizeTimer = null;
@@ -1082,6 +1206,7 @@ function main() {
     continuous: document.getElementById("tab-continuous"),
     weekly: document.getElementById("tab-weekly"),
     current: document.getElementById("tab-current"),
+    dashboard: document.getElementById("tab-dashboard"),
   };
 
   function setTab(tab, opts = {}) {
