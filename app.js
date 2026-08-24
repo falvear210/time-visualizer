@@ -419,6 +419,14 @@ function main() {
   // so a confetti burst can fire exactly once when it finishes -- not on
   // page load, and not again every 100ms while nothing's live.
   let lastLiveKey = null;
+  // `${date}|${letter}` last rendered into each Current Period bar, so a
+  // tick only rebuilds the bar's DOM (destroying and recreating the wave
+  // toggle buttons) when the live period actually changes -- otherwise it
+  // just patches the numbers in place. Rebuilding every 100ms regardless
+  // was silently dropping real clicks on the toggle: a mousedown/mouseup
+  // pair could straddle a rebuild and land on an element that no longer
+  // existed by mouseup.
+  const lastPeriodKeyById = {};
 
   // ---- "my periods" filter ----
 
@@ -762,6 +770,11 @@ function main() {
   function currentPeriodBarHtml(id = "current-period-bar") {
     const now = getNow();
     const live = findLivePeriod(now);
+    // keeps updateCurrentPeriodBar's change-detection in sync with whatever
+    // just got built here, however it got built -- otherwise the very next
+    // 100ms tick after any full render() would see a stale key and force
+    // one needless (and click-swallowing) rebuild of its own.
+    lastPeriodKeyById[id] = live ? `${now.dateStr}|${live.label}` : null;
 
     if (!live) {
       return `
@@ -912,16 +925,46 @@ function main() {
     lastLiveKey = key;
   }
 
+  // Updates one Current Period bar for the current tick. Rebuilds the
+  // whole node (including the wave-toggle buttons) only when the live
+  // period itself has changed since the last tick; otherwise patches just
+  // the percentage/fill/elapsed-remaining text in place, leaving the
+  // toggle buttons (and their listeners, and any in-flight click) alone.
+  function updateCurrentPeriodBar(id, now) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const live = findLivePeriod(now);
+    const key = live ? `${now.dateStr}|${live.label}` : null;
+
+    if (key !== lastPeriodKeyById[id]) {
+      el.outerHTML = currentPeriodBarHtml(id); // also syncs lastPeriodKeyById[id]
+      return;
+    }
+    if (!live) return;
+
+    const wave = liveWaveOverride || waveFor(live.label);
+    const { startMinutes, endMinutes } = resolvePeriodTimes(live, wave);
+    const totalMs = (endMinutes - startMinutes) * 60000;
+    const elapsedMs = Math.min(totalMs, Math.max(0, (now.minutes - startMinutes) * 60000 + now.seconds * 1000 + now.ms));
+    const remainingMs = totalMs - elapsedMs;
+    const pct = (elapsedMs / totalMs) * 100;
+
+    el.querySelector(".bar-pct").textContent = `${Math.round(pct)}%`;
+    el.querySelector(".bar-fill").style.width = `${pct}%`;
+    el.querySelector(".bar-sub").textContent = `${formatClockTenths(elapsedMs)} elapsed · ${formatClockTenths(remainingMs)} remaining`;
+    el.querySelectorAll(".wave-pill").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.wave === wave);
+    });
+  }
+
   // Current Period and Next Break tick fast enough for their tenths-of-a-
   // second digit to actually move (via the interval at the bottom of
   // main()); everything else only needs the 30s full render.
   function tickCurrentPeriodBar() {
     const now = getNow();
     checkPeriodCompletion(now);
-    const el = document.getElementById("current-period-bar");
-    if (el) el.outerHTML = currentPeriodBarHtml();
-    const solo = document.getElementById("current-period-bar-solo");
-    if (solo) solo.outerHTML = currentPeriodBarHtml("current-period-bar-solo");
+    updateCurrentPeriodBar("current-period-bar", now);
+    updateCurrentPeriodBar("current-period-bar-solo", now);
     const nb = document.getElementById("next-break-bar");
     if (nb) nb.outerHTML = nextBreakBarHtml();
   }
@@ -1140,9 +1183,10 @@ function main() {
     render();
   });
 
-  // event delegation, since the Current Period bar's whole DOM node is
-  // replaced on every tick -- a listener attached directly to the button
-  // would be gone within 100ms.
+  // event delegation, since the wave-toggle buttons only exist once a
+  // period is live and get rebuilt whenever the live period changes -- a
+  // listener attached directly to them could be gone by the time a real
+  // click fires.
   document.addEventListener("click", (e) => {
     const btn = e.target.closest(".wave-pill");
     if (!btn) return;
