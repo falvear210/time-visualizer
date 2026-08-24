@@ -921,7 +921,16 @@ function main() {
   function checkPeriodCompletion(now) {
     const live = findLivePeriod(now);
     const key = live ? `${now.dateStr}|${live.label}` : null;
-    if (!key && lastLiveKey) fireConfetti();
+    if (!key && lastLiveKey) {
+      // the tracked period is no longer "live" -- but that can also happen
+      // because a filter setting just changed (e.g. it's not one of "my
+      // periods" anymore), not because time actually passed its end. Only
+      // celebrate if it genuinely finished.
+      const [prevDate, prevLabel] = lastLiveKey.split("|");
+      const day = daysByDate.get(prevDate);
+      const period = day && day.periods.find((p) => p.label === prevLabel);
+      if (period && periodProgress(day, period, now, waveFor(prevLabel)) >= 1) fireConfetti();
+    }
     lastLiveKey = key;
   }
 
