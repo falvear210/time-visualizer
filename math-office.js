@@ -451,19 +451,28 @@ function main() {
     }
 
     const info = currentOrNextPeriod(today, now);
-    if (info.state === "current" || info.state === "too-early") {
+    if (info.state === "too-early") {
       dailyStatusEl.innerHTML = "";
-    } else if (info.state === "next") {
-      const upcoming = info.period;
-      const { startMinutes } = resolvePeriodTimes(upcoming, effectiveWave(today, upcoming, now));
-      const msToStart = (startMinutes - now.minutes) * 60000 - now.seconds * 1000;
-      dailyStatusEl.innerHTML = `
-        <div class="mo-countdown">
-          <div class="mo-countdown-label">Next: Period ${upcoming.label}</div>
-          <div class="mo-countdown-clock">${formatCountdownClock(msToStart)}</div>
-        </div>`;
-    } else {
+    } else if (info.state === "done") {
       dailyStatusEl.innerHTML = `<div class="mo-status">School's out for today 🎉🙌</div>`;
+    } else {
+      // show a countdown to whatever period starts next, whether or not
+      // one is currently live -- if the live period is the day's last one,
+      // there's nothing left to count down to.
+      const upcoming = info.state === "current"
+        ? periods.find((p) => resolvePeriodTimes(p, effectiveWave(today, p, now)).startMinutes > now.minutes)
+        : info.period;
+      if (upcoming) {
+        const { startMinutes } = resolvePeriodTimes(upcoming, effectiveWave(today, upcoming, now));
+        const msToStart = (startMinutes - now.minutes) * 60000 - now.seconds * 1000;
+        dailyStatusEl.innerHTML = `
+          <div class="mo-countdown">
+            <div class="mo-countdown-label">Next: Period ${upcoming.label}</div>
+            <div class="mo-countdown-clock">${formatCountdownClock(msToStart)}</div>
+          </div>`;
+      } else {
+        dailyStatusEl.innerHTML = "";
+      }
     }
 
     // a period that splits by lunch wave gets two independent bars (Fr/So
