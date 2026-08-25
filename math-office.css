@@ -171,14 +171,14 @@ html, body {
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
-  gap: 3px;
+  gap: 2px;
 }
 
 .mo-square {
   position: relative;
-  width: 17px;
-  height: 17px;
-  border-radius: 3px;
+  width: var(--mo-square-size, 14px);
+  height: var(--mo-square-size, 14px);
+  border-radius: 2px;
   background: var(--track);
   border: 1px solid var(--border);
   overflow: hidden;

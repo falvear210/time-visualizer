@@ -512,6 +512,8 @@ function main() {
 
   // the whole year as small squares, same "year in pixels" idea as the
   // main site's Continuous view, sized down to fit a dashboard column.
+  let totalSquareCount = 0;
+
   function renderSquares(now) {
     if (squaresEl.childElementCount) return; // static once built -- only the fill amounts change per tick
     const schoolDays = days.filter((d) => d.periods.length);
@@ -529,6 +531,7 @@ function main() {
         sq.className = "mo-square";
         sq.dataset.date = day.date;
         sq.dataset.label = p.label;
+        totalSquareCount += 1;
         const fill = document.createElement("div");
         fill.className = "mo-square-fill";
         sq.appendChild(fill);
@@ -537,6 +540,31 @@ function main() {
     }
     squaresEl.appendChild(frag);
     updateSquares(now);
+    fitSquareSize();
+  }
+
+  // picks the largest square size that still fits the whole year in the
+  // column's actual available space, on whatever screen this happens to
+  // be running on -- a fixed pixel size looked fine at one window size and
+  // overflowed at another, so this searches instead of guessing.
+  function fitSquareSize() {
+    const container = squaresEl.parentElement;
+    const availWidth = container.clientWidth;
+    const availHeight = container.clientHeight;
+    if (!availWidth || !availHeight || !totalSquareCount) return;
+
+    const dividerHeight = 12; // approx height the semester-divider row itself adds
+    let best = { size: 4, gap: 1 };
+    for (let size = 22; size >= 4; size--) {
+      const gap = Math.max(1, Math.round(size / 6));
+      const perRow = Math.floor((availWidth + gap) / (size + gap));
+      if (perRow < 1) continue;
+      const rows = Math.ceil(totalSquareCount / perRow);
+      const totalHeight = rows * (size + gap) + dividerHeight;
+      if (totalHeight <= availHeight) { best = { size, gap }; break; }
+    }
+    squaresEl.style.setProperty("--mo-square-size", best.size + "px");
+    squaresEl.style.gap = best.gap + "px";
   }
 
   function updateSquares(now) {
@@ -611,6 +639,12 @@ function main() {
     updateSquares(now);
     renderBreaks(now);
   }
+
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(fitSquareSize, 150);
+  });
 
   fetchTeachers();
   setInterval(fetchTeachers, TEACHERS_REFRESH_MS);
