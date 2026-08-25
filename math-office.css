@@ -93,6 +93,11 @@ html, body {
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
+.mo-countdown-sub {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
 
 .mo-status {
   text-align: center;
@@ -125,13 +130,6 @@ html, body {
   animation: mo-live-shift 4s ease infinite;
 }
 .mo-bar-row.is-live .mo-bar-top { color: var(--accent); font-weight: 700; }
-
-.mo-bar-sub {
-  margin-top: 0.3rem;
-  font-size: 0.9rem;
-  color: var(--text-dim);
-  font-variant-numeric: tabular-nums;
-}
 
 @keyframes mo-live-shift {
   0% { background-position: 0% 50%; }

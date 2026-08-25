@@ -455,24 +455,31 @@ function main() {
       dailyStatusEl.innerHTML = "";
     } else if (info.state === "done") {
       dailyStatusEl.innerHTML = `<div class="mo-status">School's out for today 🎉🙌</div>`;
+    } else if (info.state === "current") {
+      // the main countdown is the live period's time remaining -- the
+      // per-bar elapsed/remaining text would just be repeating this.
+      const live = info.period;
+      const wave = effectiveWave(today, live, now);
+      const { startMinutes, endMinutes } = resolvePeriodTimes(live, wave);
+      const totalMs = (endMinutes - startMinutes) * 60000;
+      const elapsedMs = Math.min(totalMs, Math.max(0, (now.minutes - startMinutes) * 60000 + now.seconds * 1000));
+      const remainingMs = totalMs - elapsedMs;
+      dailyStatusEl.innerHTML = `
+        <div class="mo-countdown">
+          <div class="mo-countdown-label">Period ${live.label} — Now</div>
+          <div class="mo-countdown-clock">${formatCountdownClock(remainingMs)}</div>
+          <div class="mo-countdown-sub">${formatCountdownClock(elapsedMs)} elapsed</div>
+        </div>`;
     } else {
-      // show a countdown to whatever period starts next, whether or not
-      // one is currently live -- if the live period is the day's last one,
-      // there's nothing left to count down to.
-      const upcoming = info.state === "current"
-        ? periods.find((p) => resolvePeriodTimes(p, effectiveWave(today, p, now)).startMinutes > now.minutes)
-        : info.period;
-      if (upcoming) {
-        const { startMinutes } = resolvePeriodTimes(upcoming, effectiveWave(today, upcoming, now));
-        const msToStart = (startMinutes - now.minutes) * 60000 - now.seconds * 1000;
-        dailyStatusEl.innerHTML = `
-          <div class="mo-countdown">
-            <div class="mo-countdown-label">Next: Period ${upcoming.label}</div>
-            <div class="mo-countdown-clock">${formatCountdownClock(msToStart)}</div>
-          </div>`;
-      } else {
-        dailyStatusEl.innerHTML = "";
-      }
+      // "next" -- nothing live right now, so count down to what's next.
+      const upcoming = info.period;
+      const { startMinutes } = resolvePeriodTimes(upcoming, effectiveWave(today, upcoming, now));
+      const msToStart = (startMinutes - now.minutes) * 60000 - now.seconds * 1000;
+      dailyStatusEl.innerHTML = `
+        <div class="mo-countdown">
+          <div class="mo-countdown-label">Next: Period ${upcoming.label}</div>
+          <div class="mo-countdown-clock">${formatCountdownClock(msToStart)}</div>
+        </div>`;
     }
 
     // a period that splits by lunch wave gets two independent bars (Fr/So
@@ -493,20 +500,12 @@ function main() {
     const isLive = progress > 0 && progress < 1;
     const label = waveLabel ? `Period ${p.label} (${waveLabel})` : `Period ${p.label}`;
 
-    let sub = "";
-    if (isLive) {
-      const { startMinutes, endMinutes } = resolvePeriodTimes(p, wave);
-      const totalMs = (endMinutes - startMinutes) * 60000;
-      const elapsedMs = Math.min(totalMs, Math.max(0, (now.minutes - startMinutes) * 60000 + now.seconds * 1000));
-      const remainingMs = totalMs - elapsedMs;
-      sub = `<div class="mo-bar-sub">${formatCountdownClock(elapsedMs)} elapsed · ${formatCountdownClock(remainingMs)} remaining</div>`;
-    }
-
+    // no elapsed/remaining text here -- that's now the main countdown's
+    // job, right above the bars, so this would just repeat it.
     return `
       <div class="mo-bar-row${isLive ? " is-live" : ""}">
         <div class="mo-bar-top"><span>${label}</span><span>${pct}%</span></div>
         <div class="mo-bar-track"><div class="mo-bar-fill" style="width:${pct}%"></div></div>
-        ${sub}
       </div>`;
   }
 
