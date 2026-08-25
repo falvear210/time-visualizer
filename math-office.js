@@ -440,6 +440,8 @@ function main() {
 
   // one progress bar per period of the day, plus a countdown banner when
   // nothing is currently in session.
+  let lastBarsKey = null;
+
   function renderDaily(now) {
     const today = daysByDate.get(now.dateStr);
     const periods = today ? today.periods : [];
@@ -486,12 +488,35 @@ function main() {
     // and Jr/Sr), since their windows overlap rather than one replacing
     // the other -- the office wants to track both, not just whichever one
     // "effectiveWave" would otherwise pick as the default.
-    dailyBarsEl.innerHTML = periods.flatMap((p) => {
+    const barSpecs = periods.flatMap((p) => {
       if (p.jrsrStartMinutes != null) {
-        return [periodBarHtml(today, p, now, "frso", "Fr/So"), periodBarHtml(today, p, now, "jrsr", "Jr/Sr")];
+        return [{ p, wave: "frso", waveLabel: "Fr/So" }, { p, wave: "jrsr", waveLabel: "Jr/Sr" }];
       }
-      return [periodBarHtml(today, p, now, "frso", null)];
-    }).join("");
+      return [{ p, wave: "frso", waveLabel: null }];
+    });
+
+    // today's set of bars only ever changes once a day (at the date
+    // rollover); every other tick just patches percentage/width/live
+    // state in place, so a live bar's animated gradient (see
+    // mo-live-shift) keeps playing instead of restarting from a brand
+    // new DOM node every second.
+    const barsKey = `${now.dateStr}|${barSpecs.map((s) => `${s.p.label}:${s.wave}`).join(",")}`;
+    if (barsKey !== lastBarsKey) {
+      lastBarsKey = barsKey;
+      dailyBarsEl.innerHTML = barSpecs.map((s) => periodBarHtml(today, s.p, now, s.wave, s.waveLabel)).join("");
+      return;
+    }
+
+    const rows = dailyBarsEl.children;
+    barSpecs.forEach((s, i) => {
+      const row = rows[i];
+      if (!row) return;
+      const progress = periodProgress(today, s.p, now, s.wave);
+      const pct = Math.round(progress * 100);
+      row.classList.toggle("is-live", progress > 0 && progress < 1);
+      row.querySelector(".mo-bar-top span:last-child").textContent = pct + "%";
+      row.querySelector(".mo-bar-fill").style.width = pct + "%";
+    });
   }
 
   function periodBarHtml(day, p, now, wave, waveLabel) {
