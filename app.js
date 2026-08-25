@@ -374,7 +374,7 @@ function bar(label, pct, sub, celebrate) {
 }
 
 function cleanBreakLabel(summary) {
-  return summary.replace(/^No (School|Classes)-/, "");
+  return summary.replace(/^No (School|Classes)-/, "").replace(/\s*\([^)]*\)\s*$/, "");
 }
 
 // =============================================================================

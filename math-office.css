@@ -1,0 +1,294 @@
+:root {
+  --accent: #005588; /* SLUH Blue */
+  --accent-rgb: 0, 85, 136;
+  --navy: #003366; /* SLUH Navy */
+  --bg: #ffffff;
+  --panel: #f7f7f5;
+  --border: #dcdcd6;
+  --track: #eeeeee;
+  --text: #003366;
+  --text-dim: #777777;
+  --done: #ccccbb;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden; /* this is a kiosk display, not a scrolling page */
+}
+
+.mo-dashboard {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.2rem 1.8rem;
+  gap: 1.2rem;
+}
+
+.mo-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.8rem;
+}
+.mo-header h1 { margin: 0; font-size: 1.6rem; }
+.mo-header-time { text-align: right; }
+#mo-date { display: block; font-size: 1rem; color: var(--text-dim); }
+#mo-clock { display: block; font-size: 1.8rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.mo-columns {
+  flex: 3;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.mo-col {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+}
+
+.mo-col h2 {
+  margin: 0 0 0.8rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mo-col-body { flex: 1; min-height: 0; overflow-y: auto; }
+
+/* --- daily bars column --- */
+
+.mo-countdown { text-align: center; margin-bottom: 1rem; }
+.mo-countdown-label { font-size: 1rem; color: var(--text-dim); }
+.mo-countdown-clock {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.mo-status {
+  text-align: center;
+  font-size: 1.3rem;
+  color: var(--text-dim);
+  margin: 1rem 0;
+}
+
+.mo-bar-row { margin-bottom: 0.7rem; }
+.mo-bar-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.05rem;
+  margin-bottom: 0.25rem;
+}
+.mo-bar-track {
+  height: 14px;
+  border-radius: 999px;
+  background: var(--track);
+  overflow: hidden;
+}
+.mo-bar-fill {
+  height: 100%;
+  background: var(--navy);
+  border-radius: 999px;
+}
+.mo-bar-row.is-live .mo-bar-fill {
+  background: linear-gradient(90deg, #2e8bc0, #63b3e0, #8ecae6, #63b3e0, #2e8bc0);
+  background-size: 300% 100%;
+  animation: mo-live-shift 4s ease infinite;
+}
+.mo-bar-row.is-live .mo-bar-top { color: var(--accent); font-weight: 700; }
+
+.mo-bar-sub {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes mo-live-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* --- confetti (a period/lunch-wave bar just finished) --- */
+
+.mo-confetti-burst {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 200;
+}
+
+.mo-confetti-piece {
+  position: absolute;
+  top: -12px;
+  width: 8px;
+  height: 14px;
+  opacity: 0.9;
+  animation-name: mo-confetti-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes mo-confetti-fall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--drift), 105vh) rotate(var(--rot)); opacity: 0.7; }
+}
+
+/* --- squares column --- */
+
+#mo-squares {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 2px;
+}
+
+.mo-square {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--track);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.mo-square-fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 0%;
+  background: rgba(var(--accent-rgb), 0.4);
+}
+.mo-square.is-live { border-color: var(--accent); }
+.mo-square.is-live .mo-square-fill { background: var(--accent); }
+
+.mo-semester-divider {
+  flex-basis: 100%;
+  height: 0;
+  border-top: 1px dashed var(--border);
+  margin: 0.4rem 0;
+}
+
+/* --- breaks column --- */
+
+.mo-break-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+.mo-break-row:last-child { border-bottom: none; }
+.mo-break-row.is-active { color: var(--accent); font-weight: 700; }
+.mo-break-days { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.mo-break-row.is-active .mo-break-days { color: var(--accent); }
+
+/* --- bottom row: people + weather --- */
+
+.mo-bottom {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.mo-people-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem 1.5rem;
+}
+.mo-person {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.mo-person-room { color: var(--text-dim); }
+.mo-people-list .mo-status {
+  grid-column: 1 / -1;
+  text-align: left;
+  font-size: 0.95rem;
+  margin: 0.4rem 0;
+}
+
+.mo-teachers-period {
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+.mo-weather {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.mo-weather-current {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 auto;
+  padding-right: 1.5rem;
+  border-right: 1px solid var(--border);
+}
+.mo-weather-current-icon { font-size: 3rem; line-height: 1; }
+.mo-weather-current-temp { font-size: 2rem; font-weight: 700; }
+.mo-weather-current-label { font-size: 0.85rem; color: var(--text-dim); }
+
+.mo-weather-forecast {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8rem;
+}
+.mo-weather-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.mo-weather-card-label { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.2rem; }
+.mo-weather-card-icon { font-size: 1.6rem; line-height: 1; }
+.mo-weather-card-temp { font-size: 0.95rem; font-weight: 600; }
+
+.mo-weather-error { color: var(--text-dim); font-size: 1rem; }
+
+@media (max-width: 1100px) {
+  .mo-columns { grid-template-columns: 1fr; }
+  .mo-bottom { grid-template-columns: 1fr; }
+  html, body { overflow: auto; height: auto; }
+  .mo-dashboard { height: auto; min-height: 100vh; }
+}

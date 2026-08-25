@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Office Dashboard</title>
+<link rel="stylesheet" href="math-office.css">
+</head>
+<body>
+<div class="mo-dashboard">
+  <header class="mo-header">
+    <h1>Math Office</h1>
+    <div class="mo-header-time">
+      <span id="mo-date"></span>
+      <span id="mo-clock"></span>
+    </div>
+  </header>
+
+  <div class="mo-columns">
+    <section class="mo-col">
+      <h2>Today's Schedule</h2>
+      <div class="mo-col-body">
+        <div id="mo-daily-status"></div>
+        <div id="mo-daily-bars"></div>
+      </div>
+    </section>
+
+    <section class="mo-col">
+      <h2>Year at a Glance</h2>
+      <div class="mo-col-body">
+        <div id="mo-squares"></div>
+      </div>
+    </section>
+
+    <section class="mo-col">
+      <h2>Upcoming Breaks</h2>
+      <div class="mo-col-body">
+        <div id="mo-breaks-list"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="mo-bottom">
+    <section class="mo-col">
+      <h2>Teachers Teaching</h2>
+      <div class="mo-col-body">
+        <div class="mo-teachers-period" id="mo-teachers-period"></div>
+        <ul class="mo-people-list" id="mo-people-list"></ul>
+      </div>
+    </section>
+
+    <section class="mo-col">
+      <h2>Weather</h2>
+      <div class="mo-col-body">
+        <div class="mo-weather" id="mo-weather"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="math-office.js"></script>
+</body>
+</html>
