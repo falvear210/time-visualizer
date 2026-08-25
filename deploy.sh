@@ -11,6 +11,10 @@ SSH_KEY="$HOME/.ssh/id_rsa"
 
 cd "$(dirname "$0")"
 
+# bumped on every deploy so the kiosk's version-poll (see math-office.js)
+# notices and reloads itself within a minute, with no manual intervention.
+date +%s > version.txt
+
 rsync -avz --delete \
   -e "ssh -i $SSH_KEY" \
   --exclude ".git/" \

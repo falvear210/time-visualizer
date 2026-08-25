@@ -8,6 +8,38 @@ const TIME_ZONE = "America/Chicago";
 const REFRESH_MS = 1000; // no interactive elements here, so a full rebuild every tick is cheap and safe
 const COUNTDOWN_START_MINUTES = 7 * 60 + 30; // countdowns/"teaching next" don't show before 7:30am
 
+// ---- remote reload (kiosk support) ----
+// This runs unattended on a wall display with no one to hit refresh, so it
+// watches version.txt (bumped by deploy.sh on every deploy) and reloads
+// itself within one polling interval of a new deploy landing -- no SSH
+// into the kiosk needed for routine updates.
+const VERSION_URL = "version.txt";
+const VERSION_CHECK_MS = 60 * 1000;
+
+async function fetchVersion() {
+  const res = await fetch(`${VERSION_URL}?t=${Date.now()}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`version.txt fetch failed: ${res.status}`);
+  return (await res.text()).trim();
+}
+
+async function watchForNewVersion() {
+  let initialVersion;
+  try {
+    initialVersion = await fetchVersion();
+  } catch (e) {
+    return; // no version.txt (or unreachable) -- nothing to watch against
+  }
+  setInterval(async () => {
+    try {
+      const current = await fetchVersion();
+      if (current !== initialVersion) location.reload();
+    } catch (e) {
+      // a transient fetch failure shouldn't reload or crash the watcher --
+      // just try again next interval.
+    }
+  }, VERSION_CHECK_MS);
+}
+
 // ---- date helpers (see app.js for the fuller version these mirror) ----
 
 function parseDate(yyyymmdd) {
@@ -674,6 +706,7 @@ function main() {
   setInterval(fetchTeachers, TEACHERS_REFRESH_MS);
   fetchWeather();
   setInterval(fetchWeather, WEATHER_REFRESH_MS);
+  watchForNewVersion();
   render();
   setInterval(render, REFRESH_MS);
 }
