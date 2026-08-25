@@ -372,7 +372,11 @@ function main() {
 
   async function fetchTeachers() {
     try {
-      const res = await fetch(TEACHERS_CSV_URL);
+      // cache-bust every fetch -- teachers.csv is a plain static file, so
+      // without this a browser (or the file server) can keep serving
+      // whatever it first fetched even after the file's been updated on
+      // disk, well past the 30-minute refresh interval.
+      const res = await fetch(`${TEACHERS_CSV_URL}?t=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) throw new Error(`teachers.csv fetch failed: ${res.status}`);
       teachersData = parseTeachersCsv(await res.text());
     } catch (e) {
