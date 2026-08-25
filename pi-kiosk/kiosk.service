@@ -1,0 +1,19 @@
+[Unit]
+Description=Chromium kiosk display
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=pi
+Group=pi
+PAMName=login
+TTYPath=/dev/tty1
+Type=simple
+ExecStart=/usr/bin/startx /usr/local/bin/kiosk.sh -- -nocursor vt1
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

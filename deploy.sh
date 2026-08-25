@@ -25,6 +25,7 @@ rsync -avz --delete \
   --exclude "data/" \
   --exclude "docs/" \
   --exclude "scripts/" \
+  --exclude "pi-kiosk/" \
   --exclude "deploy.sh" \
   ./ "$REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH"
 

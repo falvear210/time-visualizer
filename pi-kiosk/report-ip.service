@@ -1,0 +1,8 @@
+[Unit]
+Description=Report this Pi's IP to the rpis.php dashboard
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/report-ip.sh
