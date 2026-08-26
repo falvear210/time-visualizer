@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "time-visualizer",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8420"],
-      "port": 8420
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "exec python3 -m http.server \"$PORT\""],
+      "port": 8420,
+      "autoPort": true
     }
   ]
 }
