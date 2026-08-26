@@ -232,6 +232,18 @@ function periodProgress(day, period, now, wave) {
   return (now.minutes - startMinutes) / (endMinutes - startMinutes);
 }
 
+// whether this period is actually in progress right now. periodProgress()
+// truncates to whole minutes, so it reads exactly 0 for the entire first
+// minute of a period -- indistinguishable from "hasn't started yet". This
+// checks the minute range directly instead, so a period counts as live from
+// the moment it starts rather than one minute in.
+function isPeriodLive(day, period, now, wave) {
+  if (day.date !== now.dateStr) return false;
+  const resolvedWave = typeof wave === "function" ? wave(period, day) : wave;
+  const { startMinutes, endMinutes } = resolvePeriodTimes(period, resolvedWave);
+  return now.minutes >= startMinutes && now.minutes < endMinutes;
+}
+
 // sums periodProgress() across a list of days, for the Progress tab's bars.
 function progressOf(dayList, now, wave) {
   let total = 0, done = 0;
@@ -245,8 +257,9 @@ function progressOf(dayList, now, wave) {
 }
 
 // like progressOf, but counts whole school days instead of periods -- for
-// bars phrased as "N school days left" rather than "N periods left". A day
-// in progress counts as the average of its own periods' progress.
+// a bar's fill percentage when it's phrased in terms of days rather than
+// periods. A day in progress counts as the average of its own periods'
+// progress. Not for a "days left" count, though -- see schoolDaysLeft.
 function schoolDayProgress(dayList, now) {
   let total = 0, done = 0;
   for (const day of dayList) {
@@ -258,6 +271,16 @@ function schoolDayProgress(dayList, now) {
     done += sum / day.periods.length;
   }
   return { total, done, pct: total ? (done / total) * 100 : 0 };
+}
+
+// whole school days left in dayList -- pure date comparison against today,
+// no fractional day-progress or rounding involved. Today counts as a full
+// remaining day for as long as it's still today, even at 4pm with one
+// period left; it only drops off the count at midnight. Averaging today's
+// elapsed periods and rounding (as schoolDayProgress's total-minus-done
+// would) undercounts by "spending" part of today before it's actually over.
+function schoolDaysLeft(dayList, now) {
+  return dayList.filter((d) => d.periods.length && d.date >= now.dateStr).length;
 }
 
 // =============================================================================
@@ -613,9 +636,10 @@ function main() {
 
     const fill = document.createElement("div");
     fill.className = "period-fill";
-    const progress = periodProgress(day, p, now, effectiveWave(day, p, now));
+    const wave = effectiveWave(day, p, now);
+    const progress = periodProgress(day, p, now, wave);
     fill.style.height = (progress * 100) + "%";
-    if (progress > 0 && progress < 1) {
+    if (isPeriodLive(day, p, now, wave)) {
       sq.classList.add("is-live");
     } else if (progress === 0 && showPreview && day.date === now.dateStr) {
       sq.classList.add("is-today-upcoming");
@@ -783,8 +807,7 @@ function main() {
     const periodProg = progressOfFiltered(dayList, now);
     if (periodProg.total === 0) return bar(label, 0, emptyText);
     const completed = Math.floor(periodProg.done);
-    const dayProg = schoolDayProgress(dayList, now);
-    const daysLeft = Math.max(0, Math.round(dayProg.total - dayProg.done));
+    const daysLeft = schoolDaysLeft(dayList, now);
     return bar(label, periodProg.pct,
       `${completed} of ${periodProg.total} periods · ${daysLeft} school day${daysLeft === 1 ? "" : "s"} left`);
   }
@@ -810,28 +833,43 @@ function main() {
   // would look "not live" even while its other wave is still running.
   function liveWaveOf(day, period, now) {
     const defaultWave = waveFor(period.label);
-    const progDefault = periodProgress(day, period, now, defaultWave);
-    if (progDefault > 0 && progDefault < 1) return defaultWave;
+    if (isPeriodLive(day, period, now, defaultWave)) return defaultWave;
     if (period.jrsrStartMinutes != null) {
       const altWave = defaultWave === "jrsr" ? "frso" : "jrsr";
-      const progAlt = periodProgress(day, period, now, altWave);
-      if (progAlt > 0 && progAlt < 1) return altWave;
+      if (isPeriodLive(day, period, now, altWave)) return altWave;
     }
     return null;
+  }
+
+  // shared by currentPeriodBarHtml/updateCurrentPeriodBar: what the Current
+  // Period bar should show right now -- the live period if one's in
+  // progress, otherwise the next (filtered) period today, if any is left.
+  function currentOrNextInfo(now) {
+    const live = findLivePeriod(now);
+    if (live) return { state: "live", period: live };
+    const today = days.find((d) => d.date === now.dateStr);
+    const periods = today ? today.periods.filter((p) => isLetterActive(today, p)) : [];
+    const upcoming = periods.find((p) => resolvePeriodTimes(p, effectiveWave(today, p, now)).startMinutes > now.minutes);
+    return upcoming ? { state: "next", period: upcoming } : { state: "idle" };
+  }
+
+  function currentPeriodKey(now, info) {
+    if (info.state === "idle") return `${now.dateStr}|idle`;
+    return `${now.dateStr}|${info.state}:${info.period.label}`;
   }
 
   // `id` lets this render into two places at once (the Progress tab's bar
   // list, and the standalone Current Period tab) without a duplicate DOM id.
   function currentPeriodBarHtml(id = "current-period-bar") {
     const now = getNow();
-    const live = findLivePeriod(now);
+    const info = currentOrNextInfo(now);
     // keeps updateCurrentPeriodBar's change-detection in sync with whatever
     // just got built here, however it got built -- otherwise the very next
     // 100ms tick after any full render() would see a stale key and force
     // one needless (and click-swallowing) rebuild of its own.
-    lastPeriodKeyById[id] = live ? `${now.dateStr}|${live.label}` : null;
+    lastPeriodKeyById[id] = currentPeriodKey(now, info);
 
-    if (!live) {
+    if (info.state === "idle") {
       return `
         <div class="bar-row" id="${id}">
           <div class="bar-top"><div class="bar-label">Current Period</div><div class="bar-pct">—</div></div>
@@ -840,8 +878,22 @@ function main() {
         </div>`;
     }
 
+    if (info.state === "next") {
+      const upcoming = info.period;
+      const today = days.find((d) => d.date === now.dateStr);
+      const { startMinutes } = resolvePeriodTimes(upcoming, effectiveWave(today, upcoming, now));
+      const msToStart = (startMinutes - now.minutes) * 60000 - now.seconds * 1000 - now.ms;
+      return `
+        <div class="bar-row" id="${id}">
+          <div class="bar-top"><div class="bar-label">Current Period</div><div class="bar-pct">—</div></div>
+          <div class="bar-track"><div class="bar-fill" style="width:0%"></div></div>
+          <div class="bar-sub">Next: Period ${upcoming.label} in ${formatCountdownClock(msToStart)}</div>
+        </div>`;
+    }
+
     // the toggle only ever changes which of THIS period's two times is
     // displayed -- it never changes which period counts as live (above).
+    const live = info.period;
     const today = days.find((d) => d.date === now.dateStr);
     const wave = effectiveWave(today, live, now);
     const { startMinutes, endMinutes } = resolvePeriodTimes(live, wave);
@@ -860,7 +912,7 @@ function main() {
         </div>` : "";
 
     return `
-      <div class="bar-row" id="${id}">
+      <div class="bar-row is-live" id="${id}">
         <div class="bar-top"><div class="bar-label">Current Period — ${live.label}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
         <div class="bar-sub">${formatClockTenths(elapsedMs)} elapsed · ${formatClockTenths(remainingMs)} remaining</div>
@@ -907,8 +959,7 @@ function main() {
     const prog = progressOfFiltered(stretchDays, now);
     const pct = prog.total ? (prog.done / prog.total) * 100 : 100;
 
-    const dayProg = schoolDayProgress(stretchDays, now);
-    const daysLeft = Math.max(0, Math.round(dayProg.total - dayProg.done));
+    const daysLeft = schoolDaysLeft(stretchDays, now);
     const isLastDay = stretchDays.length > 0 && now.dateStr === stretchDays[stretchDays.length - 1].date;
 
     return `
@@ -925,15 +976,16 @@ function main() {
   // the more natural unit for a milestone this far out.
   function milestoneBarHtml(now) {
     if (!winterBreak) {
-      const prog = schoolDayProgress(days.filter((d) => d.periods.length), now);
-      const left = Math.max(0, Math.round(prog.total - prog.done));
+      const stretch = days.filter((d) => d.periods.length);
+      const prog = schoolDayProgress(stretch, now);
+      const left = schoolDaysLeft(stretch, now);
       return bar("Until End of Year", prog.pct, `${left} school day${left === 1 ? "" : "s"} left`);
     }
 
     if (now.dateStr < winterBreak.start) {
       const stretch = days.filter((d) => d.periods.length && d.date < winterBreak.start);
       const prog = schoolDayProgress(stretch, now);
-      const left = Math.max(0, Math.round(prog.total - prog.done));
+      const left = schoolDaysLeft(stretch, now);
       const isLastDay = stretch.length > 0 && now.dateStr === stretch[stretch.length - 1].date;
       const sub = `${left} school day${left === 1 ? "" : "s"} left${isLastDay ? " 🎉🙌" : ""}`;
       return bar("Until Winter Break", prog.pct, sub, isLastDay);
@@ -945,7 +997,7 @@ function main() {
 
     const stretch = days.filter((d) => d.periods.length && d.date > winterBreak.end);
     const prog = schoolDayProgress(stretch, now);
-    const left = Math.max(0, Math.round(prog.total - prog.done));
+    const left = schoolDaysLeft(stretch, now);
     return bar("Until End of Year", prog.pct, `${left} school day${left === 1 ? "" : "s"} left`);
   }
 
@@ -980,8 +1032,9 @@ function main() {
       // duration, so the bar's layout doesn't jump around depending on
       // which lunch wave happens to be live -- only the fill amount does.
       cols.push(`${p.endMinutes - p.startMinutes}fr`);
-      const progress = periodProgress(today, p, now, effectiveWave(today, p, now));
-      const isLive = progress > 0 && progress < 1;
+      const wave = effectiveWave(today, p, now);
+      const progress = periodProgress(today, p, now, wave);
+      const isLive = isPeriodLive(today, p, now, wave);
       segments.push(`
         <div class="daily-segment${isLive ? " is-live" : ""}">
           <div class="daily-segment-fill" style="height:${progress * 100}%"></div>
@@ -1094,23 +1147,35 @@ function main() {
   }
 
   // Updates one Current Period bar for the current tick. Rebuilds the
-  // whole node (including the wave-toggle buttons) only when the live
+  // whole node (including the wave-toggle buttons) only when the live/next
   // period itself has changed since the last tick; otherwise patches just
-  // the percentage/fill/elapsed-remaining text in place, leaving the
-  // toggle buttons (and their listeners, and any in-flight click) alone.
+  // the countdown text in place, leaving the toggle buttons (and their
+  // listeners, and any in-flight click) alone -- and leaving the live
+  // gradient animation running instead of restarting it every tick.
   function updateCurrentPeriodBar(id, now) {
     const el = document.getElementById(id);
     if (!el) return;
-    const live = findLivePeriod(now);
-    const key = live ? `${now.dateStr}|${live.label}` : null;
+    const info = currentOrNextInfo(now);
+    const key = currentPeriodKey(now, info);
 
     if (key !== lastPeriodKeyById[id]) {
       el.outerHTML = currentPeriodBarHtml(id); // also syncs lastPeriodKeyById[id]
       return;
     }
-    if (!live) return;
 
     const today = days.find((d) => d.date === now.dateStr);
+
+    if (info.state === "next") {
+      const upcoming = info.period;
+      const { startMinutes } = resolvePeriodTimes(upcoming, effectiveWave(today, upcoming, now));
+      const msToStart = (startMinutes - now.minutes) * 60000 - now.seconds * 1000 - now.ms;
+      const sub = el.querySelector(".bar-sub");
+      if (sub) sub.textContent = `Next: Period ${upcoming.label} in ${formatCountdownClock(msToStart)}`;
+      return;
+    }
+    if (info.state !== "live") return;
+
+    const live = info.period;
     const wave = effectiveWave(today, live, now);
     const { startMinutes, endMinutes } = resolvePeriodTimes(live, wave);
     const totalMs = (endMinutes - startMinutes) * 60000;

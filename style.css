@@ -245,6 +245,19 @@ main {
   100% { background-position: 0% 50%; }
 }
 
+.bar-row.is-live .bar-fill {
+  background: linear-gradient(90deg, var(--accent), rgba(var(--accent-rgb), 0.5), var(--accent));
+  background-size: 300% 100%;
+  animation: current-period-shift 4s ease infinite;
+}
+.bar-row.is-live .bar-label { color: var(--accent); font-weight: 700; }
+
+@keyframes current-period-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 .bar-wave-toggle {
   margin-top: 0.5rem;
   display: flex;
