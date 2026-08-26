@@ -94,6 +94,13 @@ function formatFullDate(dateStr) {
   return dt.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "UTC" });
 }
 
+// "8/27" -- the rotator's day-count rows lead with this so it's clear
+// exactly which date the countdown is counting down to.
+function formatShortDate(dateStr) {
+  const { m, d } = parseDate(dateStr);
+  return `${m}/${d}`;
+}
+
 function formatClock12h(now) {
   let h = Math.floor(now.minutes / 60);
   const m = now.minutes % 60;
@@ -137,12 +144,21 @@ function periodProgress(day, period, now, wave) {
   return (now.minutes - startMinutes) / (endMinutes - startMinutes);
 }
 
+// whether this period is actually in progress right now (see app.js's
+// isPeriodLive) -- periodProgress() truncates to whole minutes, so it reads
+// exactly 0 for the entire first minute of a period, indistinguishable from
+// "hasn't started yet". This checks the minute range directly instead, so a
+// period counts as live from the moment it starts rather than one minute in.
+function isPeriodLive(day, period, now, wave) {
+  if (day.date !== now.dateStr) return false;
+  const { startMinutes, endMinutes } = resolvePeriodTimes(period, wave);
+  return now.minutes >= startMinutes && now.minutes < endMinutes;
+}
+
 function liveWaveOf(day, period, now) {
-  const progDefault = periodProgress(day, period, now, "frso");
-  if (progDefault > 0 && progDefault < 1) return "frso";
+  if (isPeriodLive(day, period, now, "frso")) return "frso";
   if (period.jrsrStartMinutes != null) {
-    const progAlt = periodProgress(day, period, now, "jrsr");
-    if (progAlt > 0 && progAlt < 1) return "jrsr";
+    if (isPeriodLive(day, period, now, "jrsr")) return "jrsr";
   }
   return null;
 }
@@ -183,7 +199,8 @@ function findQualifyingBreaks(seq, minLen) {
   return breaks;
 }
 
-function breakName(startDate, endDate, daysByDate) {
+function breakName(startDate, endDate, daysByDate, nameOverrides) {
+  if (nameOverrides.has(startDate)) return nameOverrides.get(startDate);
   for (let d = startDate; d <= endDate; d = addDays(d, 1)) {
     const entry = daysByDate.get(d);
     if (entry && entry.summary) return cleanBreakLabel(entry.summary);
@@ -191,17 +208,22 @@ function breakName(startDate, endDate, daysByDate) {
   return "Break";
 }
 
-function schoolDaysLeftInStretch(days, stretchStart, stretchEnd, now) {
-  const stretch = days.filter((d) => d.periods.length && d.date >= stretchStart && d.date < stretchEnd);
-  let total = 0, done = 0;
-  for (const day of stretch) {
-    total += 1;
-    if (day.date < now.dateStr) { done += 1; continue; }
-    if (day.date > now.dateStr) continue;
-    const sum = day.periods.reduce((s, p) => s + periodProgress(day, p, now, effectiveWave(day, p, now)), 0);
-    done += sum / day.periods.length;
-  }
-  return Math.max(0, Math.round(total - done));
+// Whole school days from tomorrow through targetDate (inclusive of
+// targetDate itself even when it isn't a school day, e.g. a break's first
+// day off) -- pure date comparison, no fractional day-progress involved.
+// That means it only ever changes at midnight, never partway through a
+// day, and a targetDate of tomorrow always reads as 1, never 0 -- 0 is
+// reserved for "targetDate is today", which callers handle separately.
+function schoolDaysUntil(days, now, targetDate) {
+  const between = days.filter((d) => d.periods.length && d.date > now.dateStr && d.date < targetDate).length;
+  return between + 1;
+}
+
+// Plain calendar days from today through targetDate -- for events (like
+// birthdays) that aren't about school days in session, just the date.
+function calendarDaysUntil(now, targetDate) {
+  const a = parseDate(now.dateStr), b = parseDate(targetDate);
+  return Math.round((Date.UTC(b.y, b.m - 1, b.d) - Date.UTC(a.y, a.m - 1, a.d)) / 86400000);
 }
 
 // ---- teachers (loaded from teachers.csv -- one row per teacher/period,
@@ -226,6 +248,62 @@ function parseTeachersCsv(text) {
     t.rooms[period] = room;
   }
   return [...byName.values()];
+}
+
+// ---- rotator data (breaks.csv / birthdays.csv / food.csv -- lets the
+// office edit/add birthdays, free-food days, and break-name overrides
+// without touching code or the school-year calendar; three separate files
+// so each is a simple, single-purpose list to hand-edit) ----
+
+const BREAKS_CSV_URL = "breaks.csv";
+const BIRTHDAYS_CSV_URL = "birthdays.csv";
+const FOOD_CSV_URL = "food.csv";
+const ROTATOR_REFRESH_MS = 30 * 60 * 1000;
+const ROTATOR_LIST_LIMIT = 14; // the box body scrolls if a page runs longer than this fits
+
+// naive comma-split, same tradeoff as parseTeachersCsv -- fine as long as
+// names in the CSV don't contain commas.
+
+// break-name overrides: date is the break's start date, name is what to
+// display instead of the auto-detected label from the school calendar.
+function parseBreaksCsv(text) {
+  const lines = text.trim().split("\n").slice(1);
+  const overrides = new Map();
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const [date, name] = line.split(",").map((s) => s.trim());
+    if (!date || !name) continue;
+    overrides.set(date, name);
+  }
+  return overrides;
+}
+
+// birthdays: an optional third column of "math" marks a math-department
+// birthday so it can be rendered in bold on the shared office display.
+function parseBirthdaysCsv(text) {
+  const lines = text.trim().split("\n").slice(1);
+  const birthdays = [];
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const [date, name, dept] = line.split(",").map((s) => (s || "").trim());
+    if (!date || !name) continue;
+    birthdays.push({ date, name, isMath: dept === "math" });
+  }
+  birthdays.sort((a, b) => a.date.localeCompare(b.date));
+  return birthdays;
+}
+
+function parseFoodCsv(text) {
+  const lines = text.trim().split("\n").slice(1);
+  const food = [];
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const [date, name] = line.split(",").map((s) => s.trim());
+    if (!date || !name) continue;
+    food.push({ date, name });
+  }
+  food.sort((a, b) => a.date.localeCompare(b.date));
+  return food;
 }
 
 // ---- weather (Open-Meteo -- free, no API key, CORS-enabled) ----
@@ -294,7 +372,8 @@ function main() {
   const dailyBarsEl = document.getElementById("mo-daily-bars");
   const dailyStatusEl = document.getElementById("mo-daily-status");
   const squaresEl = document.getElementById("mo-squares");
-  const breaksEl = document.getElementById("mo-breaks-list");
+  const rotatorTitleEl = document.getElementById("mo-rotator-title");
+  const rotatorBodyEl = document.getElementById("mo-rotator-body");
   const peopleEl = document.getElementById("mo-people-list");
   const teachersPeriodEl = document.getElementById("mo-teachers-period");
   const weatherEl = document.getElementById("mo-weather");
@@ -331,8 +410,7 @@ function main() {
     for (const p of today.periods) {
       const waves = p.jrsrStartMinutes != null ? ["frso", "jrsr"] : ["frso"];
       for (const wave of waves) {
-        const prog = periodProgress(today, p, now, wave);
-        if (prog > 0 && prog < 1) keys.add(`${now.dateStr}|${p.label}|${wave}`);
+        if (isPeriodLive(today, p, now, wave)) keys.add(`${now.dateStr}|${p.label}|${wave}`);
       }
     }
     return keys;
@@ -357,10 +435,7 @@ function main() {
   // that early, but an already-live period always shows regardless.
   function currentOrNextPeriod(today, now) {
     if (!today || !today.periods.length) return { state: "no-school" };
-    const live = today.periods.find((p) => {
-      const prog = periodProgress(today, p, now, effectiveWave(today, p, now));
-      return prog > 0 && prog < 1;
-    });
+    const live = today.periods.find((p) => isPeriodLive(today, p, now, effectiveWave(today, p, now)));
     if (live) return { state: "current", period: live };
     if (now.minutes < COUNTDOWN_START_MINUTES) return { state: "too-early" };
     const upcoming = today.periods.find((p) => resolvePeriodTimes(p, effectiveWave(today, p, now)).startMinutes > now.minutes);
@@ -413,6 +488,42 @@ function main() {
       teachersData = parseTeachersCsv(await res.text());
     } catch (e) {
       teachersData = [];
+    }
+  }
+
+  let breakNameOverrides = new Map();
+  let birthdaysData = [];
+  let foodData = [];
+
+  // cache-bust every fetch, same reasoning as fetchTeachers -- these are
+  // plain static files the office edits directly on disk.
+  async function fetchBreaks() {
+    try {
+      const res = await fetch(`${BREAKS_CSV_URL}?t=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) throw new Error(`breaks.csv fetch failed: ${res.status}`);
+      breakNameOverrides = parseBreaksCsv(await res.text());
+    } catch (e) {
+      breakNameOverrides = new Map();
+    }
+  }
+
+  async function fetchBirthdays() {
+    try {
+      const res = await fetch(`${BIRTHDAYS_CSV_URL}?t=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) throw new Error(`birthdays.csv fetch failed: ${res.status}`);
+      birthdaysData = parseBirthdaysCsv(await res.text());
+    } catch (e) {
+      birthdaysData = [];
+    }
+  }
+
+  async function fetchFood() {
+    try {
+      const res = await fetch(`${FOOD_CSV_URL}?t=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) throw new Error(`food.csv fetch failed: ${res.status}`);
+      foodData = parseFoodCsv(await res.text());
+    } catch (e) {
+      foodData = [];
     }
   }
 
@@ -545,7 +656,7 @@ function main() {
       if (!row) return;
       const progress = periodProgress(today, s.p, now, s.wave);
       const pct = Math.round(progress * 100);
-      row.classList.toggle("is-live", progress > 0 && progress < 1);
+      row.classList.toggle("is-live", isPeriodLive(today, s.p, now, s.wave));
       row.querySelector(".mo-bar-top span:last-child").textContent = pct + "%";
       row.querySelector(".mo-bar-fill").style.width = pct + "%";
     });
@@ -554,7 +665,7 @@ function main() {
   function periodBarHtml(day, p, now, wave, waveLabel) {
     const progress = periodProgress(day, p, now, wave);
     const pct = Math.round(progress * 100);
-    const isLive = progress > 0 && progress < 1;
+    const isLive = isPeriodLive(day, p, now, wave);
     const label = waveLabel ? `Period ${p.label} (${waveLabel})` : `Period ${p.label}`;
 
     // no elapsed/remaining text here -- that's now the main countdown's
@@ -627,9 +738,10 @@ function main() {
     squaresEl.querySelectorAll(".mo-square").forEach((sq) => {
       const day = daysByDate.get(sq.dataset.date);
       const period = day.periods.find((p) => p.label === sq.dataset.label);
-      const progress = periodProgress(day, period, now, effectiveWave(day, period, now));
+      const wave = effectiveWave(day, period, now);
+      const progress = periodProgress(day, period, now, wave);
       sq.querySelector(".mo-square-fill").style.height = (progress * 100) + "%";
-      sq.classList.toggle("is-live", progress > 0 && progress < 1);
+      sq.classList.toggle("is-live", isPeriodLive(day, period, now, wave));
     });
   }
 
@@ -650,7 +762,8 @@ function main() {
         </div>`;
     }
     const isLastDayOfWeek = now.dateStr === weekDays[weekDays.length - 1].date;
-    const daysLeft = schoolDaysLeftInStretch(days, weekDays[0].date, addDays(weekDays[weekDays.length - 1].date, 1), now);
+    const weekendStart = addDays(weekDays[weekDays.length - 1].date, 1);
+    const daysLeft = schoolDaysUntil(days, now, weekendStart);
     return `
       <div class="mo-break-row">
         <span class="mo-break-name">Next Weekend</span>
@@ -658,15 +771,14 @@ function main() {
       </div>`;
   }
 
-  function renderBreaks(now) {
+  function breaksListHtml(now) {
     const weekendRow = nextWeekendRowHtml(now);
     const upcoming = qualifyingBreaks.filter((b) => b.end >= now.dateStr);
     if (!upcoming.length) {
-      breaksEl.innerHTML = weekendRow + `<div class="mo-status">No more qualifying breaks left this year</div>`;
-      return;
+      return weekendRow + `<div class="mo-status">No more qualifying breaks left this year</div>`;
     }
-    breaksEl.innerHTML = weekendRow + upcoming.map((b) => {
-      const name = breakName(b.start, b.end, daysByDate);
+    return weekendRow + upcoming.map((b) => {
+      const name = breakName(b.start, b.end, daysByDate, breakNameOverrides);
       const onBreak = b.start <= now.dateStr && now.dateStr <= b.end;
       if (onBreak) {
         return `
@@ -675,13 +787,105 @@ function main() {
             <span class="mo-break-days">🎉 now</span>
           </div>`;
       }
-      const daysLeft = schoolDaysLeftInStretch(days, days[0].date, b.start, now);
+      const daysLeft = schoolDaysUntil(days, now, b.start);
       return `
         <div class="mo-break-row">
           <span class="mo-break-name">${name}</span>
           <span class="mo-break-days">${daysLeft} school day${daysLeft === 1 ? "" : "s"}</span>
         </div>`;
     }).join("");
+  }
+
+  function birthdaysListHtml(now) {
+    const upcoming = birthdaysData.filter((e) => e.date >= now.dateStr).slice(0, ROTATOR_LIST_LIMIT);
+    if (!upcoming.length) return `<div class="mo-status">No more birthdays left this year</div>`;
+    return upcoming.map((e) => {
+      const nameHtml = e.isMath ? `<strong>${e.name}</strong>` : e.name;
+      if (e.date === now.dateStr) {
+        return `
+          <div class="mo-break-row is-active">
+            <span class="mo-break-name">${nameHtml}</span>
+            <span class="mo-break-days">🎉🎂 Today!</span>
+          </div>`;
+      }
+      // real calendar days, not school days -- a birthday isn't tied to
+      // whether school's in session, and this shouldn't be rounded: it
+      // only changes at midnight, and a birthday tomorrow always reads 1.
+      const daysLeft = calendarDaysUntil(now, e.date);
+      return `
+        <div class="mo-break-row">
+          <span class="mo-break-name">${nameHtml}</span>
+          <span class="mo-break-days">${formatShortDate(e.date)} - ${daysLeft} day${daysLeft === 1 ? "" : "s"}</span>
+        </div>`;
+    }).join("");
+  }
+
+  function foodListHtml(now) {
+    const upcoming = foodData.filter((e) => e.date >= now.dateStr).slice(0, ROTATOR_LIST_LIMIT);
+    if (!upcoming.length) return `<div class="mo-status">Nothing planned right now</div>`;
+    return upcoming.map((e) => {
+      if (e.date === now.dateStr) {
+        return `
+          <div class="mo-break-row is-active">
+            <span class="mo-break-name">${e.name}</span>
+            <span class="mo-break-days">🎉🍕 Today!</span>
+          </div>`;
+      }
+      const daysLeft = schoolDaysUntil(days, now, e.date);
+      return `
+        <div class="mo-break-row">
+          <span class="mo-break-name">${e.name}</span>
+          <span class="mo-break-days">${daysLeft} school day${daysLeft === 1 ? "" : "s"}</span>
+        </div>`;
+    }).join("");
+  }
+
+  // the "Upcoming Breaks" box rotates between a few lists rather than
+  // showing just one -- breaks (always present, computed from the school
+  // calendar) plus birthdays/free-food whenever their CSV has upcoming
+  // entries. Rebuilt every render tick so the currently-visible page's
+  // countdowns stay fresh, but only ever written to the DOM (and only ever
+  // advanced/faded) on its own slower rotation timer, so the fade
+  // transition never gets clobbered mid-flight by the 1s tick.
+  const ROTATE_MS = 7000;
+  const FADE_MS = 250;
+  let rotatorPages = [];
+  let rotatorIndex = 0;
+  let lastRotatorHtml = null;
+
+  function computeRotatorPages(now) {
+    const pages = [{ title: "Upcoming Breaks", html: breaksListHtml(now) }];
+    if (birthdaysData.some((e) => e.date >= now.dateStr)) {
+      pages.push({ title: "Upcoming Birthdays", html: birthdaysListHtml(now) });
+    }
+    if (foodData.some((e) => e.date >= now.dateStr)) {
+      pages.push({ title: "Free Food", html: foodListHtml(now) });
+    }
+    return pages;
+  }
+
+  function renderRotator(now) {
+    rotatorPages = computeRotatorPages(now);
+    if (rotatorIndex >= rotatorPages.length) rotatorIndex = 0;
+    const page = rotatorPages[rotatorIndex];
+    rotatorTitleEl.textContent = page.title;
+    if (page.html !== lastRotatorHtml) {
+      lastRotatorHtml = page.html;
+      rotatorBodyEl.innerHTML = page.html;
+    }
+  }
+
+  function rotateToNextPage() {
+    if (rotatorPages.length <= 1) return; // nothing else to rotate to
+    rotatorBodyEl.classList.add("is-fading");
+    rotatorTitleEl.classList.add("is-fading");
+    setTimeout(() => {
+      rotatorIndex = (rotatorIndex + 1) % rotatorPages.length;
+      lastRotatorHtml = null; // force the swap even if the new page's html happens to match
+      renderRotator(nowInChicago());
+      rotatorBodyEl.classList.remove("is-fading");
+      rotatorTitleEl.classList.remove("is-fading");
+    }, FADE_MS);
   }
 
   function render() {
@@ -693,7 +897,7 @@ function main() {
     renderTeachers(now);
     renderSquares(now);
     updateSquares(now);
-    renderBreaks(now);
+    renderRotator(now);
   }
 
   let resizeTimer = null;
@@ -704,11 +908,18 @@ function main() {
 
   fetchTeachers();
   setInterval(fetchTeachers, TEACHERS_REFRESH_MS);
+  fetchBreaks();
+  setInterval(fetchBreaks, ROTATOR_REFRESH_MS);
+  fetchBirthdays();
+  setInterval(fetchBirthdays, ROTATOR_REFRESH_MS);
+  fetchFood();
+  setInterval(fetchFood, ROTATOR_REFRESH_MS);
   fetchWeather();
   setInterval(fetchWeather, WEATHER_REFRESH_MS);
   watchForNewVersion();
   render();
   setInterval(render, REFRESH_MS);
+  setInterval(rotateToNextPage, ROTATE_MS);
 }
 
 main();

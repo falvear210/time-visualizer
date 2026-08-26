@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Math Office Dashboard</title>
-<link rel="stylesheet" href="math-office.css?v=5">
+<link rel="stylesheet" href="math-office.css?v=7">
 </head>
 <body>
 <div class="mo-dashboard">
@@ -18,10 +18,9 @@
 
   <div class="mo-columns">
     <section class="mo-col">
-      <h2>Today's Schedule</h2>
+      <h2 id="mo-rotator-title">Upcoming Breaks</h2>
       <div class="mo-col-body">
-        <div id="mo-daily-status"></div>
-        <div id="mo-daily-bars"></div>
+        <div id="mo-rotator-body" class="mo-rotator-content"></div>
       </div>
     </section>
 
@@ -33,9 +32,10 @@
     </section>
 
     <section class="mo-col">
-      <h2>Upcoming Breaks</h2>
+      <h2>Today's Schedule</h2>
       <div class="mo-col-body">
-        <div id="mo-breaks-list"></div>
+        <div id="mo-daily-status"></div>
+        <div id="mo-daily-bars"></div>
       </div>
     </section>
   </div>
@@ -61,6 +61,6 @@
 </div>
 
 <script src="data.js"></script>
-<script src="math-office.js?v=6"></script>
+<script src="math-office.js?v=10"></script>
 </body>
 </html>

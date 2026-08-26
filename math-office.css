@@ -49,7 +49,7 @@ html, body {
   flex: 3;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1.1fr;
   gap: 1.5rem;
 }
 
@@ -87,7 +87,7 @@ html, body {
 .mo-countdown { text-align: center; margin-bottom: 1rem; }
 .mo-countdown-label { font-size: 1.1rem; color: var(--text-dim); }
 .mo-countdown-clock {
-  font-size: 3.3rem;
+  font-size: 5.4rem;
   font-weight: 700;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
@@ -215,6 +215,13 @@ html, body {
 .mo-break-days { color: var(--text-dim); font-variant-numeric: tabular-nums; }
 .mo-break-row.is-active .mo-break-days { color: var(--accent); }
 
+/* --- rotating box (breaks / birthdays / free food) --- */
+
+.mo-rotator-content { transition: opacity 0.25s ease; }
+#mo-rotator-title { transition: opacity 0.25s ease; }
+.mo-rotator-content.is-fading,
+#mo-rotator-title.is-fading { opacity: 0; }
+
 /* --- bottom row: people + weather --- */
 
 .mo-bottom {
@@ -230,7 +237,7 @@ html, body {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.7rem 1.3rem;
 }
 .mo-person {
