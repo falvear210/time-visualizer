@@ -1,3 +1,14 @@
+/*
+  Styles for the math-office wall display (math-office.html + math-office.js).
+  This page is light-only (it lives on a TV in a lit room, so there's no
+  dark theme to swap) and never scrolls — the whole layout is sized to fit
+  exactly one 16:9 screen via flex/grid `fr` units and `min-height: 0`.
+  The one media query at the bottom is only so the page is still readable
+  if opened on a laptop while editing.
+  All class names are prefixed `mo-` to keep them clearly separate from the
+  main site's stylesheet.
+*/
+
 :root {
   --accent: #005588; /* SLUH Blue */
   --accent-rgb: 0, 85, 136;

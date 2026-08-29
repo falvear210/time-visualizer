@@ -1,8 +1,31 @@
-// Math Office wall dashboard -- standalone experiment, independent of
-// index.html/app.js. Reads the same data.js the main site uses, but has
-// its own trimmed-down copies of just the date/schedule helpers it needs
-// (no tabs, no settings, no personal period filtering -- this is a shared
-// office display, not a personalized one).
+// =============================================================================
+// math-office.js -- all the behavior for math-office.html, the wall display
+// that runs full-screen and unattended on a TV in the math office.
+//
+// Standalone: it reads the same data.js the main site uses, but shares no
+// code with app.js. It keeps its own trimmed-down copies of just the
+// date/schedule helpers it needs, because it has no tabs, no settings, and
+// no personal period filtering -- it's a shared display, not a personalized
+// one. (Those copies are deliberate duplication; each is annotated with a
+// pointer to its app.js counterpart.)
+//
+// Big picture, top to bottom:
+//   1. Config constants (refresh cadences, the 7:30am cutoff for showing
+//      "teaching next", etc.).
+//   2. watchForNewVersion() -- polls version.txt (bumped by deploy.sh) and
+//      reloads the page when it changes, so a deploy reaches the TV on its
+//      own with nobody there to hit refresh.
+//   3. Date / schedule / lunch-wave / break-detection helpers -- mirrors of
+//      the app.js versions.
+//   4. CSV parsers for the office-editable data: teachers, birthdays, food,
+//      break-name overrides.
+//   5. Weather (Open-Meteo, no API key), hardcoded to SLUH's location.
+//   6. main() -- grabs the DOM, kicks off all the fetch-on-a-timer loops,
+//      then re-renders everything once a second. Every panel rebuilds from
+//      scratch each tick (there's nothing interactive to lose), except a
+//      few spots that patch in place so a running CSS animation or fade
+//      isn't restarted. Nothing runs until main() is called at the bottom.
+// =============================================================================
 
 const TIME_ZONE = "America/Chicago";
 const REFRESH_MS = 1000; // no interactive elements here, so a full rebuild every tick is cheap and safe

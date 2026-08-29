@@ -1,10 +1,16 @@
 <!DOCTYPE html>
+<!--
+  The personal start page. Structure only: every tab's contents is built by
+  app.js at runtime from data.js. See README.md for the full tour.
+  The ?v= query on the CSS/JS below is a cache-buster — bump it whenever
+  that file changes so browsers (and the file host) don't serve a stale copy.
+-->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SLUH 26/27 AY Progress</title>
-<link rel="stylesheet" href="style.css?v=23">
+<link rel="stylesheet" href="style.css?v=24">
 <script>
   // set the theme before first paint, so there's no flash of the wrong theme
   (function () {
@@ -53,6 +59,10 @@
   <section id="tab-current" class="tab-panel" hidden></section>
   <section id="tab-dashboard" class="tab-panel" hidden></section>
 </main>
+
+<footer class="site-footer">
+  <a href="mailto:falvear@sluh.org?subject=Time%20Visualizer%20feedback">idea or bug? let me know</a>
+</footer>
 
 <div id="info-panel" class="info-panel" hidden></div>
 
@@ -141,6 +151,6 @@
 </div>
 
 <script src="data.js"></script>
-<script src="app.js?v=30"></script>
+<script src="app.js?v=31"></script>
 </body>
 </html>

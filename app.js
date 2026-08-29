@@ -1,4 +1,26 @@
 // =============================================================================
+// app.js -- all the behavior for index.html (the personal start page).
+//
+// Big picture, top to bottom:
+//   1. Config constants.
+//   2. Theme / accent / "my periods" filter -- read and written to
+//      localStorage, so a visitor's choices stick across reloads.
+//   3. Date helpers -- dates are plain "YYYYMMDD" strings everywhere (they
+//      sort and compare correctly with no parsing), and "now" is always
+//      Chicago wall-clock time regardless of the visitor's own time zone.
+//   4. Semester / quarter boundary math, derived from the schedule itself.
+//   5. periodProgress() and friends -- the core "how far along is this
+//      period / day / range" math that every bar and square is built from.
+//   6. "Next Break" detection.
+//   7. main() -- grabs the DOM, builds each tab once, then re-renders on a
+//      30s interval (with the two live bars ticking every 100ms). Nothing
+//      here runs until main() is called on the last line of the file.
+//
+// The whole schedule comes from data.js (SCHOOL_YEAR_DATA), loaded first.
+// There is no framework and no build step -- this file runs as-is.
+// =============================================================================
+
+// =============================================================================
 // Config
 // =============================================================================
 

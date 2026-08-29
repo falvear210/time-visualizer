@@ -1,3 +1,15 @@
+/*
+  Styles for the personal start page (index.html + app.js).
+  Layout notes:
+    - Light and dark are driven entirely by CSS custom properties, swapped
+      by a data-theme attribute on <html> (set by app.js / the inline
+      <head> script). Every color below is a var(), never a literal.
+    - --cell / --gap / --cols size the grid squares. app.js overrides them
+      inline on desktop to make the continuous grid fill the viewport;
+      the media queries near the bottom are the small-screen fallback.
+  Sections below are marked with block comments.
+*/
+
 :root {
   --accent: #005588; /* SLUH Blue */
   --accent-rgb: 0, 85, 136;
@@ -454,7 +466,7 @@ main {
 
 .week-row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: calc(var(--gap) * 2);
 }
 
@@ -464,6 +476,11 @@ main {
   align-content: flex-start;
   gap: var(--gap);
   width: fit-content;
+  /* Never let a day's squares reach the column edge: at certain grid-cell
+     sizes a 5-period day fills the column to within ~1px, and fractional
+     browser zoom then rounds the last square past the edge instead of
+     wrapping it. The few px of slack keep the wrap decision stable. */
+  max-width: calc(100% - 3px);
   padding-bottom: 3px;
 }
 
@@ -753,4 +770,23 @@ main {
   padding: 0.05rem 0.3rem;
   font-size: 0.75rem;
   color: var(--text);
+}
+
+/* --- footer (quiet feature-request / bug link) --- */
+
+.site-footer {
+  max-width: 720px;
+  margin: 3rem auto 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.site-footer a {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  text-decoration: none;
+}
+.site-footer a:hover {
+  color: var(--text);
+  text-decoration: underline;
 }

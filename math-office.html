@@ -1,10 +1,16 @@
 <!DOCTYPE html>
+<!--
+  The math-office wall display. Standalone — it shares data.js with the main
+  site but nothing else. Structure only: every element with an id="mo-..."
+  is filled in by math-office.js at runtime. See README.md for the tour.
+  Bump the ?v= cache-buster below whenever the CSS/JS changes.
+-->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Math Office Dashboard</title>
-<link rel="stylesheet" href="math-office.css?v=7">
+<link rel="stylesheet" href="math-office.css?v=8">
 </head>
 <body>
 <div class="mo-dashboard">
@@ -61,6 +67,6 @@
 </div>
 
 <script src="data.js"></script>
-<script src="math-office.js?v=10"></script>
+<script src="math-office.js?v=11"></script>
 </body>
 </html>

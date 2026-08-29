@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Syncs the site to static.alvear.cl over SSH. Only ships what the site
-# actually needs at runtime -- source data, build scripts, docs, and git
+# actually needs at runtime -- source data, build scripts, and git
 # metadata stay local.
 set -euo pipefail
 
@@ -23,7 +23,6 @@ rsync -avz --delete \
   --exclude ".DS_Store" \
   --exclude "README.md" \
   --exclude "data/" \
-  --exclude "docs/" \
   --exclude "scripts/" \
   --exclude "pi-kiosk/" \
   --exclude "deploy.sh" \
