@@ -12,10 +12,9 @@ Two independent pieces:
   `server/rpis.php`) — the Pi phones home with its IP every 2 minutes; a PHP
   page on your own site shows every Pi that's checked in.
 
-None of this has been tested on real hardware — it's built from documented,
-standard patterns (systemd + `startx`, since Raspberry Pi OS Lite has no
-display manager), but the on-device steps below need to actually be run on a
-Pi to confirm they work end to end.
+The kiosk display piece has been run end to end on real hardware (a 3B+); the
+fleet tracker piece is still untested on-device and built from documented,
+standard patterns.
 
 ## 1. Flash the SD card
 
@@ -28,38 +27,67 @@ headless from first boot.
 Give each Pi a distinct hostname (e.g. `pi-mathoffice`) — it shows up in the
 fleet dashboard.
 
+### Enterprise Wi-Fi (username + password networks)
+
+The Imager's Wi-Fi field only handles a plain WPA2-PSK network (a single
+shared password). If your network is WPA2/WPA3-**Enterprise** (it asks for a
+username *and* a password — common on school/office networks), the Imager
+can't configure it headlessly, so the Pi will boot without network access.
+Skip the Wi-Fi field in the Imager and connect once with a keyboard + display
+plugged into the Pi instead:
+
+1. Log in at the console, then run `sudo nmtui`.
+2. Choose **Activate a connection** (to see available networks) or
+   **Edit a connection → Add → Wi-Fi** to create one, and select your SSID.
+3. Under the connection's **Wi-Fi security** settings, set:
+   - **Authentication**: `WPA & WPA2 Enterprise`, then for the method pick
+     **PEAP** (the most common option for username/password networks).
+   - **CA certificate**: leave blank / `(none)` unless your network admin
+     gave you a specific certificate file.
+   - **Inner authentication**: leave as `MSCHAPv2`.
+   - **Username**: your network username.
+   - **Password**: your network password.
+   - **User certificate**, **Domain**, and **Private key**: leave all blank
+     — those are only needed if the network requires a certificate file
+     instead of a password.
+4. Activate the connection. Once it's up you can pull the keyboard/display
+   and finish everything else over SSH as usual.
+
 ## 2. Install packages
 
 ```bash
 sudo apt update
-sudo apt install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit chromium-browser curl
+sudo apt install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit chromium-browser curl \
+  matchbox-window-manager fonts-liberation2 fonts-noto-color-emoji
 ```
 
 (On Raspberry Pi OS Bookworm the package may just be called `chromium`
 instead of `chromium-browser` — `kiosk.sh` checks for both.)
 
+`matchbox-window-manager` is a minimal window manager — without one, bare X
+has nothing to grant Chromium's `--kiosk` fullscreen request, and the window
+sticks to a fraction of the screen instead of covering it. `fonts-liberation2`
+and `fonts-noto-color-emoji` give the dashboard a real sans-serif and working
+emoji glyphs; Raspberry Pi OS Lite ships with neither, so text renders in a
+generic fallback font and emoji show as blank boxes without them.
+
 ## 3. Set up the kiosk display
 
-```bash
-sudo cp kiosk.sh /usr/local/bin/kiosk.sh
-sudo chmod +x /usr/local/bin/kiosk.sh
-sudo cp kiosk.service /etc/systemd/system/kiosk.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now kiosk.service
-```
-
-Edit `DASHBOARD_URL` at the top of `kiosk.sh` first if it should point
+First edit `DASHBOARD_URL` at the top of `kiosk.sh` if it should point
 somewhere other than the SLUH Math Office dashboard.
 
-`kiosk.service` runs `startx` as the `pi` user directly from systemd (no
-desktop autologin needed) and restarts Chromium if it ever crashes. If
-`systemctl status kiosk` shows it failing to grab the display (a known rough
-edge on some OS versions — errors like "Failed to open /dev/tty0" or PAM
-issues), the fallback is the older autologin approach:
+Raspberry Pi OS Lite has no display manager, so something needs to log a user
+in at the console and start X. **Console autologin + `.xinitrc` is the path
+that actually works** — a `kiosk.service` unit that calls `startx` directly
+from systemd was tried first and reliably failed on real hardware in testing
+(see the note below), so don't start there.
 
-1. `sudo raspi-config` → **System Options → Boot / Auto Login → Console
-   Autologin**.
-2. Append to `~/.bash_profile` on the `pi` user:
+1. Enable autologin: `sudo raspi-config` → **System Options → Boot / Auto
+   Login → Console Autologin** (or non-interactively:
+   `sudo raspi-config nonint do_boot_behaviour B2`).
+2. Append to `~/.bash_profile`, on whichever user account you set up as the
+   login user (Raspberry Pi Imager lets you pick any username now — there's
+   no default `pi` account to assume):
    ```bash
    if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
      startx -- -nocursor
@@ -70,7 +98,34 @@ issues), the fallback is the older autologin approach:
    #!/bin/sh
    exec /usr/local/bin/kiosk.sh
    ```
-4. `sudo systemctl disable kiosk.service` (don't run both).
+   (`chmod +x ~/.xinitrc`)
+4. Install `kiosk.sh` itself:
+   ```bash
+   sudo cp kiosk.sh /usr/local/bin/kiosk.sh
+   sudo chmod +x /usr/local/bin/kiosk.sh
+   ```
+5. `sudo reboot` and confirm Chromium comes up full-screen on the dashboard
+   with no login prompt visible.
+
+### `kiosk.service` (systemd + `startx`) — documented but broken in testing
+
+`kiosk.service` runs `startx` as a given user directly from systemd, which
+looked like a cleaner approach on paper (no desktop autologin needed) and is
+still checked into this repo for reference. In testing on a 3B+ it failed two
+different ways and was abandoned in favor of the autologin approach above:
+
+- `status=217/USER` — the unit hardcodes `User=pi`/`Group=pi`, which doesn't
+  exist if you set a different username in the Imager. Edit those two lines
+  in the unit file to match your actual username.
+- `status=1/FAILURE`, journal shows `Couldn't get a file descriptor
+  referring to the console` — `startx` launched directly by systemd (no real
+  login session behind it) can't grab a proper VT. This is the "known rough
+  edge" that sends you to the autologin fallback; it was not resolved.
+
+If you want to try it anyway: `sudo cp kiosk.service /etc/systemd/system/kiosk.service && sudo systemctl daemon-reload && sudo systemctl enable --now kiosk.service`,
+then `systemctl status kiosk.service` / `sudo journalctl -u kiosk.service -n 50 --no-pager`
+to see which of the above you hit. If you do get it working, `sudo systemctl disable kiosk.service`
+before switching to (or falling back to) the autologin approach — don't run both.
 
 ### Reliability extras
 
