@@ -52,6 +52,13 @@ html, body {
   padding-bottom: 0.8rem;
 }
 .mo-header h1 { margin: 0; font-size: 1.85rem; }
+.mo-header-link {
+  font-size: 1rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+}
+.mo-header-link:hover { color: var(--text); }
 .mo-header-time { text-align: right; }
 #mo-date { display: block; font-size: 1.1rem; color: var(--text-dim); }
 #mo-clock { display: block; font-size: 2.1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -315,4 +322,25 @@ html, body {
   .mo-bottom { grid-template-columns: 1fr; }
   html, body { overflow: auto; height: auto; }
   .mo-dashboard { height: auto; min-height: 100vh; }
+}
+
+/* --- shared alvear.cl feedback footer (markup injected by feedback.js) --- */
+/* The kiosk layout clips this off-screen; it only shows in the responsive
+   fallback above. Lay it out as a single line there: the "idea or bug?"
+   prompt floated left, the copyright + link floated right, with the lazily-
+   added form clearing both onto its own line below.
+   feedback.js injects its own <style> after this file, so these selectors
+   carry the `footer` element name to out-weigh its bare `.xa-fb` rules. */
+footer.xa-fb {
+  display: flow-root; /* contain the floats so the border-top wraps them */
+}
+footer.xa-fb .xa-fb-open {
+  float: left;
+}
+footer.xa-fb .xa-fb-copy {
+  float: right;
+  margin-top: 0;
+}
+footer.xa-fb form {
+  clear: both;
 }

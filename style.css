@@ -89,8 +89,18 @@ body {
 
 .header-controls {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
+
+.header-link {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1px;
+}
+.header-link:hover { color: var(--text); border-color: var(--text-dim); }
 
 .icon-btn {
   appearance: none;
@@ -772,21 +782,22 @@ main {
   color: var(--text);
 }
 
-/* --- footer (quiet feature-request / bug link) --- */
-
-.site-footer {
-  max-width: 720px;
-  margin: 3rem auto 0;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-  text-align: center;
+/* --- shared alvear.cl feedback footer (markup injected by feedback.js) --- */
+/* Lay the injected .xa-fb footer out as a single line: the "idea or bug?"
+   prompt floated left, the copyright + link floated right. The lazily-added
+   form clears both and drops onto its own line below.
+   feedback.js injects its own <style> after this file, so these selectors
+   carry the `footer` element name to out-weigh its bare `.xa-fb` rules. */
+footer.xa-fb {
+  display: flow-root; /* contain the floats so the border-top wraps them */
 }
-.site-footer a {
-  color: var(--text-dim);
-  font-size: 0.7rem;
-  text-decoration: none;
+footer.xa-fb .xa-fb-open {
+  float: left;
 }
-.site-footer a:hover {
-  color: var(--text);
-  text-decoration: underline;
+footer.xa-fb .xa-fb-copy {
+  float: right;
+  margin-top: 0;
+}
+footer.xa-fb form {
+  clear: both;
 }
