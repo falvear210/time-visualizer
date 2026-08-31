@@ -10,12 +10,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Math Office Dashboard</title>
-<link rel="stylesheet" href="math-office.css?v=8">
+<link rel="stylesheet" href="math-office.css?v=9">
 </head>
 <body>
 <div class="mo-dashboard">
   <header class="mo-header">
-    <h1>Math Office Dashboard</h1>
+    <div class="mo-header-title">
+      <h1>Math Office Dashboard</h1>
+      <a class="mo-header-link" href="index.html">SLUH Time Visualizer</a>
+    </div>
     <div class="mo-header-time">
       <span id="mo-date"></span>
       <span id="mo-clock"></span>
@@ -68,5 +71,16 @@
 
 <script src="data.js"></script>
 <script src="math-office.js?v=11"></script>
+<script>
+  // Fields for analytics.alvear.cl's automatic "view" event (see a.js).
+  window.xaExtra = function () {
+    var theme = "light";
+    try { theme = localStorage.getItem("tv-theme") === "dark" ? "dark" : "light"; } catch (e) {}
+    var device = Math.min(screen.width || 9999, screen.height || 9999) <= 600 ? "mobile" : "desktop";
+    return { page: "math-office", theme: theme, device: device };
+  };
+</script>
+<script src="https://analytics.alvear.cl/a.js" data-site="time-visualizer" defer></script>
+<script src="https://analytics.alvear.cl/feedback.js" data-site="time-visualizer" defer></script>
 </body>
 </html>

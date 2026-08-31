@@ -9,8 +9,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SLUH 26/27 AY Progress</title>
-<link rel="stylesheet" href="style.css?v=24">
+<title>SLUH Time Visualizer</title>
+<link rel="stylesheet" href="style.css?v=25">
 <script>
   // set the theme before first paint, so there's no flash of the wrong theme
   (function () {
@@ -26,8 +26,9 @@
 </head>
 <body>
 <header class="topbar">
-  <h1 class="title">SLUH 26/27 AY Progress</h1>
+  <h1 class="title">SLUH Time Visualizer</h1>
   <div class="header-controls">
+    <a class="header-link" href="math-office.html">math dashboard</a>
     <button id="help-btn" class="icon-btn" type="button" title="Instructions" aria-label="Instructions">?</button>
     <button id="settings-btn" class="icon-btn" type="button" title="Settings" aria-label="Settings">⚙</button>
   </div>
@@ -59,10 +60,6 @@
   <section id="tab-current" class="tab-panel" hidden></section>
   <section id="tab-dashboard" class="tab-panel" hidden></section>
 </main>
-
-<footer class="site-footer">
-  <a href="mailto:falvear@sluh.org?subject=Time%20Visualizer%20feedback">idea or bug? let me know</a>
-</footer>
 
 <div id="info-panel" class="info-panel" hidden></div>
 
@@ -152,5 +149,23 @@
 
 <script src="data.js"></script>
 <script src="app.js?v=31"></script>
+<script>
+  // Fields for analytics.alvear.cl's automatic "view" event (see a.js).
+  window.xaExtra = function () {
+    var page = /math-office/.test(location.pathname) ? "math-office" : "index";
+    var tab = "";
+    if (page === "index") {
+      tab = (location.hash || "").replace(/[^a-z]/gi, "").toLowerCase().slice(0, 20) || "progress";
+    }
+    var filter = false;
+    try { filter = !!(JSON.parse(localStorage.getItem("tv-filter") || "{}") || {}).enabled; } catch (e) {}
+    var theme = "light";
+    try { theme = localStorage.getItem("tv-theme") === "dark" ? "dark" : "light"; } catch (e) {}
+    var device = Math.min(screen.width || 9999, screen.height || 9999) <= 600 ? "mobile" : "desktop";
+    return { page: page, tab: tab, filter: filter, theme: theme, device: device };
+  };
+</script>
+<script src="https://analytics.alvear.cl/a.js" data-site="time-visualizer" defer></script>
+<script src="https://analytics.alvear.cl/feedback.js" data-site="time-visualizer" defer></script>
 </body>
 </html>
