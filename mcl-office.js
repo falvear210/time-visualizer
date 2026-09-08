@@ -10,10 +10,11 @@
 //
 // What's genuinely different here, and where to look for it:
 //   - HEADER GREETING -- a rotating "hello" in the taught languages.
-//   - WORLD MAP panel (renderMap / the MapRotator) -- replaces math-office's
-//     "Year at a Glance". Rotates between: shading the countries where each
-//     taught language is spoken (mcl-map-languages.csv), the department's
-//     exchange partners, and where SLUH travels this year (mcl-map-places.csv).
+//   - WORLD MAP panel (renderMap / mapTick) -- replaces math-office's "Year
+//     at a Glance". Rotates between: shading the countries where a language
+//     is spoken (one page per mcl-map-languages.csv row), the department's
+//     exchange partners, and where SLUH travels -- the last two showing one
+//     place at a time as a pulsing dot + name (mcl-map-places.csv).
 //   - "Languages Teaching Now" -- the teacher list, but each row carries the
 //     language + level (mcl-teachers.csv has a 4th column).
 //   - the rotating box carries a "Cultural Calendar" of upcoming festivities
@@ -497,8 +498,8 @@ function main() {
   // with a cross-fade. Purely decorative -- sets the tone the moment
   // someone glances at the screen.
   const GREETINGS = [
-    "Salvē", "Hola", "Bonjour", "你好", "Guten Tag",
-    "Χαῖρε", "Ciao", "Olá",
+    "Hola", "Bonjour", "مرحبًا", "你好",
+    "Привет", "Salvē", "Χαῖρε",
   ];
   let greetingIndex = 0;
   function rotateGreeting() {
@@ -964,18 +965,25 @@ function main() {
   // xx = ISO 3166-1 alpha-2. We fetch it once and inject it inline so its
   // paths can be styled (shaded) and measured (for pin placement).
   //
-  // The map rotates on its own timer between:
+  // The map rotates on its own self-scheduling timer between:
   //   - one "where <language> is spoken" page per row of mcl-map-languages.csv
+  //     (countries shaded; held for MAP_SHADE_MS)
   //   - "Our exchange partners"  (mcl-map-places.csv rows with kind=partner)
   //   - "Where SLUH travels"     (mcl-map-places.csv rows with kind=trip)
+  // The two pin pages show ONE place at a time -- a pulsing dot + its name --
+  // stepping through up to PINS_PER_PASS of them, MAP_PIN_MS each.
 
-  const MAP_ROTATE_MS = 8000;
+  const MAP_SHADE_MS = 8000;
+  const MAP_PIN_MS = 4200;
+  const PINS_PER_PASS = 6;
   let mapSvg = null;             // the injected <svg> element
   let mapViewBox = null;         // { x, y, w, h } from the SVG
   let mapLanguages = [];
   let mapPlaces = [];
   let mapPages = [];
   let mapIndex = 0;
+  let pinCursor = 0;             // which place within a pin page is showing
+  let mapTimer = null;
   let shadedPaths = [];          // paths touched by the current page, to reset next time
 
   async function loadMapSvg() {
@@ -1001,8 +1009,8 @@ function main() {
     const pages = mapLanguages.map((lang) => ({ type: "shade", lang }));
     const partners = mapPlaces.filter((p) => p.kind === "partner");
     const trips = mapPlaces.filter((p) => p.kind === "trip");
-    if (partners.length) pages.push({ type: "pins", title: "Our exchange partners", sub: `${partners.length} school${partners.length === 1 ? "" : "s"}`, places: partners });
-    if (trips.length) pages.push({ type: "pins", title: "Where SLUH travels", sub: "this year", places: trips });
+    if (partners.length) pages.push({ type: "pins", title: "Our exchange partners", places: partners });
+    if (trips.length) pages.push({ type: "pins", title: "Where SLUH travels", places: trips });
     return pages;
   }
 
@@ -1093,10 +1101,9 @@ function main() {
     mapSubEl.textContent = page.type === "shade" ? "" : page.sub;
     if (!mapSvg || !mapViewBox) return; // SVG not loaded yet (or failed to)
 
-    clearShading();
-    mapPinsEl.innerHTML = "";
-
     if (page.type === "shade") {
+      clearShading();
+      mapPinsEl.innerHTML = "";
       const lang = page.lang;
       let hit = 0;
       for (const iso of lang.countries) {
@@ -1113,63 +1120,82 @@ function main() {
         ? `<span class="mcl-legend-swatch" style="background:${lang.color || "var(--accent)"}"></span> ${lang.flag ? lang.flag + " " : ""}${lang.language}`
         : "";
     } else {
-      // Europe is tiny on a world map, so several partner pins would pile up
-      // illegibly if each carried its name. Instead: a numbered dot on the
-      // map, and a matching numbered list underneath.
-      const byCountry = new Map();
-      for (const place of page.places) {
-        const list = byCountry.get(place.country) || [];
-        list.push(place);
-        byCountry.set(place.country, list);
-      }
-
-      const placed = [];
-      for (const [iso, list] of byCountry) {
-        const center = countryCenter(iso);
-        list.forEach((place, i) => {
-          let vx, vy;
-          if (center) {
-            vx = center.x;
-            // stagger pins sharing a country so their dots don't fully overlap
-            vy = center.y + (i - (list.length - 1) / 2) * (mapViewBox.h * 0.04);
-          } else {
-            vx = mapViewBox.x + mapViewBox.w / 2;
-            vy = mapViewBox.y + mapViewBox.h / 2;
-          }
-          const pos = pctFromViewBox(vx, vy);
-          placed.push({ place, left: pos.left + place.dx, top: pos.top + place.dy });
-        });
-      }
-      // number in the CSV's original order so the map and the list agree
-      placed.sort((a, b) => page.places.indexOf(a.place) - page.places.indexOf(b.place));
-
-      placed.forEach((p, idx) => {
-        const pin = document.createElement("div");
-        pin.className = `mcl-pin mcl-pin-${p.place.kind}`;
-        pin.style.left = p.left + "%";
-        pin.style.top = p.top + "%";
-        pin.textContent = idx + 1;
-        mapPinsEl.appendChild(pin);
-      });
-
-      mapLegendEl.innerHTML = placed.map((p, idx) => `
-        <span class="mcl-legend-item">
-          <span class="mcl-pin mcl-pin-${p.place.kind} mcl-legend-num">${idx + 1}</span>
-          ${p.place.label}${p.place.detail ? ` <span class="mcl-dim">· ${p.place.detail}</span>` : ""}
-        </span>`).join("");
+      clearShading();
+      renderMapPin(page);
     }
   }
 
-  function rotateMap() {
-    if (mapPages.length <= 1) return;
-    mapWrapEl.classList.add("is-fading");
-    mapTitleEl.classList.add("is-fading");
-    setTimeout(() => {
-      mapIndex = (mapIndex + 1) % mapPages.length;
-      renderMap();
-      mapWrapEl.classList.remove("is-fading");
-      mapTitleEl.classList.remove("is-fading");
-    }, FADE_MS);
+  // one place at a time: a pulsing dot on its country plus a name card. The
+  // map page steps through page.places (up to PINS_PER_PASS) on the map
+  // timer; pinCursor says which one is showing.
+  function renderMapPin(page) {
+    const shown = Math.min(page.places.length, PINS_PER_PASS);
+    if (pinCursor >= shown) pinCursor = 0;
+    const place = page.places[pinCursor];
+    mapSubEl.textContent = `${pinCursor + 1} / ${shown}`;
+
+    const center = countryCenter(place.country);
+    const vx = center ? center.x : mapViewBox.x + mapViewBox.w / 2;
+    const vy = center ? center.y : mapViewBox.y + mapViewBox.h / 2;
+    const pos = pctFromViewBox(vx, vy);
+    const left = pos.left + place.dx;
+    const top = pos.top + place.dy;
+
+    const pin = document.createElement("div");
+    // flip the card above the dot when the dot sits low on the map
+    pin.className = `mcl-pin-pulse mcl-pin-${place.kind}${top > 62 ? " mcl-card-above" : ""}`;
+    pin.style.left = left + "%";
+    pin.style.top = top + "%";
+    pin.innerHTML = `
+      <span class="mcl-pulse-ring"></span>
+      <span class="mcl-pulse-dot"></span>
+      <span class="mcl-pin-card">${place.label}${place.detail ? `<span class="mcl-pin-card-sub">${place.detail}</span>` : ""}</span>`;
+    mapPinsEl.replaceChildren(pin);
+
+    // small pager dots below the map
+    mapLegendEl.innerHTML = Array.from({ length: shown }, (_, i) =>
+      `<span class="mcl-pager-dot${i === pinCursor ? " is-on" : ""}"></span>`).join("");
+  }
+
+  // ---- map self-scheduling rotation ----
+
+  function scheduleMapTick() {
+    clearTimeout(mapTimer);
+    if (!mapPages.length) return;
+    const dwell = mapPages[mapIndex].type === "pins" ? MAP_PIN_MS : MAP_SHADE_MS;
+    mapTimer = setTimeout(mapTick, dwell);
+  }
+
+  function mapTick() {
+    const page = mapPages[mapIndex];
+    const shown = page.type === "pins" ? Math.min(page.places.length, PINS_PER_PASS) : 0;
+
+    if (page.type === "pins" && pinCursor + 1 < shown) {
+      // step to the next place on this page -- fade just the pin overlay
+      pinCursor += 1;
+      mapPinsEl.classList.add("is-fading");
+      mapLegendEl.classList.add("is-fading");
+      setTimeout(() => {
+        renderMapPin(page);
+        mapPinsEl.classList.remove("is-fading");
+        mapLegendEl.classList.remove("is-fading");
+        scheduleMapTick();
+      }, FADE_MS);
+    } else {
+      // move to the next page -- fade the whole panel
+      if (mapPages.length > 1) {
+        mapWrapEl.classList.add("is-fading");
+        mapTitleEl.classList.add("is-fading");
+      }
+      setTimeout(() => {
+        mapIndex = (mapIndex + 1) % mapPages.length;
+        pinCursor = 0;
+        renderMap();
+        mapWrapEl.classList.remove("is-fading");
+        mapTitleEl.classList.remove("is-fading");
+        scheduleMapTick();
+      }, FADE_MS);
+    }
   }
 
   // ---- fetch loops ----
@@ -1204,7 +1230,7 @@ function main() {
     try { mapPlaces = parseMapPlacesCsv(await fetchCsv("mcl-map-places.csv")); }
     catch (e) { mapPlaces = []; }
     mapPages = computeMapPages();
-    if (mapIndex >= mapPages.length) mapIndex = 0;
+    if (mapIndex >= mapPages.length) { mapIndex = 0; pinCursor = 0; }
     renderMap();
   }
 
@@ -1235,15 +1261,15 @@ function main() {
   refreshCities().then(fetchWeather);
   setInterval(refreshCities, CSV_REFRESH_MS);
 
-  // map: load its data, then the SVG (which calls renderMap on completion)
-  refreshMapData().then(loadMapSvg);
+  // map: load its data, then the SVG (which calls renderMap), then start the
+  // map's own self-scheduling rotation.
+  refreshMapData().then(loadMapSvg).then(scheduleMapTick);
   setInterval(refreshMapData, CSV_REFRESH_MS);
 
   watchForNewVersion();
   render();
   setInterval(render, REFRESH_MS);
   setInterval(rotateToNextPage, ROTATE_MS);
-  setInterval(rotateMap, MAP_ROTATE_MS);
   setInterval(rotateGreeting, 3500);
 }
 

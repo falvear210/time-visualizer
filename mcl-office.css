@@ -262,48 +262,85 @@ html, body {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  transition: opacity 0.25s ease;
 }
+.mcl-map-pins.is-fading { opacity: 0; }
 
-/* a numbered dot on the map; the same element (with .mcl-legend-num) is
-   reused inline in the list underneath, so the numbering visibly matches */
-.mcl-pin {
+/* one place at a time: a pulsing dot with a name card. The ring expands and
+   fades on a loop -- the one bit of motion on this page, marking "here". */
+.mcl-pin-pulse {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  background: var(--accent);
-  border: 2px solid #fff;
-  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.3);
-  color: #fff;
-  font-size: 0.8rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  --pin: var(--accent);
 }
-.mcl-pin-trip { background: #f59e0b; }
+.mcl-pin-pulse.mcl-pin-trip { --pin: #f59e0b; }
 
+.mcl-pulse-dot,
+.mcl-pulse-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+}
+.mcl-pulse-dot {
+  background: var(--pin);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+.mcl-pulse-ring {
+  background: var(--pin);
+  opacity: 0.55;
+  animation: mcl-pulse 1.9s ease-out infinite;
+}
+@keyframes mcl-pulse {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.55; }
+  100% { transform: translate(-50%, -50%) scale(5); opacity: 0; }
+}
+
+.mcl-pin-card {
+  position: absolute;
+  left: 0;
+  top: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+}
+.mcl-pin-card-sub { font-size: 0.85rem; font-weight: 400; color: var(--text-dim); }
+.mcl-card-above .mcl-pin-card { top: auto; bottom: 16px; }
+
+/* pager dots under the map on a pins page */
 .mcl-map-legend {
   flex: 0 0 auto;
+  min-height: 1.2rem;
   font-size: 0.95rem;
   color: var(--text);
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem 1rem;
-  max-height: 4.6rem;
-  overflow-y: auto;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: opacity 0.25s ease;
 }
-.mcl-legend-item { display: inline-flex; align-items: center; gap: 0.4rem; }
-.mcl-pin.mcl-legend-num {
-  position: static;
-  transform: none;
-  width: 18px;
-  height: 18px;
-  box-shadow: none;
-  flex: 0 0 auto;
+.mcl-map-legend.is-fading { opacity: 0; }
+.mcl-pager-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--border);
 }
+.mcl-pager-dot.is-on { background: var(--accent); }
 .mcl-legend-swatch {
   display: inline-block;
   width: 14px;
