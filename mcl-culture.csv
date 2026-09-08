@@ -1,15 +1,65 @@
-monthday,name,language
-09-16,Mexican Independence Day,Spanish
-10-12,Día de la Hispanidad,Spanish
-11-01,Día de los Muertos,Spanish
-11-11,Armistice Day,French
-12-25,Navidad,Spanish
+date,name,language
+01-01,Kalendae Ianuariae (Roman New Year),Latin
 01-06,Día de los Reyes Magos,Spanish
-02-06,Lunar New Year,Chinese
+01-06,Épiphanie (Galette des Rois),France
+01-07,Orthodox Christmas,Russia
+01-14,Old New Year,Russian
+02-02,La Chandeleur,France
+02-09,International Greek Language Day,Greek
+02-15,Lupercalia,Latin
+02-23,Defender of the Fatherland Day,Russian
+2027-02-06,Chinese New Year,Chinese
+2027-02-20,Lantern Festival,Chinese
+03-08,International Women's Day,Russian
 03-15,The Ides of March,Latin
-04-21,Natalis Romae (Rome's birthday),Latin
-04-23,Sant Jordi (Day of the Book),Spanish
-04-25,Liberation Day (Italy),Latin
-05-05,Cinco de Mayo,Spanish
-06-21,Fête de la Musique,French
-07-14,Bastille Day,French
+03-19,Las Fallas de Valencia,Spain
+03-20,International Francophonie Day,French
+03-21,Nowruz,Central Asia
+03-25,Greek Independence Day,Greek
+2027-03-08,Maslenitsa,Russian
+2027-03-15,Clean Monday (start of Lent),Greek
+04-20,UN Chinese Language Day,Chinese
+04-21,Natalis Romae (the founding of Rome),Latin
+04-23,UN Spanish Language Day,Spanish
+04-23,Sant Jordi (Day of the Book),Catalonia
+04-25,Liberation Day,Italy
+2027-04-05,Qingming (Tomb-Sweeping Day),Chinese
+05-02,Dos de Mayo,Spain
+05-05,Cinco de Mayo,Mexico
+05-05,World Portuguese Language Day,Portuguese
+05-08,Victory in Europe Day,France
+05-09,Victory Day,Russian
+2027-05-02,Orthodox Easter,Greek
+06-02,Festa della Repubblica,Italy
+06-06,Pushkin Day / UN Russian Language Day,Russian
+06-12,Russia Day,Russian
+06-21,Fête de la Musique,France
+06-24,Fête nationale du Québec,French
+06-26,Independence Day (Madagascar),French
+2027-06-09,Dragon Boat Festival,Chinese
+07-01,Canada Day,French
+07-05,Independence Day (Venezuela),Spanish
+07-09,Independence Day (Argentina),Spanish
+07-14,Bastille Day,France
+07-20,Independence Day (Colombia),Spanish
+07-28,Independence Day (Peru),Spanish
+08-06,Independence Day (Bolivia),Spanish
+08-07,Independence Day (Côte d'Ivoire),French
+08-15,Dormition of the Theotokos,Greek
+08-24,Independence Day (Ukraine),Ukraine
+09-01,Knowledge Day (first day of school),Russian
+09-15,Central American Independence Day,Spanish
+09-16,Mexican Independence Day,Spanish
+09-18,Fiestas Patrias,Chile
+09-26,European Day of Languages,Languages
+2026-09-25,Mid-Autumn Festival,Chinese
+10-01,National Day of the People's Republic of China,Chinese
+10-10,Double Ten Day,Taiwan
+10-12,Día de la Hispanidad,Spanish
+10-28,Ohi Day,Greek
+11-02,Día de los Muertos,Mexico
+11-04,Unity Day,Russian
+11-11,Armistice Day,France
+12-12,Día de la Virgen de Guadalupe,Mexico
+12-17,Saturnalia begins,Latin
+12-18,UN Arabic Language Day,Arabic

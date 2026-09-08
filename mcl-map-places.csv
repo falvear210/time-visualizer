@@ -1,8 +1,13 @@
 label,kind,country,dx,dy,detail
 Colegio San José,partner,es,1,-2,Zaragoza
 Lycée Henri-IV,partner,fr,0,-2,Paris
+Liceo Classico Dante,partner,it,0,-1,Florence
 Beijing No. 4 High School,partner,cn,-3,-3,Beijing
-Liceo Classico,partner,it,0,1,Rome
-Rome immersion,trip,it,0,2,Latin · June
+Gymnasium No. 1,partner,ru,-20,6,St. Petersburg
+Athens College,partner,gr,1,1,Athens
+Rome & Pompeii,trip,it,0,2,Latin · June
 Camino de Santiago,trip,es,-3,-3,Spanish · Spring
 Québec exchange,trip,ca,5,8,French · March
+Athens & the Peloponnese,trip,gr,0,2,Greek · June
+Beijing & Xi'an,trip,cn,-2,-1,Chinese · Summer
+Moscow & St. Petersburg,trip,ru,-20,6,Russian · Summer

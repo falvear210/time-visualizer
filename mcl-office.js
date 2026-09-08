@@ -16,8 +16,10 @@
 //     exchange partners, and where SLUH travels this year (mcl-map-places.csv).
 //   - "Languages Teaching Now" -- the teacher list, but each row carries the
 //     language + level (mcl-teachers.csv has a 4th column).
-//   - the rotating box adds "Phrase of the Day" (mcl-phrases.csv) and a
-//     "Cultural Calendar" (mcl-culture.csv).
+//   - the rotating box carries a "Cultural Calendar" of upcoming festivities
+//     and national days for the countries behind the taught languages
+//     (mcl-culture.csv) and the next meeting of each cultural / affinity
+//     club (mcl-clubs.csv).
 //   - weather shows St. Louis plus a few world cities (mcl-cities.csv).
 //
 // Every panel rebuilds from scratch each tick (nothing interactive to lose),
@@ -240,14 +242,47 @@ function calendarDaysUntil(now, targetDate) {
   return Math.round((Date.UTC(b.y, b.m - 1, b.d) - Date.UTC(a.y, a.m - 1, a.d)) / 86400000);
 }
 
-// A cultural date in mcl-culture.csv is a month/day ("07-14"), not a full
-// year -- Bastille Day is Bastille Day every year. Resolve it to the next
-// actual occurrence on or after today so it can be counted down to.
-function nextOccurrenceOf(monthDay, now) {
-  const [mm, dd] = monthDay.split("-");
+// A cultural date in mcl-culture.csv is usually a month/day ("07-14") -- a
+// fixed festival like Bastille Day that lands on the same date every year --
+// which we resolve to its next occurrence on or after today so it can be
+// counted down to. A movable feast (Lunar New Year, Orthodox Easter) instead
+// gets a full "YYYY-MM-DD", which is used as-is.
+function resolveCultureDate(spec, now) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(spec)) return spec.replace(/-/g, "");
+  const [mm, dd] = spec.split("-");
   const thisYear = `${now.dateStr.slice(0, 4)}${mm}${dd}`;
   if (thisYear >= now.dateStr) return thisYear;
   return `${+now.dateStr.slice(0, 4) + 1}${mm}${dd}`;
+}
+
+// 0=Sun..6=Sat for a YYYYMMDD date, and the same for a weekday name/abbrev
+// ("Monday", "mon", "M"). Used by the clubs list.
+function dowOfDate(dateStr) {
+  const { y, m, d } = parseDate(dateStr);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+const DOW_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DOW_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+function dowOfName(name) {
+  const n = (name || "").trim().toLowerCase();
+  const i = DOW_NAMES.findIndex((d) => d.toLowerCase().startsWith(n.slice(0, 3)));
+  return i; // -1 if unrecognized
+}
+
+// "15:15" -> 915 (minutes past midnight); null if not HH:MM.
+function hhmmToMinutes(hhmm) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec((hhmm || "").trim());
+  return m ? +m[1] * 60 + +m[2] : null;
+}
+
+// "15:15" -> "3:15 PM"; passes anything unparseable straight through.
+function formatHHMM12h(hhmm) {
+  const mins = hhmmToMinutes(hhmm);
+  if (mins == null) return hhmm || "";
+  let h = Math.floor(mins / 60);
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${String(mins % 60).padStart(2, "0")} ${ampm}`;
 }
 
 // ---- CSV loading ----
@@ -288,22 +323,29 @@ function parseTeachersCsv(text) {
   return [...byName.values()];
 }
 
-// mcl-phrases.csv: language,text,translation -- the "Phrase of the Day" box.
-function parsePhrasesCsv(text) {
+// mcl-clubs.csv: name,weekday,time,location -- the cultural & affinity clubs.
+//   weekday   "Monday" / "Tue" / ... (the day the club meets)
+//   time      "HH:MM" 24-hour (e.g. 15:15 for a 3:15pm meeting)
+//   location  room or space
+// The list shows each club's *next* meeting; a club with no recognizable
+// weekday still lists (without a date) so it isn't silently dropped.
+function parseClubsCsv(text) {
   return csvRows(text).map((line) => {
-    const [language, phrase, translation] = line.split(",").map((s) => (s || "").trim());
-    return { language, phrase, translation };
-  }).filter((p) => p.phrase);
+    const [name, weekday, time, location] = line.split(",").map((s) => (s || "").trim());
+    return { name, dow: dowOfName(weekday), weekdayRaw: weekday, time: time || "", location: location || "" };
+  }).filter((c) => c.name);
 }
 
-// mcl-culture.csv: monthday,name,language -- monthday is "MM-DD" (no year).
-// e.g. 07-14,Bastille Day,French
+// mcl-culture.csv: date,name,language
+//   date      "MM-DD" for a fixed festival, or "YYYY-MM-DD" for a movable one
+//   name      what to show
+//   language  a dim tag (the related language / country / region)
+// e.g.  07-14,Bastille Day,France   |   2027-02-06,Lunar New Year,China
 function parseCultureCsv(text) {
-  const items = csvRows(text).map((line) => {
-    const [monthDay, name, language] = line.split(",").map((s) => (s || "").trim());
-    return { monthDay, name, language };
-  }).filter((c) => /^\d{2}-\d{2}$/.test(c.monthDay) && c.name);
-  return items;
+  return csvRows(text).map((line) => {
+    const [date, name, language] = line.split(",").map((s) => (s || "").trim());
+    return { date, name, language };
+  }).filter((c) => (/^\d{2}-\d{2}$/.test(c.date) || /^\d{4}-\d{2}-\d{2}$/.test(c.date)) && c.name);
 }
 
 // mcl-birthdays.csv: date,name,dept -- a dept of "language" renders bold.
@@ -314,16 +356,6 @@ function parseBirthdaysCsv(text) {
   }).filter((b) => b.date && b.name);
   birthdays.sort((a, b) => a.date.localeCompare(b.date));
   return birthdays;
-}
-
-// mcl-food.csv: date,name -- free-food / catered days.
-function parseFoodCsv(text) {
-  const food = csvRows(text).map((line) => {
-    const [date, name] = line.split(",").map((s) => (s || "").trim());
-    return { date, name };
-  }).filter((f) => f.date && f.name);
-  food.sort((a, b) => a.date.localeCompare(b.date));
-  return food;
 }
 
 // mcl-breaks.csv: date,name -- override a break's auto-detected label.
@@ -736,13 +768,12 @@ function main() {
     weatherEl.innerHTML = currentHtml + `<div class="mcl-weather-forecast">${cards}</div>`;
   }
 
-  // ---- rotating box: Phrase of the Day / Cultural Calendar / Breaks / Birthdays / Food ----
+  // ---- rotating box: Cultural Calendar / Breaks / Birthdays / Clubs ----
 
   let breakNameOverrides = new Map();
-  let phrasesData = [];
   let cultureData = [];
   let birthdaysData = [];
-  let foodData = [];
+  let clubsData = [];
 
   function nextWeekendRowHtml(now) {
     const mon = mondayOf(now.dateStr);
@@ -790,24 +821,16 @@ function main() {
     }).join("");
   }
 
-  function phrasesListHtml() {
-    if (!phrasesData.length) return `<div class="mcl-status">Add phrases in mcl-phrases.csv</div>`;
-    return phrasesData.slice(0, LIST_LIMIT).map((p) => `
-      <div class="mcl-phrase">
-        <div class="mcl-phrase-head">
-          <span class="mcl-phrase-text">${p.phrase}</span>
-          ${p.language ? `<span class="mcl-phrase-lang">${p.language}</span>` : ""}
-        </div>
-        ${p.translation ? `<div class="mcl-phrase-tr">${p.translation}</div>` : ""}
-      </div>`).join("");
-  }
-
+  // Upcoming festivities / national days for the countries behind the taught
+  // languages -- the department's replacement for "phrase of the day".
   function cultureListHtml(now) {
     const dated = cultureData
-      .map((c) => ({ ...c, date: nextOccurrenceOf(c.monthDay, now) }))
+      .map((c) => ({ ...c, date: resolveCultureDate(c.date, now) }))
+      .filter((c) => c.date >= now.dateStr)
       .sort((a, b) => a.date.localeCompare(b.date))
       .slice(0, LIST_LIMIT);
     if (!dated.length) return `<div class="mcl-status">Add dates in mcl-culture.csv</div>`;
+    const thisYear = now.dateStr.slice(0, 4);
     return dated.map((c) => {
       const name = c.language ? `${c.name} <span class="mcl-dim">· ${c.language}</span>` : c.name;
       if (c.date === now.dateStr) {
@@ -818,10 +841,13 @@ function main() {
           </div>`;
       }
       const daysLeft = calendarDaysUntil(now, c.date);
+      const when = c.date.slice(0, 4) === thisYear
+        ? formatShortDate(c.date)
+        : `${formatShortDate(c.date)}/${c.date.slice(2, 4)}`;
       return `
         <div class="mcl-row">
           <span class="mcl-row-name">${name}</span>
-          <span class="mcl-row-meta">${formatShortDate(c.date)} — ${daysLeft} day${daysLeft === 1 ? "" : "s"}</span>
+          <span class="mcl-row-meta">${when} — ${daysLeft} day${daysLeft === 1 ? "" : "s"}</span>
         </div>`;
     }).join("");
   }
@@ -847,22 +873,44 @@ function main() {
     }).join("");
   }
 
-  function foodListHtml(now) {
-    const upcoming = foodData.filter((e) => e.date >= now.dateStr).slice(0, LIST_LIMIT);
-    if (!upcoming.length) return `<div class="mcl-status">Nothing planned right now</div>`;
-    return upcoming.map((e) => {
-      if (e.date === now.dateStr) {
+  // The next meeting of each cultural / affinity club. Clubs meet on a fixed
+  // weekday, so "next meeting" is the next occurrence of that weekday (today
+  // still counts until its start time passes).
+  function nextClubMeeting(club, now) {
+    if (club.dow < 0) return null;
+    const todayDow = dowOfDate(now.dateStr);
+    let delta = (club.dow - todayDow + 7) % 7;
+    const startMin = hhmmToMinutes(club.time);
+    if (delta === 0 && startMin != null && startMin <= now.minutes) delta = 7;
+    return addDays(now.dateStr, delta);
+  }
+
+  function clubsListHtml(now) {
+    if (!clubsData.length) return `<div class="mcl-status">Add clubs in mcl-clubs.csv</div>`;
+    const rows = clubsData
+      .map((c) => ({ ...c, next: nextClubMeeting(c, now) }))
+      .sort((a, b) => {
+        if (!a.next) return 1;
+        if (!b.next) return -1;
+        return a.next.localeCompare(b.next) || (hhmmToMinutes(a.time) - hhmmToMinutes(b.time));
+      })
+      .slice(0, 16); // clubs all recur weekly, so show the full roster
+    return rows.map((c) => {
+      const time = c.time ? formatHHMM12h(c.time) : "";
+      const loc = c.location ? ` · ${c.location}` : "";
+      if (!c.next) {
         return `
-          <div class="mcl-row is-active">
-            <span class="mcl-row-name">${e.name}</span>
-            <span class="mcl-row-meta">🎉🍕 Today!</span>
+          <div class="mcl-row">
+            <span class="mcl-row-name">${c.name}</span>
+            <span class="mcl-row-meta">${c.weekdayRaw || "TBD"}${time ? " " + time : ""}${loc}</span>
           </div>`;
       }
-      const daysLeft = schoolDaysUntil(days, now, e.date);
+      const daysOut = calendarDaysUntil(now, c.next);
+      const dayLabel = daysOut === 0 ? "Today" : daysOut === 1 ? "Tomorrow" : DOW_ABBR[dowOfDate(c.next)];
       return `
-        <div class="mcl-row">
-          <span class="mcl-row-name">${e.name}</span>
-          <span class="mcl-row-meta">${daysLeft} school day${daysLeft === 1 ? "" : "s"}</span>
+        <div class="mcl-row${daysOut === 0 ? " is-active" : ""}">
+          <span class="mcl-row-name">${c.name}</span>
+          <span class="mcl-row-meta">${dayLabel}${time ? " " + time : ""}${loc}</span>
         </div>`;
     }).join("");
   }
@@ -875,14 +923,13 @@ function main() {
 
   function computeRotatorPages(now) {
     const pages = [];
-    if (phrasesData.length) pages.push({ title: "Phrase of the Day", html: phrasesListHtml() });
     if (cultureData.length) pages.push({ title: "Cultural Calendar", html: cultureListHtml(now) });
     pages.push({ title: "Upcoming Breaks", html: breaksListHtml(now) });
     if (birthdaysData.some((e) => e.date >= now.dateStr)) {
       pages.push({ title: "Upcoming Birthdays", html: birthdaysListHtml(now) });
     }
-    if (foodData.some((e) => e.date >= now.dateStr)) {
-      pages.push({ title: "Free Food", html: foodListHtml(now) });
+    if (clubsData.length) {
+      pages.push({ title: "Cultural & Affinity Clubs", html: clubsListHtml(now) });
     }
     return pages;
   }
@@ -922,7 +969,7 @@ function main() {
   //   - "Our exchange partners"  (mcl-map-places.csv rows with kind=partner)
   //   - "Where SLUH travels"     (mcl-map-places.csv rows with kind=trip)
 
-  const MAP_ROTATE_MS = 9000;
+  const MAP_ROTATE_MS = 8000;
   let mapSvg = null;             // the injected <svg> element
   let mapViewBox = null;         // { x, y, w, h } from the SVG
   let mapLanguages = [];
@@ -1135,11 +1182,7 @@ function main() {
     try { breakNameOverrides = parseBreaksCsv(await fetchCsv("mcl-breaks.csv")); }
     catch (e) { breakNameOverrides = new Map(); }
   }
-  async function refreshPhrases() {
-    try { phrasesData = parsePhrasesCsv(await fetchCsv("mcl-phrases.csv")); }
-    catch (e) { phrasesData = []; }
-  }
-  async function refreshCulture() {
+  async function refreshCultureData() {
     try { cultureData = parseCultureCsv(await fetchCsv("mcl-culture.csv")); }
     catch (e) { cultureData = []; }
   }
@@ -1147,9 +1190,9 @@ function main() {
     try { birthdaysData = parseBirthdaysCsv(await fetchCsv("mcl-birthdays.csv")); }
     catch (e) { birthdaysData = []; }
   }
-  async function refreshFood() {
-    try { foodData = parseFoodCsv(await fetchCsv("mcl-food.csv")); }
-    catch (e) { foodData = []; }
+  async function refreshClubs() {
+    try { clubsData = parseClubsCsv(await fetchCsv("mcl-clubs.csv")); }
+    catch (e) { clubsData = []; }
   }
   async function refreshCities() {
     try { citiesData = parseCitiesCsv(await fetchCsv("mcl-cities.csv")); }
@@ -1184,10 +1227,9 @@ function main() {
 
   everyThirtyMin(refreshTeachers);
   everyThirtyMin(refreshBreaks);
-  everyThirtyMin(refreshPhrases);
-  everyThirtyMin(refreshCulture);
+  everyThirtyMin(refreshCultureData);
   everyThirtyMin(refreshBirthdays);
-  everyThirtyMin(refreshFood);
+  everyThirtyMin(refreshClubs);
 
   // cities must load before the first weather fetch builds its city list
   refreshCities().then(fetchWeather);
