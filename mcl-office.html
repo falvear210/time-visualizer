@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<!--
+  The Modern & Classical Languages (MCL) office wall display. A sibling of
+  math-office.html: same SLUH theme, same "runs unattended full-screen on a
+  TV" job, same data.js for the school calendar -- but built for the
+  languages department instead of math.
+
+  What's different from math-office:
+    - a rotating greeting in the header (Salve / Hola / Bonjour / ...)
+    - "Languages Teaching Now" instead of a plain teacher list -- each row
+      carries the language + level being taught
+    - a WORLD MAP panel in place of "Year at a Glance": it rotates between
+      shading the countries where each taught language is spoken, the
+      department's exchange-partner schools, and the places SLUH travels
+      during the year
+    - the rotating box adds "Phrase of the Day" and a "Cultural Calendar"
+      (Bastille Day, Lunar New Year, the Ides of March, ...)
+    - weather shows St. Louis plus a few cities around the language world
+
+  Structure only: every element with an id="mcl-..." is filled in by
+  mcl-office.js at runtime. Bump the ?v= cache-busters below when CSS/JS
+  changes. See README.md ("The MCL office wall display") for the full tour.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Languages Office Dashboard</title>
+<link rel="stylesheet" href="mcl-office.css?v=5">
+</head>
+<body>
+<div class="mcl-dashboard">
+  <header class="mcl-header">
+    <div class="mcl-header-title">
+      <h1>Languages Office Dashboard</h1>
+      <a class="mcl-header-link" href="index.html">SLUH Time Visualizer</a>
+    </div>
+    <div class="mcl-header-greeting" id="mcl-greeting"></div>
+    <div class="mcl-header-time">
+      <span id="mcl-date"></span>
+      <span id="mcl-clock"></span>
+    </div>
+  </header>
+
+  <div class="mcl-columns">
+    <section class="mcl-col">
+      <h2 id="mcl-rotator-title">Phrase of the Day</h2>
+      <div class="mcl-col-body">
+        <div id="mcl-rotator-body" class="mcl-rotator-content"></div>
+      </div>
+    </section>
+
+    <section class="mcl-col mcl-map-col">
+      <div class="mcl-col-header-row">
+        <h2 id="mcl-map-title">World Map</h2>
+        <span class="mcl-map-sub" id="mcl-map-sub"></span>
+      </div>
+      <div class="mcl-col-body">
+        <div class="mcl-map-wrap" id="mcl-map-wrap">
+          <div class="mcl-map-svg" id="mcl-map-svg"></div>
+          <div class="mcl-map-pins" id="mcl-map-pins"></div>
+        </div>
+        <div class="mcl-map-legend" id="mcl-map-legend"></div>
+      </div>
+    </section>
+
+    <section class="mcl-col">
+      <h2>Today's Schedule</h2>
+      <div class="mcl-col-body">
+        <div id="mcl-daily-status"></div>
+        <div id="mcl-daily-bars"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="mcl-bottom">
+    <section class="mcl-col">
+      <div class="mcl-col-header-row">
+        <h2>Languages Teaching Now</h2>
+        <span class="mcl-teachers-period" id="mcl-teachers-period"></span>
+      </div>
+      <div class="mcl-col-body">
+        <ul class="mcl-people-list" id="mcl-people-list"></ul>
+      </div>
+    </section>
+
+    <section class="mcl-col">
+      <h2>Weather</h2>
+      <div class="mcl-col-body">
+        <div class="mcl-weather" id="mcl-weather"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="mcl-office.js?v=5"></script>
+<script>
+  // Fields for analytics.alvear.cl's automatic "view" event (see a.js).
+  window.xaExtra = function () {
+    var device = Math.min(screen.width || 9999, screen.height || 9999) <= 600 ? "mobile" : "desktop";
+    return { page: "mcl-office", theme: "light", device: device };
+  };
+</script>
+<script src="https://analytics.alvear.cl/a.js" data-site="time-visualizer" defer></script>
+<script src="https://analytics.alvear.cl/feedback.js" data-site="time-visualizer" defer></script>
+</body>
+</html>
