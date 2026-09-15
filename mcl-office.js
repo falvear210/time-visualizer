@@ -992,7 +992,12 @@ function main() {
 
   async function loadMapSvg() {
     try {
-      const res = await fetch("world-map.svg");
+      // cache-bust, same reasoning as fetchCsv -- this is a plain static
+      // file that gets replaced on disk from time to time (e.g. rebuilt by
+      // scripts/build_world_map.py), and a stale cached copy would silently
+      // linger past a version-poll reload since world-map.svg isn't part of
+      // the ?v= cache-busted CSS/JS.
+      const res = await fetch(`world-map.svg?t=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) throw new Error(`world-map.svg fetch failed: ${res.status}`);
       mapSvgEl.innerHTML = await res.text();
       mapSvg = mapSvgEl.querySelector("svg");
@@ -1063,11 +1068,21 @@ function main() {
     return best;
   }
 
-  // Even the "main" path can trail small islands (Spain's Canaries, etc.), so
-  // rather than a bounding-box center -- which those pull into the ocean --
-  // sample points along the outline and take the median x and median y, which
-  // is robust to a handful of outliers and lands inside the main landmass.
+  // world-map.svg's build script (scripts/build_world_map.py) stamps every
+  // country with data-lx/data-ly -- Natural Earth's own hand-curated "best
+  // point for this country's label", projected the same way as the outline.
+  // That's a real cartographic choice (the populated heartland), not a
+  // geometric artifact, so it's used directly whenever present.
   function countryCenter(iso) {
+    const el = mapSvg && mapSvg.querySelector(`[id="${iso}"]`);
+    if (el) {
+      const lx = el.getAttribute("data-lx"), ly = el.getAttribute("data-ly");
+      if (lx != null && ly != null) return { x: parseFloat(lx), y: parseFloat(ly) };
+    }
+    // Fallback for a map without label points: sample points along the main
+    // path's outline and take the median x and median y, which is at least
+    // robust to a handful of far-flung-territory outliers (unlike a plain
+    // bounding-box center, which those pull out into the ocean).
     const path = mainPathOf(iso);
     if (!path) return null;
     let len;
@@ -1099,14 +1114,23 @@ function main() {
     featuredPaths = [];
   }
 
-  // Where a place's pin sits, as a percentage of the map panel -- the
-  // country's outline-median center (see countryCenter), nudged by the
-  // CSV's dx,dy.
-  function placePosition(place) {
-    const center = countryCenter(place.country);
+  // A country's outline-median center (see countryCenter), as a percentage
+  // of the map panel -- this is what the zoom targets, so the zoomed-in view
+  // is always centered on the actual highlighted shape.
+  function countryCentroidPct(iso) {
+    const center = countryCenter(iso);
     const vx = center ? center.x : mapViewBox.x + mapViewBox.w / 2;
     const vy = center ? center.y : mapViewBox.y + mapViewBox.h / 2;
-    const pos = pctFromViewBox(vx, vy);
+    return pctFromViewBox(vx, vy);
+  }
+
+  // Where a place's pin actually sits -- the country's centroid, nudged by
+  // the CSV's dx,dy toward the specific city. Deliberately a *separate*
+  // point from the zoom target above: the zoom keeps the country itself
+  // framed regardless of a place's nudge, and the dot/card render at this
+  // point (via projectToScreenPct) wherever that lands within that view.
+  function placePosition(place) {
+    const pos = countryCentroidPct(place.country);
     return { left: pos.left + place.dx, top: pos.top + place.dy };
   }
 
@@ -1194,11 +1218,11 @@ function main() {
     const place = page.places[pinCursor];
     mapSubEl.textContent = `${pinCursor + 1} / ${shown}`;
 
-    // zoom first -- the "other places" dots below are projected through
-    // this zoom, and the featured pin itself is simply centered (that's
-    // what zoomToPoint guarantees).
-    const featuredPos = placePosition(place);
-    zoomToPoint(featuredPos.left, featuredPos.top, MAP_ZOOM_SCALE);
+    // zoom onto the country's own centroid -- not the nudged pin position --
+    // so the highlighted shape is always what ends up framed/centered, even
+    // for a place whose dx,dy nudges its dot off toward a particular city.
+    const zoomTarget = countryCentroidPct(place.country);
+    zoomToPoint(zoomTarget.left, zoomTarget.top, MAP_ZOOM_SCALE);
 
     clearFeatured();
     for (const p of countryPaths(place.country)) {
@@ -1206,6 +1230,9 @@ function main() {
       featuredPaths.push(p);
     }
 
+    // every place's dot (including the featured one) is placed the same
+    // way: its own position, projected through the zoom just set above --
+    // so the featured dot and the highlighted country always agree.
     mapPinsEl.innerHTML = "";
     for (const other of mapPlaces) {
       if (other === place) continue;
@@ -1218,8 +1245,11 @@ function main() {
       mapPinsEl.appendChild(dot);
     }
 
+    const featuredProj = projectToScreenPct(placePosition(place).left, placePosition(place).top);
     const pin = document.createElement("div");
     pin.className = `mcl-pin-pulse mcl-pin-${place.kind}`;
+    pin.style.left = featuredProj.left + "%";
+    pin.style.top = featuredProj.top + "%";
     pin.innerHTML = `
       <span class="mcl-pulse-ring"></span>
       <span class="mcl-pulse-dot"></span>
@@ -1245,21 +1275,28 @@ function main() {
     const shown = page.type === "pins" ? Math.min(page.places.length, PINS_PER_PASS) : 0;
 
     if (page.type === "pins" && pinCursor + 1 < shown) {
-      // step to the next place on this page -- fade just the pin overlay
+      // step to the next place on this page -- fade the whole map (not just
+      // the pin overlay) out first, so the zoom/pan snap and the country
+      // highlight change happen while hidden. Nothing should ever be seen
+      // moving; the fade is the only visible transition.
       pinCursor += 1;
-      mapPinsEl.classList.add("is-fading");
+      mapWrapEl.classList.add("is-fading");
+      mapSubEl.classList.add("is-fading");
       mapLegendEl.classList.add("is-fading");
       setTimeout(() => {
         renderMapPin(page);
-        mapPinsEl.classList.remove("is-fading");
+        mapWrapEl.classList.remove("is-fading");
+        mapSubEl.classList.remove("is-fading");
         mapLegendEl.classList.remove("is-fading");
         scheduleMapTick();
       }, FADE_MS);
     } else {
-      // move to the next page -- fade the whole panel
+      // move to the next page -- same idea, plus the title (which doesn't
+      // change on a same-page pin step, so it's left alone there)
       if (mapPages.length > 1) {
         mapWrapEl.classList.add("is-fading");
         mapTitleEl.classList.add("is-fading");
+        mapSubEl.classList.add("is-fading");
       }
       setTimeout(() => {
         mapIndex = (mapIndex + 1) % mapPages.length;
@@ -1267,6 +1304,7 @@ function main() {
         renderMap();
         mapWrapEl.classList.remove("is-fading");
         mapTitleEl.classList.remove("is-fading");
+        mapSubEl.classList.remove("is-fading");
         scheduleMapTick();
       }, FADE_MS);
     }

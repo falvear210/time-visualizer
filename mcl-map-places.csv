@@ -1,13 +1,13 @@
 label,kind,country,dx,dy,detail
-Colegio San Ignacio El Bosque,partner,cl,0,-3,Santiago · Chile
-Instituto Cultural Tampico,partner,mx,5,0,Tampico · Mexico
-Lycée Saint-Louis-de-Gonzague,partner,fr,0,-2,Paris · France
+Colegio San Ignacio El Bosque,partner,cl,0,0,Santiago · Chile
+Instituto Cultural Tampico,partner,mx,3,-1,Tampico · Mexico
+Lycée Saint-Louis-de-Gonzague,partner,fr,0,-1,Paris · France
 Collège Notre-Dame de Jamhour,partner,lb,0,0,Beirut · Lebanon
-Colegio San José,partner,es,1,-2,Zaragoza · Spain
-Beijing No. 55 School,partner,cn,-3,-3,Beijing · China
+Colegio San José,partner,es,1,-1,Zaragoza · Spain
+Beijing No. 55 School,partner,cn,2,-2,Beijing · China
 STEM Guatemala Trip,trip,gt,0,0,Guatemala · June
-Poland Senior Project,trip,pl,0,2,Kraków · April
-Spanish Immersion in Granada,trip,es,-1,3,Spain · Summer
-French Exchange,trip,fr,0,-2,Paris · March
+Poland Senior Project,trip,pl,0,1,Kraków · April
+Spanish Immersion in Granada,trip,es,0,2,Spain · Summer
+French Exchange,trip,fr,-1,-1,Paris · March
 Morocco Service Immersion,trip,ma,0,0,Morocco · Spring
-China Study Tour,trip,cn,-2,-1,Beijing & Xi'an · Summer
+China Study Tour,trip,cn,1,-1,Beijing & Xi'an · Summer

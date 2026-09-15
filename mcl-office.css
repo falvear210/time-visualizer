@@ -232,7 +232,8 @@ html, body {
   gap: 0.6rem;
   overflow: hidden; /* the map sizes itself; nothing here scrolls */
 }
-.mcl-map-sub { font-size: 1rem; color: var(--text-dim); white-space: nowrap; }
+.mcl-map-sub { font-size: 1rem; color: var(--text-dim); white-space: nowrap; transition: opacity 0.25s ease; }
+.mcl-map-sub.is-fading { opacity: 0; }
 
 .mcl-map-wrap {
   position: relative;
@@ -246,12 +247,14 @@ html, body {
 
 /* Only the map itself zooms/pans (see zoomToPoint in the JS) -- the pin
    overlay is a separate, unscaled layer (below) so pin dots and the name
-   card stay a constant, legible size instead of ballooning with the zoom. */
+   card stay a constant, legible size instead of ballooning with the zoom.
+   No transition here -- the zoom is set while .mcl-map-wrap is faded to
+   opacity 0 (see mapTick), so it snaps into place unseen and there's never
+   a moving map to watch mid-pan. */
 .mcl-map-stage {
   position: absolute;
   inset: 0;
   transform-origin: 0 0;
-  transition: transform 0.6s ease;
 }
 .mcl-map-svg { position: absolute; inset: 0; }
 .mcl-map-svg svg { display: block; width: 100%; height: 100%; }
@@ -272,17 +275,13 @@ html, body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease;
 }
-.mcl-map-pins.is-fading { opacity: 0; }
 
-/* the featured pin: a pulsing dot with a name card, always centered (the
-   zoom recenters the map on it). The ring expands and fades on a loop --
-   the one bit of motion here, marking "here". */
+/* the featured pin: a pulsing dot with a name card, positioned (like the
+   dimmed "other" dots) by JS -- left/top set inline. The ring expands and
+   fades on a loop -- the one bit of motion here, marking "here". */
 .mcl-pin-pulse {
   position: absolute;
-  left: 50%;
-  top: 50%;
   transform: translate(-50%, -50%);
   --pin: var(--accent);
 }
