@@ -492,6 +492,7 @@ function main() {
   const mapPinsEl = el("mcl-map-pins");
   const mapLegendEl = el("mcl-map-legend");
   const mapWrapEl = el("mcl-map-wrap");
+  const mapStageEl = el("mcl-map-stage");
 
   // ---- header greeting rotator ----
   // cycles a "hello" through the taught languages, on its own slow timer
@@ -976,6 +977,7 @@ function main() {
   const MAP_SHADE_MS = 8000;
   const MAP_PIN_MS = 4200;
   const PINS_PER_PASS = 6;
+  const MAP_ZOOM_SCALE = 3.6;    // how far in a featured pin zooms
   let mapSvg = null;             // the injected <svg> element
   let mapViewBox = null;         // { x, y, w, h } from the SVG
   let mapLanguages = [];
@@ -984,7 +986,9 @@ function main() {
   let mapIndex = 0;
   let pinCursor = 0;             // which place within a pin page is showing
   let mapTimer = null;
-  let shadedPaths = [];          // paths touched by the current page, to reset next time
+  let shadedPaths = [];          // paths touched by a "spoken" page, to reset next time
+  let featuredPaths = [];        // the featured pin's country, to reset next time
+  let mapZoom = { scale: 1, dx: 0, dy: 0 }; // current zoomToPoint transform, for projecting other pins
 
   async function loadMapSvg() {
     try {
@@ -1090,6 +1094,57 @@ function main() {
     shadedPaths = [];
   }
 
+  function clearFeatured() {
+    for (const p of featuredPaths) p.classList.remove("is-featured");
+    featuredPaths = [];
+  }
+
+  // Where a place's pin sits, as a percentage of the map panel -- the
+  // country's outline-median center (see countryCenter), nudged by the
+  // CSV's dx,dy.
+  function placePosition(place) {
+    const center = countryCenter(place.country);
+    const vx = center ? center.x : mapViewBox.x + mapViewBox.w / 2;
+    const vy = center ? center.y : mapViewBox.y + mapViewBox.h / 2;
+    const pos = pctFromViewBox(vx, vy);
+    return { left: pos.left + place.dx, top: pos.top + place.dy };
+  }
+
+  // Scales and re-centers the map layer (mapStageEl -- the SVG only, not the
+  // pin overlay) on one point, given as a percentage of the (unscaled) map
+  // panel -- so a featured pin reads clearly instead of being one speck on a
+  // whole-world view. transform-origin stays at the top-left (0 0) so this is
+  // a plain "solve for where point (px,py) lands at the panel's center":
+  // new_point = scale*point + translate, set equal to (width/2, height/2).
+  // mapZoom is kept around so projectToScreenPct can place the *other* pins
+  // (which live in the separate, unscaled pin overlay) consistently with it.
+  function zoomToPoint(leftPct, topPct, scale) {
+    const wrap = mapWrapEl.getBoundingClientRect();
+    if (!wrap.width || !wrap.height) return;
+    const px = (leftPct / 100) * wrap.width;
+    const py = (topPct / 100) * wrap.height;
+    mapZoom = { scale, dx: wrap.width / 2 - scale * px, dy: wrap.height / 2 - scale * py };
+    mapStageEl.style.transform = `translate(${mapZoom.dx}px, ${mapZoom.dy}px) scale(${scale})`;
+  }
+
+  function resetZoom() {
+    mapZoom = { scale: 1, dx: 0, dy: 0 };
+    mapStageEl.style.transform = "";
+  }
+
+  // Where a percentage-of-panel point ends up on screen once zoomToPoint has
+  // scaled/panned the map -- used to place the dimmed "other places" dots (in
+  // the unscaled pin overlay) so they track the zoomed map underneath it.
+  function projectToScreenPct(leftPct, topPct) {
+    const wrap = mapWrapEl.getBoundingClientRect();
+    if (!wrap.width || !wrap.height) return { left: leftPct, top: topPct };
+    const px = (leftPct / 100) * wrap.width;
+    const py = (topPct / 100) * wrap.height;
+    const sx = mapZoom.scale * px + mapZoom.dx;
+    const sy = mapZoom.scale * py + mapZoom.dy;
+    return { left: (sx / wrap.width) * 100, top: (sy / wrap.height) * 100 };
+  }
+
   function renderMap() {
     if (!mapPages.length) mapPages = computeMapPages();
     if (!mapPages.length) return;
@@ -1102,8 +1157,10 @@ function main() {
     if (!mapSvg || !mapViewBox) return; // SVG not loaded yet (or failed to)
 
     if (page.type === "shade") {
-      clearShading();
+      clearFeatured();
+      resetZoom();
       mapPinsEl.innerHTML = "";
+      clearShading();
       const lang = page.lang;
       let hit = 0;
       for (const iso of lang.countries) {
@@ -1125,32 +1182,49 @@ function main() {
     }
   }
 
-  // one place at a time: a pulsing dot on its country plus a name card. The
-  // map page steps through page.places (up to PINS_PER_PASS) on the map
-  // timer; pinCursor says which one is showing.
+  // one place at a time: the map zooms in on it, its country gets a light
+  // highlight, and a pulsing dot carries its name. The rest of the current
+  // page's places (and the other kind's) still show as plain dots, dimmed,
+  // so the department's fuller reach is visible even while one is featured.
+  // The map page steps through up to PINS_PER_PASS of page.places on the map
+  // timer; pinCursor says which one is currently featured.
   function renderMapPin(page) {
     const shown = Math.min(page.places.length, PINS_PER_PASS);
     if (pinCursor >= shown) pinCursor = 0;
     const place = page.places[pinCursor];
     mapSubEl.textContent = `${pinCursor + 1} / ${shown}`;
 
-    const center = countryCenter(place.country);
-    const vx = center ? center.x : mapViewBox.x + mapViewBox.w / 2;
-    const vy = center ? center.y : mapViewBox.y + mapViewBox.h / 2;
-    const pos = pctFromViewBox(vx, vy);
-    const left = pos.left + place.dx;
-    const top = pos.top + place.dy;
+    // zoom first -- the "other places" dots below are projected through
+    // this zoom, and the featured pin itself is simply centered (that's
+    // what zoomToPoint guarantees).
+    const featuredPos = placePosition(place);
+    zoomToPoint(featuredPos.left, featuredPos.top, MAP_ZOOM_SCALE);
+
+    clearFeatured();
+    for (const p of countryPaths(place.country)) {
+      p.classList.add("is-featured");
+      featuredPaths.push(p);
+    }
+
+    mapPinsEl.innerHTML = "";
+    for (const other of mapPlaces) {
+      if (other === place) continue;
+      const proj = projectToScreenPct(placePosition(other).left, placePosition(other).top);
+      if (proj.left < -8 || proj.left > 108 || proj.top < -8 || proj.top > 108) continue; // off-screen once zoomed
+      const dot = document.createElement("div");
+      dot.className = "mcl-dot-context";
+      dot.style.left = proj.left + "%";
+      dot.style.top = proj.top + "%";
+      mapPinsEl.appendChild(dot);
+    }
 
     const pin = document.createElement("div");
-    // flip the card above the dot when the dot sits low on the map
-    pin.className = `mcl-pin-pulse mcl-pin-${place.kind}${top > 62 ? " mcl-card-above" : ""}`;
-    pin.style.left = left + "%";
-    pin.style.top = top + "%";
+    pin.className = `mcl-pin-pulse mcl-pin-${place.kind}`;
     pin.innerHTML = `
       <span class="mcl-pulse-ring"></span>
       <span class="mcl-pulse-dot"></span>
       <span class="mcl-pin-card">${place.label}${place.detail ? `<span class="mcl-pin-card-sub">${place.detail}</span>` : ""}</span>`;
-    mapPinsEl.replaceChildren(pin);
+    mapPinsEl.appendChild(pin);
 
     // small pager dots below the map
     mapLegendEl.innerHTML = Array.from({ length: shown }, (_, i) =>

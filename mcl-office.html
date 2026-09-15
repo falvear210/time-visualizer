@@ -27,7 +27,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Languages Office Dashboard</title>
-<link rel="stylesheet" href="mcl-office.css?v=8">
+<link rel="stylesheet" href="mcl-office.css?v=9">
 </head>
 <body>
 <div class="mcl-dashboard">
@@ -58,7 +58,9 @@
       </div>
       <div class="mcl-col-body">
         <div class="mcl-map-wrap" id="mcl-map-wrap">
-          <div class="mcl-map-svg" id="mcl-map-svg"></div>
+          <div class="mcl-map-stage" id="mcl-map-stage">
+            <div class="mcl-map-svg" id="mcl-map-svg"></div>
+          </div>
           <div class="mcl-map-pins" id="mcl-map-pins"></div>
         </div>
         <div class="mcl-map-legend" id="mcl-map-legend"></div>
@@ -95,7 +97,7 @@
 </div>
 
 <script src="data.js"></script>
-<script src="mcl-office.js?v=8"></script>
+<script src="mcl-office.js?v=9"></script>
 <script>
   // Fields for analytics.alvear.cl's automatic "view" event (see a.js).
   window.xaExtra = function () {
