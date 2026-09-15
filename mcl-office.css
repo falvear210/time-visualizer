@@ -87,7 +87,7 @@ html, body {
   flex: 3;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1fr 1.7fr 1fr; /* the map gets the wide middle column */
+  grid-template-columns: 0.85fr 2.5fr 0.85fr; /* the map gets most of the row -- it's flat (~2:1) and needs the width to avoid empty bars top/bottom at 16:9 */
   gap: 1.5rem;
 }
 
@@ -146,35 +146,88 @@ html, body {
   margin: 1rem 0;
 }
 
-.mcl-bar-row { margin-bottom: 1.4rem; }
+/*
+  Each bar row is handed two custom properties by mcl-office.js:
+    --pct       how far through this period we are, as a percentage
+    --fill-rgb  "r, g, b" for the bar fill: while the period runs it tracks
+                the percentage along a violet -> blue -> green -> yellow ->
+                orange -> red spectrum; once the period ends it settles onto
+                the period's own day colour below
+    --day-rgb   "r, g, b" for where this period sits in the school day, read
+                off that same spectrum (violet for the first bar of the day
+                -> red for the last)
+  See the comment above periodBarHtml() in mcl-office.js for the reasoning.
+*/
+.mcl-bar-row {
+  margin-bottom: 1.4rem;
+  --pct: 0%;
+  --fill-rgb: 124, 58, 237;
+  --day-rgb: 124, 58, 237;
+}
 .mcl-bar-top {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 1.1rem;
   margin-bottom: 0.3rem;
 }
+/* the little "where in the day" dot in front of the period label */
+.mcl-bar-dot {
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  margin-right: 0.45em;
+  border-radius: 50%;
+  vertical-align: baseline;
+  background: rgb(var(--day-rgb));
+}
 .mcl-bar-track {
+  position: relative;
   height: 16px;
   border-radius: 999px;
-  background: var(--track);
+  /* the grey track, washed with a hint of this period's place in the day */
+  background:
+    linear-gradient(rgba(var(--day-rgb), 0.13), rgba(var(--day-rgb), 0.13)),
+    var(--track);
   overflow: hidden;
 }
 .mcl-bar-fill {
-  height: 100%;
-  background: var(--navy);
+  position: absolute;
+  inset: 0;
   border-radius: 999px;
+  /* One flat colour for the whole fill: violet while the period is young,
+     red in its last minutes, then its own day colour once it is over. The
+     bar is drawn full-width and revealed from the left by clip-path (which
+     keeps both ends nicely rounded). */
+  background: rgb(var(--fill-rgb));
+  clip-path: inset(0 calc(100% - var(--pct)) 0 0 round 999px);
+  /* The colour is re-sampled once a second; ease between samples so the hue
+     drifts instead of stepping. The longer curve is what makes the bell
+     moment read nicely: the bar relaxes from red back to its day colour. */
+  transition: background-color 1.4s ease-out;
 }
-.mcl-bar-row.is-live .mcl-bar-fill {
-  background: linear-gradient(90deg, #2e8bc0, #63b3e0, #8ecae6, #63b3e0, #2e8bc0);
-  background-size: 300% 100%;
-  animation: mcl-live-shift 4s ease infinite;
+
+/* Only the period happening right now moves: a soft light band drifts across
+   the fill, leaving its colour (and therefore its meaning) intact. */
+.mcl-bar-row.is-live .mcl-bar-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 45% 100%;
+  background-repeat: no-repeat;
+  animation: mcl-live-sheen 3.6s ease-in-out infinite;
 }
 .mcl-bar-row.is-live .mcl-bar-top { color: var(--accent); font-weight: 700; }
 
-@keyframes mcl-live-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@keyframes mcl-live-sheen {
+  0%   { background-position: -45% 0; }
+  100% { background-position: 145% 0; }
 }
 
 /* --- confetti (a period/lunch-wave bar just finished) --- */

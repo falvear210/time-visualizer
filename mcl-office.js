@@ -676,57 +676,48 @@ function main() {
       const row = rows[i];
       if (!row) return;
       const pct = Math.round(periodProgress(today, s.p, now, s.wave) * 100);
-      row.classList.toggle("is-live", isPeriodLive(today, s.p, now, s.wave));
+      const isLive = isPeriodLive(today, s.p, now, s.wave);
+      row.classList.toggle("is-live", isLive);
       row.querySelector(".mcl-bar-top span:last-child").textContent = pct + "%";
       row.style.setProperty("--pct", pct + "%");
-      row.style.setProperty("--fill-rgb", rampRgb(PROGRESS_RAMP, pct / 100));
+      row.style.setProperty("--fill-rgb", barFillRgb(pct, isLive, i, barSpecs.length));
     });
   }
 
-  // The bars carry two independent colour signals, on two different channels
-  // so they never fight each other:
+  // One spectrum, read two different ways, so the bars never turn into a
+  // fruit salad:
   //
-  //   1. HOW FAR ALONG THIS PERIOD IS -> the colour of the bar fill. The fill
-  //      is a SINGLE flat colour sampled from a violet -> blue -> green ->
-  //      yellow -> orange -> red spectrum at the current percentage, so a
-  //      period that has barely started is all violet, one at halftime is all
-  //      green, and one about to end (or already finished) is all red.
+  //   WHILE A PERIOD IS RUNNING, its bar is a single flat colour sampled at
+  //   how far along it is -- all violet when it has barely started, blue, then
+  //   green at halftime, and red in the last minutes.
   //
-  //   2. WHERE THIS PERIOD SITS IN THE DAY -> the dot next to the label and a
-  //      faint wash behind the track. Same idea walked across the whole day:
-  //      the first bar is a very dark blue and the last one is red.
+  //   ONCE IT ENDS, the bar settles onto the colour of its slot IN THE DAY:
+  //   the first bar of the day fades from red back to violet, the middle ones
+  //   to blue/green/amber, and only the last period of the day stays red. The
+  //   dot in front of the label and the faint wash behind the track carry that
+  //   same day colour, so a finished bar always matches its own dot.
   //
-  // Both are sampled from a list of hex stops by simple RGB interpolation.
+  // Both readings sample SPECTRUM by simple RGB interpolation between stops.
 
-  const PROGRESS_RAMP = [
-    "#7c3aed", // violet -- just started
+  const SPECTRUM = [
+    "#7c3aed", // violet -- period just started / first period of the day
     "#4f46e5",
     "#2563eb", // blue
     "#10b981", // green
     "#eab308", // yellow
     "#f97316", // orange
-    "#dc2626", // red -- about to end / done
+    "#dc2626", // red -- period about to end / last period of the day
   ];
 
-  const DAY_RAMP = [
-    "#10245e", // very dark blue -- first period
-    "#1d4ed8",
-    "#0891b2",
-    "#16a34a",
-    "#eab308",
-    "#ea580c",
-    "#dc2626", // red -- last period
-  ];
-
-  // Sample a ramp of hex stops at t (0..1) and return "r, g, b" -- the comma
-  // form so CSS can use it both as a colour and inside rgba(..., alpha).
-  function rampRgb(ramp, t) {
+  // Sample SPECTRUM at t (0..1) and return "r, g, b" -- the comma form so CSS
+  // can use it both as a colour and inside rgba(..., alpha).
+  function rampRgb(t) {
     const clamped = Math.min(1, Math.max(0, t));
-    const pos = clamped * (ramp.length - 1);
-    const i = Math.min(ramp.length - 2, Math.floor(pos));
+    const pos = clamped * (SPECTRUM.length - 1);
+    const i = Math.min(SPECTRUM.length - 2, Math.floor(pos));
     const f = pos - i;
-    const a = hexToRgb(ramp[i]);
-    const b = hexToRgb(ramp[i + 1]);
+    const a = hexToRgb(SPECTRUM[i]);
+    const b = hexToRgb(SPECTRUM[i + 1]);
     return a.map((v, k) => Math.round(v + (b[k] - v) * f)).join(", ");
   }
 
@@ -735,13 +726,26 @@ function main() {
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
   }
 
+  // Where this bar sits in the day: first bar -> 0, last bar -> 1.
+  // (a single-bar day just takes the violet end)
+  function dayPosition(index, total) {
+    return total > 1 ? index / (total - 1) : 0;
+  }
+
+  // A finished bar rests on its day colour; a running (or not-yet-started)
+  // one tracks its own progress. The CSS transition makes the hand-off at the
+  // bell read as the bar relaxing from red back to its own colour.
+  function barFillRgb(pct, isLive, index, total) {
+    const done = pct >= 100 && !isLive;
+    return rampRgb(done ? dayPosition(index, total) : pct / 100);
+  }
+
   function periodBarHtml(day, p, now, wave, waveLabel, index, total) {
     const pct = Math.round(periodProgress(day, p, now, wave) * 100);
     const isLive = isPeriodLive(day, p, now, wave);
     const label = waveLabel ? `Period ${p.label} (${waveLabel})` : `Period ${p.label}`;
-    // first bar -> 0, last bar -> 1 (a single-bar day just takes the dark end)
-    const dayRgb = rampRgb(DAY_RAMP, total > 1 ? index / (total - 1) : 0);
-    const fillRgb = rampRgb(PROGRESS_RAMP, pct / 100);
+    const dayRgb = rampRgb(dayPosition(index, total));
+    const fillRgb = barFillRgb(pct, isLive, index, total);
     const style = `--pct:${pct}%;--fill-rgb:${fillRgb};--day-rgb:${dayRgb}`;
     return `
       <div class="mcl-bar-row${isLive ? " is-live" : ""}" style="${style}">
@@ -1065,14 +1069,12 @@ function main() {
       if (mapSvg) {
         mapSvg.removeAttribute("width");
         mapSvg.removeAttribute("height");
-        // Stretch to fill the panel exactly rather than letterboxing --
-        // the map's native aspect (~2:1, a wide world) is a lot flatter
-        // than this panel, so "meet" left visible bars above and below it.
-        // A uniform stretch changes how round things look, but every
-        // country is stretched by the same factor, so their sizes stay
-        // proportional to each other -- the point of switching to Equal
-        // Earth in the first place.
-        mapSvg.setAttribute("preserveAspectRatio", "none");
+        // Deliberately left at the default preserveAspectRatio "meet" (not
+        // "none"/stretched) -- a forced non-uniform stretch made coastlines
+        // visibly warped, which looked worse than the letterboxing it was
+        // trying to avoid. The map panel is given extra width in the CSS
+        // grid instead, so more of the letterboxing is designed out at the
+        // actual 16:9 kiosk size rather than papered over with distortion.
         const vb = (mapSvg.getAttribute("viewBox") || "0 0 1000 1000").split(/\s+/).map(Number);
         mapViewBox = { x: vb[0], y: vb[1], w: vb[2], h: vb[3] };
       }
@@ -1092,15 +1094,24 @@ function main() {
     return pages;
   }
 
-  // viewBox coords -> percentage offsets within the map wrapper. Since the
-  // SVG is stretched (preserveAspectRatio "none") to exactly fill the
-  // wrapper with no letterboxing, this is just "what fraction of the
-  // viewBox is this point" on each axis, independently.
+  // The SVG is rendered with preserveAspectRatio "meet", so it's letterboxed
+  // inside the wrapper. This works out where the map actually sits so the pin
+  // overlay (which fills the whole wrapper) can be lined up with it.
+  function mapRenderRect() {
+    const wrap = mapWrapEl.getBoundingClientRect();
+    const vbAR = mapViewBox.w / mapViewBox.h;
+    let w, h;
+    if (wrap.width / wrap.height > vbAR) { h = wrap.height; w = h * vbAR; }
+    else { w = wrap.width; h = w / vbAR; }
+    return { offX: (wrap.width - w) / 2, offY: (wrap.height - h) / 2, w, h, wrapW: wrap.width, wrapH: wrap.height };
+  }
+
+  // viewBox coords -> percentage offsets within the map wrapper.
   function pctFromViewBox(x, y) {
-    return {
-      left: ((x - mapViewBox.x) / mapViewBox.w) * 100,
-      top: ((y - mapViewBox.y) / mapViewBox.h) * 100,
-    };
+    const r = mapRenderRect();
+    const px = r.offX + ((x - mapViewBox.x) / mapViewBox.w) * r.w;
+    const py = r.offY + ((y - mapViewBox.y) / mapViewBox.h) * r.h;
+    return { left: (px / r.wrapW) * 100, top: (py / r.wrapH) * 100 };
   }
 
   // In world-map.svg a single-part country is a <path id="xx">; a multi-part
