@@ -493,6 +493,7 @@ function main() {
   const mapLegendEl = el("mcl-map-legend");
   const mapWrapEl = el("mcl-map-wrap");
   const mapStageEl = el("mcl-map-stage");
+  const mapFrameEl = el("mcl-map-frame");
 
   // ---- header greeting rotator ----
   // cycles a "hello" through the taught languages, on its own slow timer
@@ -688,21 +689,21 @@ function main() {
   // fruit salad:
   //
   //   WHILE A PERIOD IS RUNNING, its bar is a single flat colour sampled at
-  //   how far along it is -- all violet when it has barely started, blue, then
-  //   green at halftime, and red in the last minutes.
+  //   how far along it is -- a dark blue when it has barely started, brighter
+  //   blue, then green at halftime, and red in the last minutes.
   //
   //   ONCE IT ENDS, the bar settles onto the colour of its slot IN THE DAY:
-  //   the first bar of the day fades from red back to violet, the middle ones
-  //   to blue/green/amber, and only the last period of the day stays red. The
+  //   the first bar of the day fades from red back to dark blue, the middle
+  //   ones to blue/green/amber, and only the last period stays red. The
   //   dot in front of the label and the faint wash behind the track carry that
   //   same day colour, so a finished bar always matches its own dot.
   //
   // Both readings sample SPECTRUM by simple RGB interpolation between stops.
 
   const SPECTRUM = [
-    "#7c3aed", // violet -- period just started / first period of the day
-    "#4f46e5",
-    "#2563eb", // blue
+    "#10245e", // dark blue -- period just started / first period of the day
+    "#1d4ed8", // blue
+    "#0891b2", // cyan
     "#10b981", // green
     "#eab308", // yellow
     "#f97316", // orange
@@ -727,7 +728,7 @@ function main() {
   }
 
   // Where this bar sits in the day: first bar -> 0, last bar -> 1.
-  // (a single-bar day just takes the violet end)
+  // (a single-bar day just takes the dark blue end)
   function dayPosition(index, total) {
     return total > 1 ? index / (total - 1) : 0;
   }
@@ -1106,6 +1107,18 @@ function main() {
     return { offX: (wrap.width - w) / 2, offY: (wrap.height - h) / 2, w, h, wrapW: wrap.width, wrapH: wrap.height };
   }
 
+  // Debugging aid: draws mapRenderRect()'s rectangle as a visible outline, so
+  // it's obvious at a glance exactly how much of the panel the map's own
+  // content fills versus how much is letterboxing either side of it.
+  function renderMapFrame() {
+    if (!mapViewBox) return;
+    const r = mapRenderRect();
+    mapFrameEl.style.left = `${r.offX}px`;
+    mapFrameEl.style.top = `${r.offY}px`;
+    mapFrameEl.style.width = `${r.w}px`;
+    mapFrameEl.style.height = `${r.h}px`;
+  }
+
   // viewBox coords -> percentage offsets within the map wrapper.
   function pctFromViewBox(x, y) {
     const r = mapRenderRect();
@@ -1250,6 +1263,7 @@ function main() {
     mapTitleEl.textContent = page.type === "shade" ? `Where ${page.lang.language} is spoken` : page.title;
     mapSubEl.textContent = page.type === "shade" ? "" : page.sub;
     if (!mapSvg || !mapViewBox) return; // SVG not loaded yet (or failed to)
+    renderMapFrame();
 
     if (page.type === "shade") {
       clearFeatured();
@@ -1448,6 +1462,15 @@ function main() {
   // map's own self-scheduling rotation.
   refreshMapData().then(loadMapSvg).then(scheduleMapTick);
   setInterval(refreshMapData, CSV_REFRESH_MS);
+
+  // keeps the debug frame (and the letterbox math it's drawn from) accurate
+  // if the window is ever resized -- doesn't happen on the kiosk itself, but
+  // matters while eyeballing this in a regular browser window.
+  let mapFrameResizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(mapFrameResizeTimer);
+    mapFrameResizeTimer = setTimeout(renderMapFrame, 150);
+  });
 
   watchForNewVersion();
   render();

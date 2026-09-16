@@ -87,7 +87,7 @@ html, body {
   flex: 3;
   min-height: 0;
   display: grid;
-  grid-template-columns: 0.85fr 2.5fr 0.85fr; /* the map gets most of the row -- it's flat (~2:1) and needs the width to avoid empty bars top/bottom at 16:9 */
+  grid-template-columns: 1fr 1.7fr 1fr; /* the map gets the wide middle column */
   gap: 1.5rem;
 }
 
@@ -150,19 +150,19 @@ html, body {
   Each bar row is handed two custom properties by mcl-office.js:
     --pct       how far through this period we are, as a percentage
     --fill-rgb  "r, g, b" for the bar fill: while the period runs it tracks
-                the percentage along a violet -> blue -> green -> yellow ->
-                orange -> red spectrum; once the period ends it settles onto
-                the period's own day colour below
+                the percentage along a dark blue -> blue -> green -> yellow
+                -> orange -> red spectrum; once the period ends it settles
+                onto the period's own day colour below
     --day-rgb   "r, g, b" for where this period sits in the school day, read
-                off that same spectrum (violet for the first bar of the day
-                -> red for the last)
+                off that same spectrum (dark blue for the first bar of the
+                day -> red for the last)
   See the comment above periodBarHtml() in mcl-office.js for the reasoning.
 */
 .mcl-bar-row {
   margin-bottom: 1.4rem;
   --pct: 0%;
-  --fill-rgb: 124, 58, 237;
-  --day-rgb: 124, 58, 237;
+  --fill-rgb: 16, 36, 94;
+  --day-rgb: 16, 36, 94;
 }
 .mcl-bar-top {
   display: flex;
@@ -195,7 +195,7 @@ html, body {
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  /* One flat colour for the whole fill: violet while the period is young,
+  /* One flat colour for the whole fill: dark blue while the period is young,
      red in its last minutes, then its own day colour once it is over. The
      bar is drawn full-width and revealed from the left by clip-path (which
      keeps both ends nicely rounded). */
@@ -310,7 +310,7 @@ html, body {
   transform-origin: 0 0;
 }
 .mcl-map-svg { position: absolute; inset: 0; }
-.mcl-map-svg svg { display: block; width: 100%; height: 100%; }
+.mcl-map-svg svg { display: block; width: 100%; height: 100%; overflow: hidden; }
 .mcl-map-svg svg path {
   fill: var(--map-land);
   stroke: var(--map-stroke);
@@ -323,6 +323,19 @@ html, body {
 /* a lighter tint for the single country behind a featured pin, so it reads
    as "this one" without competing with the "spoken here" pages' fill */
 .mcl-map-svg svg path.is-featured { fill: rgba(var(--accent-rgb), 0.4); }
+
+/* A visible outline around exactly where the map's own content lands
+   inside the panel (see renderMapFrame in the JS, which sizes/positions
+   this from the same mapRenderRect() the pin math uses) -- a debugging aid
+   for judging the letterboxing at a glance, not part of the finished look.
+   Remove this element (and the call to renderMapFrame) once the column
+   proportions are settled. */
+.mcl-map-frame {
+  position: absolute;
+  border: 1px dashed rgba(var(--accent-rgb), 0.5);
+  pointer-events: none;
+  box-sizing: border-box;
+}
 
 .mcl-map-pins {
   position: absolute;

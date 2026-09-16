@@ -28,6 +28,15 @@ dropping a pin on a country -- it lands in the populated heartland, unlike a
 geometric centroid computed from the outline, which for a circumpolar giant
 (Canada, Russia) or a country with far-flung territories (France) can be
 nowhere near it.
+
+The viewBox is sized to LON_CROP_MIN/MAX below, not the full -180..180 --
+a flat world map is already a wide ~2:1 rectangle, and the strip either side
+of the Americas/Asia (mid-Pacific: Hawaii, Fiji, New Zealand, ...) is empty
+ocean this dashboard has no use for, so it's dropped to let the map panel be
+less letterboxed. Every country still gets its full geometry (nothing is
+filtered out of what's *drawn*), so anything with land outside the crop
+(the western Aleutians, Pacific island nations, ...) just extends past the
+visible edge and is clipped there, same as a paper map's border.
 """
 import json
 import math
@@ -38,6 +47,13 @@ import sys
 # needs to invert it.
 _A1, _A2, _A3, _A4 = 1.340264, -0.081106, 0.000893, 0.003796
 _M = math.sqrt(3) / 2
+
+# The window used to size the viewBox (see the module docstring). Chosen so
+# every country in mcl-map-languages.csv/mcl-map-places.csv, plus Australia
+# and Japan for a recognizable world map, sit comfortably inside it; New
+# Zealand, Fiji, and other mid-Pacific nations fall outside and are clipped.
+# Widen this if a future pin/language needs land beyond it.
+LON_CROP_MIN, LON_CROP_MAX = -160, 155
 
 
 def equal_earth(lon_deg, lat_deg):
@@ -99,9 +115,10 @@ def main():
         for ring in rings_of(f["geometry"]):
             pts = [equal_earth(lon, lat) for lon, lat in ring]
             rings.append(pts)
-            for x, y in pts:
-                all_x.append(x)
-                all_y.append(y)
+            for (lon, _lat), (x, y) in zip(ring, pts):
+                if LON_CROP_MIN <= lon <= LON_CROP_MAX:
+                    all_x.append(x)
+                    all_y.append(y)
         # Natural Earth ships a hand-curated "best point for this country's
         # label" per feature (LABEL_X/Y) -- cartographer-placed, so it lands
         # in the populated heartland rather than a country's geometric
