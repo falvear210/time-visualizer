@@ -53,7 +53,15 @@ _M = math.sqrt(3) / 2
 # and Japan for a recognizable world map, sit comfortably inside it; New
 # Zealand, Fiji, and other mid-Pacific nations fall outside and are clipped.
 # Widen this if a future pin/language needs land beyond it.
-LON_CROP_MIN, LON_CROP_MAX = -160, 155
+#
+# Note LON_CROP_MIN in particular has limited effect: Equal Earth's meridians
+# converge toward the poles, so high-latitude land (Alaska, northern Canada)
+# can sit *less* far left on the flat map than mid-latitude land (coastal
+# California) despite a much more negative longitude. In practice nothing
+# currently drawn projects further west than the US west coast regardless of
+# where this is set between roughly -125 and -170 -- see the `margin` comment
+# below for the knob that actually controls how much ocean shows at the edge.
+LON_CROP_MIN, LON_CROP_MAX = -142, 145
 
 
 def equal_earth(lon_deg, lat_deg):
@@ -139,7 +147,16 @@ def main():
     width = 800.0
     scale = width / (max_x - min_x)  # ONE scale for both axes -- an equal-area
     height = (max_y - min_y) * scale  # projection stops being equal-area the moment x and y scale differently
-    margin = 4.0
+    # Land is drawn right up to this margin on every side -- it's what gives a
+    # bit of visible ocean around the outermost coastline instead of it
+    # touching the panel's edge. LON_CROP_MIN/MAX won't buy you this: Equal
+    # Earth's meridians converge toward the poles, so a high-latitude place
+    # (Alaska, northern Canada) can have a very negative longitude and still
+    # land *less* far left on the flat map than a mid-latitude one (coastal
+    # California) -- moving the crop past whatever mid-latitude point is
+    # actually the leftmost *on the map* does nothing, which is why -130 and
+    # -142 looked identical. This margin is the real "add breathing room" knob.
+    margin = 16.0
 
     def to_svg(pt):
         x, y = pt
