@@ -1,6 +1,6 @@
 /*
   Styles for the Modern & Classical Languages office wall display
-  (mcl-office.html + mcl-office.js). A sibling of math-office.css: same
+  (mcl/index.html + mcl-office.js). A sibling of math-office.css: same
   SLUH theme, light-only (it lives on a TV in a lit room), never scrolls --
   the whole layout is sized to fit exactly one 16:9 screen via flex/grid
   `fr` units and `min-height: 0`. The one media query at the bottom is only
@@ -67,15 +67,60 @@ html, body {
 }
 .mcl-header-link:hover { color: var(--text); }
 
-.mcl-header-greeting {
+/* The rotating proverb. It sits between the title and the clock, which are
+   baseline-aligned to each other; this block is three lines of its own, so
+   it opts out of that with align-self and centers itself in the header
+   instead. min-height (not height) holds the header steady at the size of
+   the two-line common case, so a short saying can't shrink it -- and the
+   max-widths below are set wide enough that at the 1080p the TV actually
+   runs, only a genuinely long proverb wraps and pushes it past that. */
+.mcl-header-saying {
   flex: 1;
+  align-self: center;
+  min-height: 3.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
   text-align: center;
-  font-size: 1.9rem;
-  font-weight: 700;
-  color: var(--accent);
   transition: opacity 0.25s ease;
 }
-.mcl-header-greeting.is-fading { opacity: 0; }
+.mcl-header-saying.is-fading { opacity: 0; }
+
+.mcl-saying-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.2;
+  /* a long proverb wraps rather than crowding the clock */
+  max-width: 48ch;
+}
+/* translation and tag share one line, the tag a size smaller and dimmer.
+   Baseline-aligned so the two type sizes sit on the same line, and allowed
+   to wrap as a pair if a long translation runs out of room. */
+.mcl-saying-gloss {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.1rem 0.45rem;
+  max-width: 72ch;
+}
+.mcl-saying-en {
+  font-size: 1rem;
+  color: var(--text-dim);
+  line-height: 1.25;
+}
+.mcl-saying-tag {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  opacity: 0.75;
+  letter-spacing: 0.02em;
+}
+/* the separator belongs to the join, not to either half -- so a row with no
+   note and no language leaves an empty tag and no stray dot */
+.mcl-saying-tag:not(:empty)::before { content: "·"; margin-right: 0.45rem; }
 
 .mcl-header-time { text-align: right; }
 #mcl-date { display: block; font-size: 1.2rem; color: var(--text-dim); }
@@ -150,19 +195,19 @@ html, body {
   Each bar row is handed two custom properties by mcl-office.js:
     --pct       how far through this period we are, as a percentage
     --fill-rgb  "r, g, b" for the bar fill: while the period runs it tracks
-                the percentage along a dark blue -> blue -> green -> yellow
+                the percentage along an indigo -> blue -> green -> yellow
                 -> orange -> red spectrum; once the period ends it settles
                 onto the period's own day colour below
     --day-rgb   "r, g, b" for where this period sits in the school day, read
-                off that same spectrum (dark blue for the first bar of the
+                off that same spectrum (indigo for the first bar of the
                 day -> red for the last)
   See the comment above periodBarHtml() in mcl-office.js for the reasoning.
 */
 .mcl-bar-row {
   margin-bottom: 1.4rem;
   --pct: 0%;
-  --fill-rgb: 16, 36, 94;
-  --day-rgb: 16, 36, 94;
+  --fill-rgb: 75, 54, 157;
+  --day-rgb: 75, 54, 157;
 }
 .mcl-bar-top {
   display: flex;
@@ -195,7 +240,7 @@ html, body {
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  /* One flat colour for the whole fill: dark blue while the period is young,
+  /* One flat colour for the whole fill: indigo while the period is young,
      red in its last minutes, then its own day colour once it is over. The
      bar is drawn full-width and revealed from the left by clip-path (which
      keeps both ends nicely rounded). */
@@ -323,19 +368,6 @@ html, body {
 /* a lighter tint for the single country behind a featured pin, so it reads
    as "this one" without competing with the "spoken here" pages' fill */
 .mcl-map-svg svg path.is-featured { fill: rgba(var(--accent-rgb), 0.4); }
-
-/* A visible outline around exactly where the map's own content lands
-   inside the panel (see renderMapFrame in the JS, which sizes/positions
-   this from the same mapRenderRect() the pin math uses) -- a debugging aid
-   for judging the letterboxing at a glance, not part of the finished look.
-   Remove this element (and the call to renderMapFrame) once the column
-   proportions are settled. */
-.mcl-map-frame {
-  position: absolute;
-  border: 1px dashed rgba(var(--accent-rgb), 0.5);
-  pointer-events: none;
-  box-sizing: border-box;
-}
 
 .mcl-map-pins {
   position: absolute;
@@ -504,22 +536,45 @@ html, body {
 .mcl-weather-current-temp { font-size: 2.1rem; font-weight: 700; }
 .mcl-weather-current-label { font-size: 1rem; color: var(--text-dim); text-align: center; }
 
+/* The world cities sit to the right of the big St. Louis reading, in two
+   rows -- --weather-cols is set inline by renderWeather() from the number of
+   cities, so adding or removing a row of mcl-cities.csv reflows instead of
+   overflowing a hardcoded column count. */
 .mcl-weather-forecast {
   flex: 1;
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  gap: 0.8rem;
+  grid-template-columns: repeat(var(--weather-cols, 4), 1fr);
+  gap: 0.35rem 0.7rem;
+  align-content: center;
 }
 .mcl-weather-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  line-height: 1.15;
 }
-.mcl-weather-card-label { font-size: 0.9rem; color: var(--text-dim); margin-bottom: 0.2rem; }
-.mcl-weather-card-icon { font-size: 1.7rem; line-height: 1; }
-.mcl-weather-card-temp { font-size: 1.1rem; font-weight: 600; }
+.mcl-weather-card-label {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+/* icon and temperature share a line to keep each card three lines tall --
+   at eight cities a four-line card would not fit the panel twice over. */
+.mcl-weather-card-reading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
+.mcl-weather-card-icon { font-size: 1.5rem; line-height: 1; }
+.mcl-weather-card-temp { font-size: 1.25rem; font-weight: 600; }
+.mcl-weather-card-time {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 
 .mcl-weather-error { color: var(--text-dim); font-size: 1.1rem; }
 
@@ -530,6 +585,11 @@ html, body {
   .mcl-bottom { grid-template-columns: 1fr; }
   .mcl-map-col .mcl-col-body { overflow: visible; }
   .mcl-map-wrap { max-width: 640px; }
+  /* the two-row city grid is sized for the kiosk's wide bottom panel; give
+     it room to wrap rather than squeezing eight cards into a narrow one */
+  .mcl-weather { flex-wrap: wrap; }
+  .mcl-weather-current { border-right: none; }
+  .mcl-weather-forecast { flex-basis: 100%; }
   html, body { overflow: auto; height: auto; }
   .mcl-dashboard { height: auto; min-height: 100vh; }
 }

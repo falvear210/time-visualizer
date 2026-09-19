@@ -1,0 +1,35 @@
+label,kind,country,dx,dy,detail
+Colegio San Ignacio El Bosque,partner,cl,-0.06,-3.19,Santiago · Chile
+Colegio San Pedro Claver,partner,co,0.08,-2.84,Bucaramanga · Colombia
+Colegio Irabia-Izaga,partner,es,0.52,-1.77,Pamplona · Spain
+Institution Saint Thérèse,partner,fr,-0.20,-1.18,Rambouillet · France
+Institution Notre Dame,partner,fr,-0.29,-1.06,Chartres · France
+Qalam wa Lawh,partner,ma,0.13,-1.64,Rabat · Morocco
+Canisius-Kolleg,partner,de,0.92,-0.90,Berlin · Germany
+Kostka High School,partner,pl,0.20,1.13,Kraków · Poland
+St. Stanislaus Kostka,partner,pl,-0.36,-1.43,Gdynia · Poland
+St. Xavier's School,partner,np,0.57,0.41,Kathmandu · Nepal
+Gimnaziya 209,partner,ru,-3.65,-0.86,St. Petersburg · Russia
+Chile Spanish Immersion,trip,cl,-0.06,-3.19,Santiago · Summer
+Colombia Spanish Immersion,trip,co,0.08,-2.84,Bucaramanga · Summer
+Spain Spanish Immersion,trip,es,0.52,-1.77,Pamplona · Summer
+France French Immersion,trip,fr,-0.20,-1.18,Rambouillet · Summer
+Morocco Arabic Immersion,trip,ma,0.13,-1.64,Rabat · Summer
+Baltic Russian Immersion,trip,lv,-0.33,0.06,Baltic states · Summer
+Taiwan Summer Program,trip,tw,0.03,-1.00,Taiwan · Summer
+Poland Spring Break Exchange,trip,pl,0.20,1.13,Kraków · Gdynia · Spring
+Germany Spring Break Exchange,trip,de,0.92,-0.90,Berlin · Spring
+Nepal Spring Break Exchange,trip,np,0.57,0.41,Kathmandu · Spring
+Kino Border Service,trip,mx,-1.63,-5.27,Nogales · Spring
+Italy Classics Program,trip,it,0.46,1.81,Rome · Summer
+Camino de Santiago,trip,es,-1.40,-1.81,Northern Spain · Summer
+Ignatian Pilgrimage,trip,es,0.34,-1.96,Spain · Italy · Summer
+Battlefields of Europe,trip,fr,-0.79,-1.51,England · France · Germany
+France Soccer Program,trip,fr,0.63,0.58,France · Summer
+Ireland Rugby Program,trip,ie,0.40,-0.15,Ireland · Spring
+South Africa Rhino Rescue,trip,za,1.44,-2.50,Johannesburg · Summer
+France Senior Project,senior,fr,-0.29,-1.06,Institution Notre Dame · Chartres
+Guatemala Senior Project,senior,gt,-0.03,0.26,Esperanza Juvenil · Guatemala City
+Honduras Senior Project,senior,hn,-0.06,-0.25,Centro San Yves · Yoro
+Poland Senior Project,senior,pl,0.42,1.39,Kraków · Gdynia · Nowy Sącz
+Taiwan Senior Project,senior,tw,0.14,-0.74,Yilan · Hsinchu

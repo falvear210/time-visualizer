@@ -1,0 +1,47 @@
+# Proverbs & sayings rotating in the header of the MCL wall display.
+# Columns: language,saying,translation,note
+#   language    which language it's in -- also the tag shown on screen
+#   saying      the saying in its own language (shown big)
+#   translation the English meaning (shown smaller, on the line below)
+#   note        optional: romanization, or who said it. Shown dimmed at the
+#               end of that same line, after the language. Leave it empty
+#               if there's nothing to add.
+# Quote any cell that contains a comma, the way the ones below are quoted
+# ("..."). A literal " inside a quoted cell is written as "".
+# The display rotates one language at a time, round-robin, so the order
+# within a language matters but the grouping below is only for readability.
+language,saying,translation,note
+Spanish,"No hay mal que por bien no venga.","There is no bad from which some good does not come.",
+Spanish,"A quien madruga, Dios le ayuda.","God helps the one who rises early.",
+Spanish,"Camarón que se duerme, se lo lleva la corriente.","The shrimp that falls asleep is carried off by the current.",
+Spanish,"Más vale tarde que nunca.","Better late than never.",
+Spanish,"Poco a poco se anda lejos.","Little by little, one goes far.",
+French,"Petit à petit, l'oiseau fait son nid.","Little by little, the bird builds its nest.",
+French,"Qui vivra verra.","Whoever lives will see.",
+French,"L'habit ne fait pas le moine.","The habit does not make the monk.",
+French,"Vouloir, c'est pouvoir.","To want is to be able.",
+French,"Il n'y a pas de fumée sans feu.","There is no smoke without fire.",
+Chinese,"千里之行，始于足下。","A journey of a thousand miles begins with a single step.",qiān lǐ zhī xíng, shǐ yú zú xià
+Chinese,"活到老，学到老。","Live until old, learn until old.",huó dào lǎo, xué dào lǎo
+Chinese,"熟能生巧。","Practice makes perfect.",shú néng shēng qiǎo
+Chinese,"一分耕耘，一分收获。","One measure of work, one measure of harvest.",yī fēn gēng yún, yī fēn shōu huò
+Arabic,"الصبر مفتاح الفرج","Patience is the key to relief.",aṣ-ṣabru miftāḥu l-faraj
+Arabic,"العلم نور","Knowledge is light.",al-'ilmu nūr
+Arabic,"من جدّ وجد","Whoever strives, finds.",man jadda wajad
+Arabic,"خير الكلام ما قلّ ودلّ","The best speech is the one that is brief and to the point.",
+Russian,"Без труда не выловишь и рыбку из пруда.","Without effort you won't even pull a fish out of the pond.",
+Russian,"Тише едешь — дальше будешь.","The quieter you go, the farther you'll get.",
+Russian,"Повторение — мать учения.","Repetition is the mother of learning.",
+Russian,"Век живи — век учись.","Live a century, learn a century.",
+Russian,"Не имей сто рублей, а имей сто друзей.","Don't have a hundred rubles -- have a hundred friends.",
+Latin,"Ad maiorem Dei gloriam.","For the greater glory of God.",the Jesuit motto
+Latin,"Dum spiro, spero.","While I breathe, I hope.",
+Latin,"Per aspera ad astra.","Through hardships to the stars.",
+Latin,"Verba volant, scripta manent.","Spoken words fly away; written ones remain.",
+Latin,"Docendo discimus.","By teaching, we learn.",Seneca
+Latin,"Festina lente.","Make haste slowly.",Augustus
+Classical Greek,"γνῶθι σεαυτόν","Know thyself.",gnōthi seautón · inscribed at Delphi
+Classical Greek,"μηδὲν ἄγαν","Nothing in excess.",mēdèn ágan · inscribed at Delphi
+Classical Greek,"πάντα ῥεῖ","Everything flows.",pánta rheî · Heraclitus
+Classical Greek,"ἓν οἶδα ὅτι οὐδὲν οἶδα","I know one thing: that I know nothing.",Socrates
+Classical Greek,"ἀρχὴ ἥμισυ παντός","The beginning is half of the whole.",archḕ hḗmisy pantós

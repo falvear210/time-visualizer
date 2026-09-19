@@ -1,5 +1,5 @@
 // =============================================================================
-// mcl-office.js -- all the behavior for mcl-office.html, the Modern & Classical
+// mcl-office.js -- all the behavior for mcl/index.html, the Modern & Classical
 // Languages office wall display. Runs full-screen and unattended on a TV.
 //
 // It's a deliberate sibling of math-office.js: the same standalone approach
@@ -9,19 +9,24 @@
 // block points back to its math-office.js / app.js counterpart.
 //
 // What's genuinely different here, and where to look for it:
-//   - HEADER GREETING -- a rotating "hello" in the taught languages.
+//   - HEADER SAYINGS -- a rotating proverb in the taught languages, with
+//     its English translation underneath (mcl-sayings.csv).
 //   - WORLD MAP panel (renderMap / mapTick) -- replaces math-office's "Year
-//     at a Glance". Rotates between: shading the countries where a language
-//     is spoken (one page per mcl-map-languages.csv row), the department's
-//     exchange partners, and where SLUH travels -- the last two showing one
-//     place at a time as a pulsing dot + name (mcl-map-places.csv).
+//     at a Glance". It shows one thing at a time, drawn from a shuffled,
+//     interleaved playlist (computeMapPages): the countries behind a
+//     language, shaded (mcl-map-languages.csv), or a single exchange
+//     partner / SLUH trip / international Senior Project site as a pulsing
+//     dot + name (mcl-map-places.csv). The categories are woven together --
+//     a language, then a trip, then a partner -- and reshuffled every pass.
 //   - "Languages Teaching Now" -- the teacher list, but each row carries the
 //     language + level (mcl-teachers.csv has a 4th column).
 //   - the rotating box carries a "Cultural Calendar" of upcoming festivities
 //     and national days for the countries behind the taught languages
 //     (mcl-culture.csv) and the next meeting of each cultural / affinity
 //     club (mcl-clubs.csv).
-//   - weather shows St. Louis plus a few world cities (mcl-cities.csv).
+//   - weather shows St. Louis as the big reading, plus a two-row grid of
+//     world cities with each one's temperature and local time
+//     (mcl-cities.csv carries the IANA timezone per city).
 //
 // Every panel rebuilds from scratch each tick (nothing interactive to lose),
 // except a few spots that patch in place so a running CSS animation/fade
@@ -36,7 +41,7 @@ const COUNTDOWN_START_MINUTES = 7 * 60 + 30; // countdowns/"teaching next" don't
 // Same as math-office: this runs unattended with no one to hit refresh, so
 // it watches version.txt (bumped by deploy.sh on every deploy) and reloads
 // itself within one polling interval of a new deploy landing.
-const VERSION_URL = "version.txt";
+const VERSION_URL = "../version.txt";
 const VERSION_CHECK_MS = 60 * 1000;
 
 async function fetchVersion() {
@@ -164,6 +169,21 @@ function periodProgress(day, period, now, wave) {
   if (now.minutes < startMinutes) return 0;
   if (now.minutes >= endMinutes) return 1;
   return (now.minutes - startMinutes) / (endMinutes - startMinutes);
+}
+
+// A percent meant for human eyes, NEVER rounded up. Math.round() turns 99.7%
+// into "100%", which lets a bar announce that a period (or a semester, or the
+// year) is over while it is still running -- the one lie a progress bar must
+// never tell. So anything short of finished reads at most 99%.
+//
+// Genuinely-finished work arrives here as exactly 100, because periodProgress()
+// returns exactly 1 for a period that's over; the epsilon below only absorbs
+// floating-point dust from summing hundreds of those 1s, so a completed stretch
+// still reads "100%".
+function displayPct(pct) {
+  const clamped = Math.max(0, Math.min(100, pct));
+  if (clamped >= 100 - 1e-9) return 100; // actually done
+  return Math.floor(clamped);            // everything else rounds DOWN
 }
 
 // whether this period is in progress right now (see math-office.js's note --
@@ -297,14 +317,63 @@ function formatHHMM12h(hhmm) {
 const CSV_REFRESH_MS = 30 * 60 * 1000;
 const LIST_LIMIT = 12; // a rotator box page scrolls if it runs longer than this
 
+// Drops blank lines and any "#" comment line -- the shared files in data/
+// carry a comment header explaining their columns, so the office can edit
+// them without opening the code -- then drops the header row, which is
+// whatever line survives first.
 function csvRows(text) {
-  return text.trim().split("\n").slice(1).map((l) => l.trim()).filter(Boolean);
+  const lines = text.split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("#"));
+  return lines.slice(1);
 }
 
 async function fetchCsv(url) {
   const res = await fetch(`${url}?t=${Date.now()}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`${url} fetch failed: ${res.status}`);
   return await res.text();
+}
+
+// Splits ONE csv line into cells, honoring "quoted" cells so a value can
+// contain commas -- which the sayings do ("Vouloir, c'est pouvoir"). A
+// doubled quote inside a quoted cell ("") is a literal quote character.
+// Only parseSayingsCsv needs this; every other parser below stays on the
+// naive comma-split, since none of their cells ever contain a comma.
+function csvFields(line) {
+  const fields = [];
+  let cell = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (line[i + 1] === '"') { cell += '"'; i++; } // "" -> a literal quote
+        else inQuotes = false;
+      } else cell += ch;
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ",") {
+      fields.push(cell.trim());
+      cell = "";
+    } else cell += ch;
+  }
+  fields.push(cell.trim());
+  return fields;
+}
+
+// mcl-sayings.csv: language,saying,translation,note -- the proverbs that
+// rotate in the header.
+//   saying       shown big, in its own script
+//   translation  shown smaller on the line under it
+//   note         optional romanization or attribution -- joined to the
+//                language as a dimmer tag at the end of that same line
+// A row missing either the saying or its translation is dropped: half a
+// proverb on a wall display helps no one.
+function parseSayingsCsv(text) {
+  return csvRows(text).map((line) => {
+    const [language, saying, translation, note] = csvFields(line);
+    return { language: language || "", saying, translation, note: note || "" };
+  }).filter((s) => s.saying && s.translation);
 }
 
 // mcl-teachers.csv: name,period,room,language -- one row per teacher per
@@ -349,17 +418,19 @@ function parseCultureCsv(text) {
   }).filter((c) => (/^\d{2}-\d{2}$/.test(c.date) || /^\d{4}-\d{2}-\d{2}$/.test(c.date)) && c.name);
 }
 
-// mcl-birthdays.csv: date,name,dept -- a dept of "language" renders bold.
+// data/birthdays.csv: date,name,dept -- the whole faculty/staff list,
+// shared with every other dashboard. A dept of "mcl" renders bold here.
 function parseBirthdaysCsv(text) {
   const birthdays = csvRows(text).map((line) => {
     const [date, name, dept] = line.split(",").map((s) => (s || "").trim());
-    return { date, name, isDept: dept === "language" };
+    return { date, name, isDept: dept === "mcl" };
   }).filter((b) => b.date && b.name);
   birthdays.sort((a, b) => a.date.localeCompare(b.date));
   return birthdays;
 }
 
-// mcl-breaks.csv: date,name -- override a break's auto-detected label.
+// data/breaks.csv: date,name -- override a break's auto-detected label.
+// Shared with every other dashboard.
 function parseBreaksCsv(text) {
   const overrides = new Map();
   for (const line of csvRows(text)) {
@@ -406,12 +477,30 @@ function parseMapPlacesCsv(text) {
   }).filter((p) => p.label && p.country);
 }
 
-// mcl-cities.csv: label,lat,lon -- the extra cities in the weather panel.
+// mcl-cities.csv: label,lat,lon,tz -- the extra cities in the weather panel.
+// tz is an IANA timezone name ("Europe/Madrid") used to show that city's
+// current local time next to its temperature. It's optional: a row without
+// one still gets its weather card, just no clock line.
 function parseCitiesCsv(text) {
   return csvRows(text).map((line) => {
-    const [label, lat, lon] = line.split(",").map((s) => (s || "").trim());
-    return { label, lat: parseFloat(lat), lon: parseFloat(lon) };
+    const [label, lat, lon, tz] = line.split(",").map((s) => (s || "").trim());
+    return { label, lat: parseFloat(lat), lon: parseFloat(lon), tz: tz || "" };
   }).filter((c) => c.label && isFinite(c.lat) && isFinite(c.lon));
+}
+
+// That city's current local time, e.g. "4:12 PM". Intl does the whole job --
+// it knows each zone's DST rules, so nothing here needs updating twice a
+// year. An unknown/misspelled zone throws, and we just drop the line rather
+// than take the panel down with it.
+function cityLocalTime(tz) {
+  if (!tz) return "";
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz,
+    }).format(new Date());
+  } catch (e) {
+    return "";
+  }
 }
 
 // ---- weather (Open-Meteo -- free, no API key, CORS-enabled) ----
@@ -478,7 +567,10 @@ function main() {
   const el = (id) => document.getElementById(id);
   const clockEl = el("mcl-clock");
   const dateEl = el("mcl-date");
-  const greetingEl = el("mcl-greeting");
+  const sayingBoxEl = el("mcl-saying-box");
+  const sayingEl = el("mcl-saying");
+  const sayingEnEl = el("mcl-saying-en");
+  const sayingTagEl = el("mcl-saying-tag");
   const dailyBarsEl = el("mcl-daily-bars");
   const dailyStatusEl = el("mcl-daily-status");
   const rotatorTitleEl = el("mcl-rotator-title");
@@ -493,26 +585,76 @@ function main() {
   const mapLegendEl = el("mcl-map-legend");
   const mapWrapEl = el("mcl-map-wrap");
   const mapStageEl = el("mcl-map-stage");
-  const mapFrameEl = el("mcl-map-frame");
 
-  // ---- header greeting rotator ----
-  // cycles a "hello" through the taught languages, on its own slow timer
-  // with a cross-fade. Purely decorative -- sets the tone the moment
-  // someone glances at the screen.
-  const GREETINGS = [
-    "Hola", "Bonjour", "مرحبًا", "你好",
-    "Привет", "Salvē", "Χαῖρε",
+  // ---- header saying rotator ----
+  // Cycles a proverb through the languages the department teaches: the
+  // saying in its own script, then one line under it carrying the English
+  // meaning plus a dimmer tag naming the language (and the romanization or
+  // attribution, when mcl-sayings.csv carries one). Its own timer and
+  // cross-fade, like the map and the rotating box -- but a good deal slower
+  // than those, because unlike the one-word "Hola" this started as, a
+  // proverb has to be *read*. Purely decorative; it sets the tone the
+  // moment someone glances up at the screen.
+  const SAYING_ROTATE_MS = 13000;
+  const SAYING_FADE_MS = 250; // must match the CSS transition on .mcl-header-saying
+
+  // Shown until mcl-sayings.csv loads, and whenever it's missing or empty,
+  // so the header is never blank: the plain "hello" rotation this spot
+  // started out as.
+  const FALLBACK_SAYINGS = [
+    { language: "Spanish", saying: "Hola", translation: "Hello", note: "" },
+    { language: "French", saying: "Bonjour", translation: "Hello", note: "" },
+    { language: "Arabic", saying: "مرحبًا", translation: "Hello", note: "marḥaban" },
+    { language: "Chinese", saying: "你好", translation: "Hello", note: "nǐ hǎo" },
+    { language: "Russian", saying: "Привет", translation: "Hello", note: "privet" },
+    { language: "Latin", saying: "Salvē", translation: "Hello", note: "" },
+    { language: "Classical Greek", saying: "Χαῖρε", translation: "Hello", note: "khaîre" },
   ];
-  let greetingIndex = 0;
-  function rotateGreeting() {
-    greetingEl.classList.add("is-fading");
-    setTimeout(() => {
-      greetingIndex = (greetingIndex + 1) % GREETINGS.length;
-      greetingEl.textContent = GREETINGS[greetingIndex];
-      greetingEl.classList.remove("is-fading");
-    }, 250);
+
+  let sayings = FALLBACK_SAYINGS;
+  let sayingIndex = 0;
+
+  // Undoes the CSV's per-language grouping into a round-robin order, so the
+  // header moves Spanish -> French -> Chinese -> ... instead of sitting in
+  // one language for five turns running. Rows keep their file order within
+  // their own language, and a language with fewer rows than the others
+  // simply drops out of the last passes.
+  function interleaveByLanguage(rows) {
+    const byLanguage = new Map();
+    for (const row of rows) {
+      if (!byLanguage.has(row.language)) byLanguage.set(row.language, []);
+      byLanguage.get(row.language).push(row);
+    }
+    const groups = [...byLanguage.values()];
+    const deepest = Math.max(...groups.map((g) => g.length));
+    const ordered = [];
+    for (let i = 0; i < deepest; i++) {
+      for (const group of groups) {
+        if (i < group.length) ordered.push(group[i]);
+      }
+    }
+    return ordered;
   }
-  greetingEl.textContent = GREETINGS[0];
+
+  function showSaying() {
+    const s = sayings[sayingIndex];
+    if (!s) return;
+    sayingEl.textContent = s.saying;
+    sayingEnEl.textContent = s.translation;
+    // "Classical Greek · Heraclitus" -- either half may be missing.
+    sayingTagEl.textContent = [s.language, s.note].filter(Boolean).join(" · ");
+  }
+
+  function rotateSaying() {
+    if (sayings.length < 2) return; // nothing to rotate to -- don't blink it
+    sayingBoxEl.classList.add("is-fading");
+    setTimeout(() => {
+      sayingIndex = (sayingIndex + 1) % sayings.length;
+      showSaying();
+      sayingBoxEl.classList.remove("is-fading");
+    }, SAYING_FADE_MS);
+  }
+  showSaying();
 
   // ---- confetti (a period/lunch-wave bar just finished) ----
   const CONFETTI_COLORS = ["#005588", "#88ccec", "#f59e0b", "#34d399", "#fb7185", "#a78bfa"];
@@ -676,7 +818,7 @@ function main() {
     barSpecs.forEach((s, i) => {
       const row = rows[i];
       if (!row) return;
-      const pct = Math.round(periodProgress(today, s.p, now, s.wave) * 100);
+      const pct = displayPct(periodProgress(today, s.p, now, s.wave) * 100);
       const isLive = isPeriodLive(today, s.p, now, s.wave);
       row.classList.toggle("is-live", isLive);
       row.querySelector(".mcl-bar-top span:last-child").textContent = pct + "%";
@@ -689,25 +831,25 @@ function main() {
   // fruit salad:
   //
   //   WHILE A PERIOD IS RUNNING, its bar is a single flat colour sampled at
-  //   how far along it is -- a dark blue when it has barely started, brighter
-  //   blue, then green at halftime, and red in the last minutes.
+  //   how far along it is -- indigo when it has barely started, then blue,
+  //   green at halftime, and red in the last minutes.
   //
   //   ONCE IT ENDS, the bar settles onto the colour of its slot IN THE DAY:
-  //   the first bar of the day fades from red back to dark blue, the middle
-  //   ones to blue/green/amber, and only the last period stays red. The
+  //   the first bar of the day fades from red back to indigo, the middle
+  //   ones to blue/green/yellow/orange, and only the last period stays red.
+  //   The
   //   dot in front of the label and the faint wash behind the track carry that
   //   same day colour, so a finished bar always matches its own dot.
   //
   // Both readings sample SPECTRUM by simple RGB interpolation between stops.
 
   const SPECTRUM = [
-    "#10245e", // dark blue -- period just started / first period of the day
-    "#1d4ed8", // blue
-    "#0891b2", // cyan
-    "#10b981", // green
-    "#eab308", // yellow
-    "#f97316", // orange
-    "#dc2626", // red -- period about to end / last period of the day
+    "#4b369d", // indigo -- period just started / first period of the day
+    "#487de7", // blue
+    "#79c314", // green
+    "#faeb36", // yellow
+    "#ffa500", // orange
+    "#e81416", // red -- period about to end / last period of the day
   ];
 
   // Sample SPECTRUM at t (0..1) and return "r, g, b" -- the comma form so CSS
@@ -728,7 +870,7 @@ function main() {
   }
 
   // Where this bar sits in the day: first bar -> 0, last bar -> 1.
-  // (a single-bar day just takes the dark blue end)
+  // (a single-bar day just takes the indigo end)
   function dayPosition(index, total) {
     return total > 1 ? index / (total - 1) : 0;
   }
@@ -742,7 +884,7 @@ function main() {
   }
 
   function periodBarHtml(day, p, now, wave, waveLabel, index, total) {
-    const pct = Math.round(periodProgress(day, p, now, wave) * 100);
+    const pct = displayPct(periodProgress(day, p, now, wave) * 100);
     const isLive = isPeriodLive(day, p, now, wave);
     const label = waveLabel ? `Period ${p.label} (${waveLabel})` : `Period ${p.label}`;
     const dayRgb = rampRgb(dayPosition(index, total));
@@ -789,6 +931,7 @@ function main() {
           const arr = Array.isArray(data) ? data : [data];
           cityWeather = arr.map((d, i) => ({
             label: citiesData[i] ? citiesData[i].label : "",
+            tz: citiesData[i] ? citiesData[i].tz : "",
             temp: d.current ? Math.round(d.current.temperature_2m) : null,
             code: d.current ? d.current.weather_code : null,
             isDay: d.current ? d.current.is_day : 1,
@@ -805,13 +948,33 @@ function main() {
     weatherTimer = setTimeout(fetchWeather, ok ? WEATHER_REFRESH_MS : WEATHER_RETRY_MS);
   }
 
-  function cityCardHtml(label, temp, code, isDay) {
+  // Two rows of these sit to the right of the big St. Louis reading, so the
+  // card is laid out tighter than a single row would need: the icon and temp
+  // share a line, with the city's own local time below in the dim style.
+  // data-tz lets the render tick refresh just the clock lines (see
+  // updateCityClocks) without rebuilding the whole panel every second.
+  function cityCardHtml(city) {
+    const time = cityLocalTime(city.tz);
     return `
       <div class="mcl-weather-card">
-        <div class="mcl-weather-card-label">${label}</div>
-        <div class="mcl-weather-card-icon">${weatherEmoji(code, isDay)}</div>
-        <div class="mcl-weather-card-temp">${temp == null ? "—" : temp + "°"}</div>
+        <div class="mcl-weather-card-label">${city.label}</div>
+        <div class="mcl-weather-card-reading">
+          <span class="mcl-weather-card-icon">${weatherEmoji(city.code, city.isDay)}</span>
+          <span class="mcl-weather-card-temp">${city.temp == null ? "—" : city.temp + "°"}</span>
+        </div>
+        <div class="mcl-weather-card-time" data-tz="${city.tz}">${time}</div>
       </div>`;
+  }
+
+  // Called from the render tick. The weather itself only refreshes every 30
+  // minutes, so rebuilding the panel just to advance a clock would be waste;
+  // this rewrites only the time lines, and only when the text has actually
+  // changed (so nothing re-paints 59 seconds out of 60).
+  function updateCityClocks() {
+    for (const node of weatherEl.querySelectorAll(".mcl-weather-card-time")) {
+      const time = cityLocalTime(node.dataset.tz);
+      if (node.textContent !== time) node.textContent = time;
+    }
   }
 
   function renderWeather() {
@@ -831,9 +994,14 @@ function main() {
         </div>`;
     }
 
-    const cards = cityWeather.map((c) => cityCardHtml(c.label, c.temp, c.code, c.isDay)).join("");
+    const cards = cityWeather.map(cityCardHtml).join("");
 
-    weatherEl.innerHTML = currentHtml + `<div class="mcl-weather-forecast">${cards}</div>`;
+    // Lay the cards out in two rows (the shape the panel was designed
+    // around), so the column count follows the number of cities rather than
+    // being hardcoded. Four or fewer still read better as a single row.
+    const cols = cityWeather.length <= 4 ? cityWeather.length : Math.ceil(cityWeather.length / 2);
+    weatherEl.innerHTML = currentHtml +
+      `<div class="mcl-weather-forecast" style="--weather-cols: ${cols}">${cards}</div>`;
   }
 
   // ---- rotating box: Cultural Calendar / Breaks / Birthdays / Clubs ----
@@ -1032,25 +1200,25 @@ function main() {
   // xx = ISO 3166-1 alpha-2. We fetch it once and inject it inline so its
   // paths can be styled (shaded) and measured (for pin placement).
   //
-  // The map rotates on its own self-scheduling timer between:
-  //   - one "where <language> is spoken" page per row of mcl-map-languages.csv
-  //     (countries shaded; held for MAP_SHADE_MS)
-  //   - "Our exchange partners"  (mcl-map-places.csv rows with kind=partner)
-  //   - "Where SLUH travels"     (mcl-map-places.csv rows with kind=trip)
-  // The two pin pages show ONE place at a time -- a pulsing dot + its name --
-  // stepping through up to PINS_PER_PASS of them, MAP_PIN_MS each.
+  // The map rotates on its own self-scheduling timer through a playlist
+  // (mapPages) in which every entry is ONE thing:
+  //   - type "shade": a "where <language> is spoken" page, one per row of
+  //     mcl-map-languages.csv (countries shaded; held for MAP_SHADE_MS)
+  //   - type "pin": a single place from mcl-map-places.csv -- a pulsing dot
+  //     + its name, held for MAP_PIN_MS, titled by its kind (see PIN_PAGES)
+  // computeMapPages() shuffles and interleaves those, so the panel moves a
+  // language -> a trip -> a partner rather than marching through one CSV at
+  // a time. One pass covers everything, then it reshuffles.
 
   const MAP_SHADE_MS = 8000;
   const MAP_PIN_MS = 4200;
-  const PINS_PER_PASS = 6;
   const MAP_ZOOM_SCALE = 3.6;    // how far in a featured pin zooms
   let mapSvg = null;             // the injected <svg> element
   let mapViewBox = null;         // { x, y, w, h } from the SVG
   let mapLanguages = [];
   let mapPlaces = [];
-  let mapPages = [];
+  let mapPages = [];             // the shuffled playlist; rebuilt each pass
   let mapIndex = 0;
-  let pinCursor = 0;             // which place within a pin page is showing
   let mapTimer = null;
   let shadedPaths = [];          // paths touched by a "spoken" page, to reset next time
   let featuredPaths = [];        // the featured pin's country, to reset next time
@@ -1086,13 +1254,89 @@ function main() {
     renderMap();
   }
 
+  // The kinds of place in mcl-map-places.csv, each with the heading its
+  // pages carry. Each kind is its own category in the shuffle, so adding one
+  // here gives it an even share of the rotation. A kind with no rows in the
+  // CSV is simply skipped, so this list can stay ahead of the data.
+  const PIN_PAGES = [
+    { kind: "partner", title: "Our exchange partners" },
+    { kind: "trip", title: "Where SLUH travels" },
+    { kind: "senior", title: "Senior Project sites" },
+  ];
+
+  // "Where Latin is spoken" would be an odd thing to put on a wall, so the two
+  // classical languages get their own phrasing -- their country list is
+  // "where the language left its mark" (see mcl-map-languages.csv), not a
+  // map of who speaks it today.
+  const CLASSICAL_LANGUAGES = new Set(["Latin", "Classical Greek", "Greek"]);
+
+  function shadeTitle(language) {
+    return CLASSICAL_LANGUAGES.has(language)
+      ? `Where ${language} left its mark`
+      : `Where ${language} is spoken`;
+  }
+
+  function shuffled(items) {
+    const out = items.slice();
+    for (let i = out.length - 1; i > 0; i--) {      // Fisher-Yates
+      const j = Math.floor(Math.random() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  }
+
+  // Weave the categories together. Each entry is given a position on an
+  // imaginary 0..1 track, spread evenly across its OWN category: entry i of n
+  // sits at (i + 0.5) / n. Sorting everything by that position mixes the
+  // categories while keeping each one evenly spaced over the pass -- so the
+  // 18 trips fall between the 7 languages instead of bunching up in a block
+  // of their own. The jitter keeps two same-sized categories from locking
+  // into step and always appearing in the same pairs.
+  function interleaveCategories(queues) {
+    const spread = [];
+    for (const queue of queues) {
+      queue.forEach((entry, i) => {
+        const jitter = (Math.random() - 0.5) * (0.5 / queue.length);
+        spread.push({ entry, at: (i + 0.5) / queue.length + jitter });
+      });
+    }
+    spread.sort((a, b) => a.at - b.at);
+    const order = spread.map((s) => s.entry);
+
+    // A big category (trips) still lands next to itself sometimes -- there
+    // are more trips than there are gaps between everything else. Where two
+    // in a row share a category, pull the nearest entry of a different one
+    // forward into the second slot. That breaks up the easy runs without
+    // disturbing the overall spread.
+    for (let i = 1; i < order.length; i++) {
+      if (order[i].category !== order[i - 1].category) continue;
+      for (let j = i + 1; j < order.length; j++) {
+        if (order[j].category === order[i - 1].category) continue;
+        [order[i], order[j]] = [order[j], order[i]];
+        break;
+      }
+    }
+    return order;
+  }
+
+  // The playlist: every language and every place, shuffled within its own
+  // category and then interleaved. Rebuilt at the end of each pass, so no
+  // two passes run in the same order.
   function computeMapPages() {
-    const pages = mapLanguages.map((lang) => ({ type: "shade", lang }));
-    const partners = mapPlaces.filter((p) => p.kind === "partner");
-    const trips = mapPlaces.filter((p) => p.kind === "trip");
-    if (partners.length) pages.push({ type: "pins", title: "Our exchange partners", places: partners });
-    if (trips.length) pages.push({ type: "pins", title: "Where SLUH travels", places: trips });
-    return pages;
+    const queues = [];
+    if (mapLanguages.length) {
+      queues.push(shuffled(mapLanguages.map((lang) => ({ type: "shade", category: "language", lang }))));
+    }
+    for (const { kind, title } of PIN_PAGES) {
+      const all = mapPlaces.filter((p) => p.kind === kind);
+      // numbered in CSV order ("4 / 18") BEFORE the shuffle, so a place
+      // always carries the same count however the rotation lands it.
+      const entries = all.map((place, i) => ({
+        type: "pin", category: kind, title, place, sub: `${i + 1} / ${all.length}`,
+      }));
+      if (entries.length) queues.push(shuffled(entries));
+    }
+    return interleaveCategories(queues);
   }
 
   // The SVG is rendered with preserveAspectRatio "meet", so it's letterboxed
@@ -1105,18 +1349,6 @@ function main() {
     if (wrap.width / wrap.height > vbAR) { h = wrap.height; w = h * vbAR; }
     else { w = wrap.width; h = w / vbAR; }
     return { offX: (wrap.width - w) / 2, offY: (wrap.height - h) / 2, w, h, wrapW: wrap.width, wrapH: wrap.height };
-  }
-
-  // Debugging aid: draws mapRenderRect()'s rectangle as a visible outline, so
-  // it's obvious at a glance exactly how much of the panel the map's own
-  // content fills versus how much is letterboxing either side of it.
-  function renderMapFrame() {
-    if (!mapViewBox) return;
-    const r = mapRenderRect();
-    mapFrameEl.style.left = `${r.offX}px`;
-    mapFrameEl.style.top = `${r.offY}px`;
-    mapFrameEl.style.width = `${r.w}px`;
-    mapFrameEl.style.height = `${r.h}px`;
   }
 
   // viewBox coords -> percentage offsets within the map wrapper.
@@ -1260,10 +1492,9 @@ function main() {
     const page = mapPages[mapIndex];
 
     // the heading updates whether or not the SVG is ready
-    mapTitleEl.textContent = page.type === "shade" ? `Where ${page.lang.language} is spoken` : page.title;
+    mapTitleEl.textContent = page.type === "shade" ? shadeTitle(page.lang.language) : page.title;
     mapSubEl.textContent = page.type === "shade" ? "" : page.sub;
     if (!mapSvg || !mapViewBox) return; // SVG not loaded yet (or failed to)
-    renderMapFrame();
 
     if (page.type === "shade") {
       clearFeatured();
@@ -1292,16 +1523,12 @@ function main() {
   }
 
   // one place at a time: the map zooms in on it, its country gets a light
-  // highlight, and a pulsing dot carries its name. The rest of the current
-  // page's places (and the other kind's) still show as plain dots, dimmed,
-  // so the department's fuller reach is visible even while one is featured.
-  // The map page steps through up to PINS_PER_PASS of page.places on the map
-  // timer; pinCursor says which one is currently featured.
+  // highlight, and a pulsing dot carries its name. Every OTHER place -- the
+  // rest of its kind and all the others -- still shows as a plain dot,
+  // dimmed, so the department's fuller reach is visible even while one is
+  // featured. The subtitle ("7 / 18") counts this place within its own kind.
   function renderMapPin(page) {
-    const shown = Math.min(page.places.length, PINS_PER_PASS);
-    if (pinCursor >= shown) pinCursor = 0;
-    const place = page.places[pinCursor];
-    mapSubEl.textContent = `${pinCursor + 1} / ${shown}`;
+    const place = page.place;
 
     // zoom onto the country's own centroid -- not the nudged pin position --
     // so the highlighted shape is always what ends up framed/centered, even
@@ -1341,9 +1568,10 @@ function main() {
       <span class="mcl-pin-card">${place.label}${place.detail ? `<span class="mcl-pin-card-sub">${place.detail}</span>` : ""}</span>`;
     mapPinsEl.appendChild(pin);
 
-    // small pager dots below the map
-    mapLegendEl.innerHTML = Array.from({ length: shown }, (_, i) =>
-      `<span class="mcl-pager-dot${i === pinCursor ? " is-on" : ""}"></span>`).join("");
+    // No pager dots here any more: a pin page is a single place now, and the
+    // places around it in the playlist are of other kinds, so a row of dots
+    // would be counting nothing. The "7 / 18" subtitle carries the progress.
+    mapLegendEl.innerHTML = "";
   }
 
   // ---- map self-scheduling rotation ----
@@ -1351,48 +1579,35 @@ function main() {
   function scheduleMapTick() {
     clearTimeout(mapTimer);
     if (!mapPages.length) return;
-    const dwell = mapPages[mapIndex].type === "pins" ? MAP_PIN_MS : MAP_SHADE_MS;
+    const dwell = mapPages[mapIndex].type === "pin" ? MAP_PIN_MS : MAP_SHADE_MS;
     mapTimer = setTimeout(mapTick, dwell);
   }
 
+  // Every tick moves to the next entry in the playlist. Fade the whole map
+  // (not just the pin overlay) out first, so the zoom/pan snap and the
+  // country highlight change happen while hidden. Nothing should ever be
+  // seen moving; the fade is the only visible transition.
   function mapTick() {
-    const page = mapPages[mapIndex];
-    const shown = page.type === "pins" ? Math.min(page.places.length, PINS_PER_PASS) : 0;
-
-    if (page.type === "pins" && pinCursor + 1 < shown) {
-      // step to the next place on this page -- fade the whole map (not just
-      // the pin overlay) out first, so the zoom/pan snap and the country
-      // highlight change happen while hidden. Nothing should ever be seen
-      // moving; the fade is the only visible transition.
-      pinCursor += 1;
+    if (mapPages.length > 1) {
       mapWrapEl.classList.add("is-fading");
+      mapTitleEl.classList.add("is-fading");
       mapSubEl.classList.add("is-fading");
       mapLegendEl.classList.add("is-fading");
-      setTimeout(() => {
-        renderMapPin(page);
-        mapWrapEl.classList.remove("is-fading");
-        mapSubEl.classList.remove("is-fading");
-        mapLegendEl.classList.remove("is-fading");
-        scheduleMapTick();
-      }, FADE_MS);
-    } else {
-      // move to the next page -- same idea, plus the title (which doesn't
-      // change on a same-page pin step, so it's left alone there)
-      if (mapPages.length > 1) {
-        mapWrapEl.classList.add("is-fading");
-        mapTitleEl.classList.add("is-fading");
-        mapSubEl.classList.add("is-fading");
-      }
-      setTimeout(() => {
-        mapIndex = (mapIndex + 1) % mapPages.length;
-        pinCursor = 0;
-        renderMap();
-        mapWrapEl.classList.remove("is-fading");
-        mapTitleEl.classList.remove("is-fading");
-        mapSubEl.classList.remove("is-fading");
-        scheduleMapTick();
-      }, FADE_MS);
     }
+    setTimeout(() => {
+      mapIndex += 1;
+      if (mapIndex >= mapPages.length) {
+        // end of a pass -- reshuffle, so the next one weaves differently
+        mapPages = computeMapPages();
+        mapIndex = 0;
+      }
+      renderMap();
+      mapWrapEl.classList.remove("is-fading");
+      mapTitleEl.classList.remove("is-fading");
+      mapSubEl.classList.remove("is-fading");
+      mapLegendEl.classList.remove("is-fading");
+      scheduleMapTick();
+    }, FADE_MS);
   }
 
   // ---- fetch loops ----
@@ -1402,7 +1617,7 @@ function main() {
     catch (e) { teachersData = []; }
   }
   async function refreshBreaks() {
-    try { breakNameOverrides = parseBreaksCsv(await fetchCsv("mcl-breaks.csv")); }
+    try { breakNameOverrides = parseBreaksCsv(await fetchCsv("../data/breaks.csv")); }
     catch (e) { breakNameOverrides = new Map(); }
   }
   async function refreshCultureData() {
@@ -1410,8 +1625,20 @@ function main() {
     catch (e) { cultureData = []; }
   }
   async function refreshBirthdays() {
-    try { birthdaysData = parseBirthdaysCsv(await fetchCsv("mcl-birthdays.csv")); }
+    try { birthdaysData = parseBirthdaysCsv(await fetchCsv("../data/birthdays.csv")); }
     catch (e) { birthdaysData = []; }
+  }
+  async function refreshSayings() {
+    let rows = [];
+    try { rows = parseSayingsCsv(await fetchCsv("mcl-sayings.csv")); }
+    catch (e) { rows = []; }
+    const wasFallback = sayings === FALLBACK_SAYINGS;
+    sayings = rows.length ? interleaveByLanguage(rows) : FALLBACK_SAYINGS;
+    if (sayingIndex >= sayings.length) sayingIndex = 0;
+    // Repaint only while the header is still on the fallback list. A later
+    // refresh lets the saying on screen finish its turn instead of swapping
+    // the text out from under whoever is reading it.
+    if (wasFallback) showSaying();
   }
   async function refreshClubs() {
     try { clubsData = parseClubsCsv(await fetchCsv("mcl-clubs.csv")); }
@@ -1421,13 +1648,21 @@ function main() {
     try { citiesData = parseCitiesCsv(await fetchCsv("mcl-cities.csv")); }
     catch (e) { citiesData = []; }
   }
+  // Rebuilding the playlist reshuffles it and restarts the pass, so a
+  // routine half-hourly refresh only does it when the CSVs actually changed
+  // -- otherwise the pass on screen would keep getting cut short and start
+  // repeating places it had already been through.
+  let mapDataSignature = "";
   async function refreshMapData() {
     try { mapLanguages = parseMapLanguagesCsv(await fetchCsv("mcl-map-languages.csv")); }
     catch (e) { mapLanguages = []; }
     try { mapPlaces = parseMapPlacesCsv(await fetchCsv("mcl-map-places.csv")); }
     catch (e) { mapPlaces = []; }
+    const signature = JSON.stringify([mapLanguages, mapPlaces]);
+    if (signature === mapDataSignature && mapPages.length) return;
+    mapDataSignature = signature;
     mapPages = computeMapPages();
-    if (mapIndex >= mapPages.length) { mapIndex = 0; pinCursor = 0; }
+    if (mapIndex >= mapPages.length) mapIndex = 0;
     renderMap();
   }
 
@@ -1446,6 +1681,7 @@ function main() {
     renderDaily(now);
     renderTeachers(now);
     renderRotator(now);
+    updateCityClocks();
   }
 
   everyThirtyMin(refreshTeachers);
@@ -1453,6 +1689,7 @@ function main() {
   everyThirtyMin(refreshCultureData);
   everyThirtyMin(refreshBirthdays);
   everyThirtyMin(refreshClubs);
+  everyThirtyMin(refreshSayings);
 
   // cities must load before the first weather fetch builds its city list
   refreshCities().then(fetchWeather);
@@ -1463,20 +1700,11 @@ function main() {
   refreshMapData().then(loadMapSvg).then(scheduleMapTick);
   setInterval(refreshMapData, CSV_REFRESH_MS);
 
-  // keeps the debug frame (and the letterbox math it's drawn from) accurate
-  // if the window is ever resized -- doesn't happen on the kiosk itself, but
-  // matters while eyeballing this in a regular browser window.
-  let mapFrameResizeTimer = null;
-  window.addEventListener("resize", () => {
-    clearTimeout(mapFrameResizeTimer);
-    mapFrameResizeTimer = setTimeout(renderMapFrame, 150);
-  });
-
   watchForNewVersion();
   render();
   setInterval(render, REFRESH_MS);
   setInterval(rotateToNextPage, ROTATE_MS);
-  setInterval(rotateGreeting, 3500);
+  setInterval(rotateSaying, SAYING_ROTATE_MS);
 }
 
 main();
