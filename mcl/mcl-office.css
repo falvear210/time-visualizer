@@ -28,6 +28,14 @@
 
 * { box-sizing: border-box; }
 
+html {
+  /* Scale the whole layout with the viewport width so it fills any 16:9
+     screen correctly without browser zoom. Calibrated so 1rem = 16px at
+     the TV's native 1920px; a 1440px laptop gets ~12px (≈75% scale).
+     Clamped at 16px so it doesn't grow on 4K displays. */
+  font-size: clamp(10px, 0.8333vw, 16px);
+}
+
 html, body {
   margin: 0;
   padding: 0;
