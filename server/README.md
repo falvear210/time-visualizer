@@ -122,6 +122,14 @@ cat > /var/www/sluhtime.alvear.cl/conf/nginx/office-folders.conf <<'CONF'
 # browser -- so deep links survive on their own.
 location = /math-office.html { return 301 https://sluhtime.alvear.cl/math/; }
 location = /mcl-office.html  { return 301 https://sluhtime.alvear.cl/mcl/; }
+
+# Never cache index.html -- the ?v= cache-busters on JS/CSS only work if the
+# HTML that references them is always fresh. A stale cached index.html that
+# references old ?v= numbers loads new JS against old DOM elements and crashes.
+location ~ ^/(math|mcl)/index\.html$ { expires -1; add_header Cache-Control "no-cache, must-revalidate"; }
+location = /math/ { expires -1; add_header Cache-Control "no-cache, must-revalidate"; }
+location = /mcl/  { expires -1; add_header Cache-Control "no-cache, must-revalidate"; }
+location = /      { expires -1; add_header Cache-Control "no-cache, must-revalidate"; }
 CONF
 nginx -t && systemctl reload nginx
 for u in math-office.html mcl-office.html math/ mcl/; do
