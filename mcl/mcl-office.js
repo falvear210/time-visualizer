@@ -56,7 +56,7 @@ const DEMO_MODE      = true;
 const DEMO_DATE      = "20261002"; // Fri Oct 2 2026 · periods F G A B C
 const DEMO_START_MIN = 475;        // 7:55 AM -- quiet minutes before first period
 const DEMO_END_MIN   = 920;        // 3:20 PM -- just after last period ends
-const DEMO_SPEED     = 20;         // simulated minutes per real minute (20× real time)
+const DEMO_SPEED     = 100;        // simulated minutes per real minute (100× real time)
 
 // ---- remote reload (kiosk support) ----
 // Same as math-office: this runs unattended with no one to hit refresh, so
