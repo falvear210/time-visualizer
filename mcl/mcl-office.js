@@ -37,6 +37,27 @@ const TIME_ZONE = "America/Chicago";
 const REFRESH_MS = 1000; // no interactive elements, so a full rebuild every tick is cheap and safe
 const COUNTDOWN_START_MINUTES = 7 * 60 + 30; // countdowns/"teaching next" don't show before 7:30am
 
+// ---- demo mode ----------------------------------------------------------
+// Flip DEMO_MODE to true so the dashboard loops through a real school day
+// at 20× speed (~22 min/cycle) for department review without waiting for
+// an actual school day. Set it back to false before deploying to production.
+//
+// DEMO_DATE is a real calendar day (Oct 2, 2026: 5 periods F G A B C),
+// so the Cultural Calendar, breaks, and birthdays all render from that
+// date's perspective. Weather stays live -- it doesn't change the demo.
+//
+// At 20× each period (~65 min) fills up in about 3 real minutes.
+// A "DEMO" badge appears in the header as a reminder.
+//
+// To reset: change DEMO_MODE back to false and bump the ?v= cache-busters
+// in index.html so the TV kiosk picks up the production JS on its next
+// version-poll reload.
+const DEMO_MODE      = true;
+const DEMO_DATE      = "20261002"; // Fri Oct 2 2026 · periods F G A B C
+const DEMO_START_MIN = 475;        // 7:55 AM -- quiet minutes before first period
+const DEMO_END_MIN   = 920;        // 3:20 PM -- just after last period ends
+const DEMO_SPEED     = 20;         // simulated minutes per real minute (20× real time)
+
 // ---- remote reload (kiosk support) ----
 // Same as math-office: this runs unattended with no one to hit refresh, so
 // it watches version.txt (bumped by deploy.sh on every deploy) and reloads
@@ -102,6 +123,12 @@ function weekdayIndex(dateStr) {
 }
 
 function nowInChicago() {
+  if (DEMO_MODE) {
+    // Simulated time: loops DEMO_DATE's school day at DEMO_SPEED×.
+    const dur    = DEMO_END_MIN - DEMO_START_MIN;
+    const simMin = DEMO_START_MIN + (Date.now() / 60000 * DEMO_SPEED) % dur;
+    return { dateStr: DEMO_DATE, minutes: Math.floor(simMin), seconds: Math.floor((simMin % 1) * 60) };
+  }
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: TIME_ZONE, hour12: false,
     year: "numeric", month: "2-digit", day: "2-digit",
@@ -568,6 +595,8 @@ function main() {
   const clockEl = el("mcl-clock");
   const dateEl = el("mcl-date");
   const sayingBoxEl = el("mcl-saying-box");
+  const demoBadgeEl = el("mcl-demo-badge");
+  if (DEMO_MODE && demoBadgeEl) demoBadgeEl.hidden = false;
   const sayingEl = el("mcl-saying");
   const sayingEnEl = el("mcl-saying-en");
   const sayingTagEl = el("mcl-saying-tag");
@@ -693,8 +722,10 @@ function main() {
   let lastLiveBarKeys = new Set();
   function checkPeriodCompletion(now) {
     const newKeys = liveBarKeys(now);
-    for (const key of lastLiveBarKeys) {
-      if (!newKeys.has(key)) fireConfetti();
+    if (!DEMO_MODE) {
+      for (const key of lastLiveBarKeys) {
+        if (!newKeys.has(key)) fireConfetti();
+      }
     }
     lastLiveBarKeys = newKeys;
   }

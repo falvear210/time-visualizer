@@ -123,6 +123,23 @@ html, body {
 .mcl-saying-tag:not(:empty)::before { content: "·"; margin-right: 0.45rem; }
 
 .mcl-header-time { text-align: right; }
+
+.mcl-demo-badge {
+  position: absolute;
+  top: 0.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bg, #fff);
+  background: #e65c00;
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 10;
+}
 #mcl-date { display: block; font-size: 1.2rem; color: var(--text-dim); }
 #mcl-clock { display: block; font-size: 2.1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 
