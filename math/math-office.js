@@ -1,5 +1,5 @@
 // =============================================================================
-// math-office.js -- all the behavior for math-office.html, the wall display
+// math-office.js -- all the behavior for math/index.html, the wall display
 // that runs full-screen and unattended on a TV in the math office.
 //
 // Standalone: it reads the same data.js the main site uses, but shares no
@@ -36,7 +36,7 @@ const COUNTDOWN_START_MINUTES = 7 * 60 + 30; // countdowns/"teaching next" don't
 // watches version.txt (bumped by deploy.sh on every deploy) and reloads
 // itself within one polling interval of a new deploy landing -- no SSH
 // into the kiosk needed for routine updates.
-const VERSION_URL = "version.txt";
+const VERSION_URL = "../version.txt";
 const VERSION_CHECK_MS = 60 * 1000;
 
 async function fetchVersion() {
@@ -167,6 +167,21 @@ function periodProgress(day, period, now, wave) {
   return (now.minutes - startMinutes) / (endMinutes - startMinutes);
 }
 
+// A percent meant for human eyes, NEVER rounded up. Math.round() turns 99.7%
+// into "100%", which lets a bar announce that a period (or a semester, or the
+// year) is over while it is still running -- the one lie a progress bar must
+// never tell. So anything short of finished reads at most 99%.
+//
+// Genuinely-finished work arrives here as exactly 100, because periodProgress()
+// returns exactly 1 for a period that's over; the epsilon below only absorbs
+// floating-point dust from summing hundreds of those 1s, so a completed stretch
+// still reads "100%".
+function displayPct(pct) {
+  const clamped = Math.max(0, Math.min(100, pct));
+  if (clamped >= 100 - 1e-9) return 100; // actually done
+  return Math.floor(clamped);            // everything else rounds DOWN
+}
+
 // whether this period is actually in progress right now (see app.js's
 // isPeriodLive) -- periodProgress() truncates to whole minutes, so it reads
 // exactly 0 for the entire first minute of a period, indistinguishable from
@@ -249,17 +264,28 @@ function calendarDaysUntil(now, targetDate) {
   return Math.round((Date.UTC(b.y, b.m - 1, b.d) - Date.UTC(a.y, a.m - 1, a.d)) / 86400000);
 }
 
-// ---- teachers (loaded from teachers.csv -- one row per teacher/period,
+// ---- teachers (loaded from math-teachers.csv -- one row per teacher/period,
 // since the same teacher can be in a different room for different
 // periods) ----
 
-const TEACHERS_CSV_URL = "teachers.csv";
+const TEACHERS_CSV_URL = "math-teachers.csv";
 const TEACHERS_REFRESH_MS = 30 * 60 * 1000;
+
+// Split a hand-edited CSV into its data rows. Drops blank lines and any "#"
+// comment line -- the shared files in data/ carry a comment header explaining
+// their columns, so the office can edit them without opening the code -- then
+// drops the header row, which is whatever line survives first.
+function csvRows(text) {
+  const lines = text.split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("#"));
+  return lines.slice(1);
+}
 
 // naive comma-split -- fine as long as names/rooms in the CSV don't
 // contain commas, which keeps this dependency-free.
 function parseTeachersCsv(text) {
-  const lines = text.trim().split("\n").slice(1); // drop the header row
+  const lines = csvRows(text);
   const byName = new Map();
   for (const line of lines) {
     if (!line.trim()) continue;
@@ -273,14 +299,15 @@ function parseTeachersCsv(text) {
   return [...byName.values()];
 }
 
-// ---- rotator data (breaks.csv / birthdays.csv / food.csv -- lets the
+// ---- rotator data (../data/breaks.csv + ../data/birthdays.csv are shared
+// with the other dashboards; math-food.csv is ours alone -- lets the
 // office edit/add birthdays, free-food days, and break-name overrides
 // without touching code or the school-year calendar; three separate files
 // so each is a simple, single-purpose list to hand-edit) ----
 
-const BREAKS_CSV_URL = "breaks.csv";
-const BIRTHDAYS_CSV_URL = "birthdays.csv";
-const FOOD_CSV_URL = "food.csv";
+const BREAKS_CSV_URL = "../data/breaks.csv";
+const BIRTHDAYS_CSV_URL = "../data/birthdays.csv";
+const FOOD_CSV_URL = "math-food.csv";
 const ROTATOR_REFRESH_MS = 30 * 60 * 1000;
 const ROTATOR_LIST_LIMIT = 14; // the box body scrolls if a page runs longer than this fits
 
@@ -290,7 +317,7 @@ const ROTATOR_LIST_LIMIT = 14; // the box body scrolls if a page runs longer tha
 // break-name overrides: date is the break's start date, name is what to
 // display instead of the auto-detected label from the school calendar.
 function parseBreaksCsv(text) {
-  const lines = text.trim().split("\n").slice(1);
+  const lines = csvRows(text);
   const overrides = new Map();
   for (const line of lines) {
     if (!line.trim()) continue;
@@ -301,10 +328,11 @@ function parseBreaksCsv(text) {
   return overrides;
 }
 
-// birthdays: an optional third column of "math" marks a math-department
-// birthday so it can be rendered in bold on the shared office display.
+// birthdays: the whole faculty/staff list, shared with every other
+// dashboard (data/birthdays.csv). The third column is the person's
+// department; "math" is the only one this display renders in bold.
 function parseBirthdaysCsv(text) {
-  const lines = text.trim().split("\n").slice(1);
+  const lines = csvRows(text);
   const birthdays = [];
   for (const line of lines) {
     if (!line.trim()) continue;
@@ -317,7 +345,7 @@ function parseBirthdaysCsv(text) {
 }
 
 function parseFoodCsv(text) {
-  const lines = text.trim().split("\n").slice(1);
+  const lines = csvRows(text);
   const food = [];
   for (const line of lines) {
     if (!line.trim()) continue;
@@ -335,6 +363,10 @@ function parseFoodCsv(text) {
 const WEATHER_LAT = 38.6274;
 const WEATHER_LON = -90.2688;
 const WEATHER_REFRESH_MS = 30 * 60 * 1000;
+// After a failed fetch, don't wait the full refresh interval to try again --
+// most failures are transient (a DNS/network hiccup around boot, a brief
+// Open-Meteo blip) and clear within a minute or two.
+const WEATHER_RETRY_MS = 2 * 60 * 1000;
 const WEATHER_URL = `https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_LAT}&longitude=${WEATHER_LON}` +
   "&current=temperature_2m,weather_code,is_day" +
   "&hourly=temperature_2m,weather_code,is_day" +
@@ -502,12 +534,12 @@ function main() {
 
   async function fetchTeachers() {
     try {
-      // cache-bust every fetch -- teachers.csv is a plain static file, so
+      // cache-bust every fetch -- math-teachers.csv is a plain static file, so
       // without this a browser (or the file server) can keep serving
       // whatever it first fetched even after the file's been updated on
       // disk, well past the 30-minute refresh interval.
       const res = await fetch(`${TEACHERS_CSV_URL}?t=${Date.now()}`, { cache: "no-store" });
-      if (!res.ok) throw new Error(`teachers.csv fetch failed: ${res.status}`);
+      if (!res.ok) throw new Error(`math-teachers.csv fetch failed: ${res.status}`);
       teachersData = parseTeachersCsv(await res.text());
     } catch (e) {
       teachersData = [];
@@ -543,7 +575,7 @@ function main() {
   async function fetchFood() {
     try {
       const res = await fetch(`${FOOD_CSV_URL}?t=${Date.now()}`, { cache: "no-store" });
-      if (!res.ok) throw new Error(`food.csv fetch failed: ${res.status}`);
+      if (!res.ok) throw new Error(`math-food.csv fetch failed: ${res.status}`);
       foodData = parseFoodCsv(await res.text());
     } catch (e) {
       foodData = [];
@@ -552,15 +584,24 @@ function main() {
 
   let weatherData = null;
 
+  // Self-scheduling: each run queues the next one -- WEATHER_REFRESH_MS after a
+  // success, but only WEATHER_RETRY_MS after a failure so a transient outage
+  // doesn't leave "Weather unavailable" on screen for a full half hour.
+  let weatherTimer = null;
   async function fetchWeather() {
+    let ok = false;
     try {
       const res = await fetch(WEATHER_URL);
       if (!res.ok) throw new Error(`weather fetch failed: ${res.status}`);
       weatherData = await res.json();
+      ok = true;
     } catch (e) {
+      console.warn("weather fetch failed, retrying soon:", e);
       weatherData = null;
     }
     renderWeather();
+    clearTimeout(weatherTimer);
+    weatherTimer = setTimeout(fetchWeather, ok ? WEATHER_REFRESH_MS : WEATHER_RETRY_MS);
   }
 
   function weatherCardHtml(label, temp, code, isDay) {
@@ -678,7 +719,7 @@ function main() {
       const row = rows[i];
       if (!row) return;
       const progress = periodProgress(today, s.p, now, s.wave);
-      const pct = Math.round(progress * 100);
+      const pct = displayPct(progress * 100);
       row.classList.toggle("is-live", isPeriodLive(today, s.p, now, s.wave));
       row.querySelector(".mo-bar-top span:last-child").textContent = pct + "%";
       row.querySelector(".mo-bar-fill").style.width = pct + "%";
@@ -687,7 +728,7 @@ function main() {
 
   function periodBarHtml(day, p, now, wave, waveLabel) {
     const progress = periodProgress(day, p, now, wave);
-    const pct = Math.round(progress * 100);
+    const pct = displayPct(progress * 100);
     const isLive = isPeriodLive(day, p, now, wave);
     const label = waveLabel ? `Period ${p.label} (${waveLabel})` : `Period ${p.label}`;
 
@@ -937,8 +978,7 @@ function main() {
   setInterval(fetchBirthdays, ROTATOR_REFRESH_MS);
   fetchFood();
   setInterval(fetchFood, ROTATOR_REFRESH_MS);
-  fetchWeather();
-  setInterval(fetchWeather, WEATHER_REFRESH_MS);
+  fetchWeather(); // self-schedules its own refresh/retry loop
   watchForNewVersion();
   render();
   setInterval(render, REFRESH_MS);

@@ -12,7 +12,7 @@ work even when opened directly off disk with no web server running.
 
 ---
 
-## The two pages
+## The pages
 
 ### 1. `index.html` — the personal start page
 
@@ -57,7 +57,7 @@ Things worth knowing about the main site:
   handy when testing a schedule edit. The `#debug` hash is independent of
   the tab hashes; it only shows the field, it doesn't switch tabs.
 
-### 2. `math-office.html` — the wall display
+### 2. `/math/` — the wall display
 
 A separate, standalone dashboard designed to run unattended full-screen on
 a TV in the math office. It shares `data.js` with the main site but has its
@@ -71,14 +71,15 @@ rotating panel of upcoming breaks / birthdays / free-food days, the list of
 teachers teaching this period and their rooms, and current local weather.
 
 Its extra data comes from four hand-editable CSV files that the office can
-update without touching any code:
+update without touching any code — two of its own, and two **shared** with
+every other dashboard (see [Shared data](#shared-data)):
 
 | File | Purpose |
 |---|---|
-| `teachers.csv` | `name,period,room` — one row per teacher per period (the same teacher can be in a different room different periods). |
-| `birthdays.csv` | `date,name,dept` — an optional `dept` of `math` renders that birthday in bold. |
-| `food.csv` | `date,name` — free-food / catered-lunch days. |
-| `breaks.csv` | `date,name` — override the auto-detected label for a break that starts on `date`. |
+| `math/math-teachers.csv` | `name,period,room` — one row per teacher per period (the same teacher can be in a different room different periods). |
+| `math/math-food.csv` | `date,name` — free-food / catered-lunch days. |
+| `data/birthdays.csv` | **shared** — the whole faculty/staff list. A `dept` of `math` renders that birthday in bold *here*. |
+| `data/breaks.csv` | **shared** — override the auto-detected label for a break that starts on `date`. |
 
 The dashboard re-fetches these every 30 minutes, and it also watches
 `version.txt` (bumped by `deploy.sh` on every deploy) so it reloads itself
@@ -88,6 +89,130 @@ routine updates.
 Weather comes from [Open-Meteo](https://open-meteo.com/) (free, no API key),
 hardcoded to SLUH's coordinates since the display only ever runs in one
 place.
+
+### 3. `/mcl/` — the Modern & Classical Languages wall display
+
+A sibling of `/math/` for the languages department: same SLUH
+theme, same "runs unattended full-screen on a TV" job, same `data.js` for
+the school calendar, its own trimmed-down copy of the schedule helpers.
+`mcl-office.js` / `mcl-office.css` are a deliberate fork of the
+`math-office.*` files — each helper block points back to its counterpart.
+
+What's different from the math display:
+
+- **A rotating saying** in the header — a proverb in one of the taught
+  languages (*Petit à petit, l'oiseau fait son nid.*), its English meaning
+  in smaller type underneath, and a dim tag naming the language plus, where
+  it helps, a romanization or an attribution (*Classical Greek · pánta rheî
+  · Heraclitus*). It comes from `mcl-sayings.csv` and turns every 13
+  seconds — slow, because unlike the one-word *Hola* this spot started as, a
+  proverb has to be read. The rotation is round-robin **by language**, so
+  consecutive turns are always in different languages no matter how the file
+  is grouped; if the CSV is missing or empty the header falls back to that
+  original *Hola · Bonjour · مرحبًا · 你好 · Привет · Salvē · Χαῖρε* rotation
+  rather than going blank.
+- **A world-map panel** in place of "Year at a Glance". It rotates between:
+  one "Where *&lt;language&gt;* is spoken" page per row of
+  `mcl-map-languages.csv` (the countries shaded — one per language the
+  department teaches: Spanish, French, Chinese, Arabic, Russian, and for the
+  classical languages "where the language left its mark"), then
+  **Our exchange partners**, **Where SLUH travels**, and
+  **Senior Project sites**. The three pin pages show **one place at a
+  time**: the map zooms and re-centers on that country, tints it, and drops
+  a pulsing dot with its name ("Colegio San Ignacio El Bosque — Santiago ·
+  Chile") — while the *other* places on the list stay visible as small
+  dimmed dots, so the department's fuller reach still shows through. Six
+  places per pass, and a page with more than six advances its window each
+  time the rotation leaves it, so a long list (18 travel programs) is walked
+  through over successive passes instead of replaying the same first six.
+  The zoom/highlight/dots for the next place are all set while the panel is
+  faded out, so nothing is ever seen moving.
+
+  The map itself is `world-map.svg`, built by
+  [`scripts/build_world_map.py`](scripts/build_world_map.py) from Natural
+  Earth's public-domain 110m country boundaries (cached at
+  `data/source/ne_110m_admin_0_countries.geojson`), projected with **Equal Earth**
+  — an equal-*area* projection, so a country's size on screen matches its
+  real area instead of the Mercator-style bias toward Greenland/Russia/
+  Canada that most simple world maps have. Each country is one `<path>`
+  keyed by its ISO 3166-1 alpha-2 code, carrying `data-lx`/`data-ly` —
+  Natural Earth's own hand-curated "best point for this country's label",
+  projected the same way — which is what the pin/zoom logic in
+  `mcl-office.js` actually anchors to (a geometric centroid would land in
+  the Arctic for Canada or Russia, or the Atlantic for France once its
+  overseas departments are counted). Its viewBox is cropped to
+  `LON_CROP_MIN`/`MAX` in the script (currently -160°/155°) rather than the
+  full -180..180 world — every country still gets its full geometry, so
+  nothing referenced by the CSVs is actually removed, but the ~2:1 whole
+  world was still noticeably flatter than the panel it sits in, and the
+  strip either side (mid-Pacific: Hawaii, Fiji, New Zealand, ...) was empty
+  ocean this dashboard has no use for. A forced non-uniform stretch to fill
+  the panel exactly was tried and dropped instead — it visibly warped
+  coastlines, worse than the letterboxing it was meant to fix. Widen the
+  crop in the script if a future pin needs land outside it. Rerun the
+  script only to refresh from a newer Natural Earth release or to change
+  the crop; country borders don't otherwise change often enough to need it.
+
+  A thin dashed outline (`#mcl-map-frame`) marks exactly where the map's
+  own content lands inside the panel — a debugging aid (see
+  `renderMapFrame` in `mcl-office.js`) for judging letterboxing at a
+  glance, not a permanent part of the design.
+- **"Languages Teaching Now"** — the teacher list, but every row also carries
+  the language + level being taught that period.
+- The **rotating box** carries a **Cultural Calendar** — upcoming festivities
+  and national days for the countries behind the taught languages (plus the
+  UN language days) — and **Cultural & Affinity Clubs**, each club's next
+  meeting time and room, alongside the shared breaks / birthdays pages.
+- **Weather** shows St. Louis as the big current reading, with the cities
+  around the language world beside it in two rows — each with its current
+  temperature and its **local time**, so a glance tells you whether it's a
+  reasonable hour to call a partner school. Times are formatted by `Intl`
+  from the IANA zone in `mcl-cities.csv`, so DST takes care of itself.
+
+Its data comes from its own set of hand-editable CSV files (all prefixed
+`mcl-` so they never collide with the math display's), re-fetched every 30
+minutes:
+
+| File | Purpose |
+|---|---|
+| `mcl/mcl-teachers.csv` | `name,period,room,language` — one row per teacher per period. |
+| `mcl/mcl-culture.csv` | `date,name,language` — `date` is `MM-DD` for a fixed festival (resolved to its next occurrence) or `YYYY-MM-DD` for a movable one (Lunar New Year, Orthodox Easter); `language` is a dim tag. |
+| `mcl/mcl-sayings.csv` | `language,saying,translation,note` — the header proverbs. `note` is optional (a romanization, or who said it) and shows after the language in the dim tag line. **This is the one CSV whose cells may contain commas**, so its values are `"quoted"` and it's read by a real quote-aware splitter (`csvFields`) rather than the naive comma-split the others use; a literal `"` inside a quoted cell is written `""`. |
+| `mcl/mcl-clubs.csv` | `name,weekday,time,location` — cultural / affinity clubs; `time` is 24-hour `HH:MM`. The list shows each club's next meeting. |
+| `data/birthdays.csv` | **shared** — the whole faculty/staff list. A `dept` of `mcl` renders that birthday in bold *here*. |
+| `data/breaks.csv` | **shared** — override a break's auto-detected label. |
+| `mcl/mcl-cities.csv` | `label,lat,lon,tz` — the world cities in the weather panel, each showing its current temperature *and* local time. `tz` is an IANA timezone name (`Europe/Madrid`); it's optional, and a row without one just gets no clock line. They lay out in two rows beside the big St. Louis reading, so an even number of cities looks best. |
+| `mcl/mcl-map-languages.csv` | `language,flag,color,countries` — one "Where X is spoken" page per row; `countries` is a space-separated list of ISO 3166-1 alpha-2 codes (lowercase). Add or remove rows freely. For Latin and Classical Greek the list is "where the language left its mark" (the Romance countries of Europe; Greece and Cyprus), not a native-speaker map. `color` is optional (defaults to the SLUH accent). Note `gf` (French Guiana) is a separate code from `fr`: Natural Earth draws it as part of France, so `build_world_map.py` splits it into its own path (`SPLIT_TERRITORIES`) to keep South America off the Latin page — it's listed explicitly on the French row. |
+| `mcl/mcl-map-places.csv` | `label,kind,country,dx,dy,detail` — `kind` is `partner`, `trip`, or `senior` (one map page each, see `PIN_PAGES` in `mcl-office.js`); the pin drops on `country`'s label point (see below), and `dx,dy` nudge it (percent of the map panel, after the zoom) toward the actual city; `detail` is the caption line. Six per page per pass, in file order, with the window advancing on each pass. |
+
+**Where this data came from.** The names in `mcl-teachers.csv`, the clubs in
+`mcl-clubs.csv`, and every place in `mcl-map-places.csv` are real, taken from
+sluh.org: the [faculty & staff
+directory](https://www.sluh.org/about-sluh/faculty-staff-directory) filtered
+to Modern & Classical Languages, the [student organizations
+list](https://www.sluh.org/discover-sluh/student-organizations) (which names
+each club's moderator), the [Global
+Education](https://www.sluh.org/discover-sluh/globaleducation) program and
+Senior Project listings, and the 2026-27 Curriculum Guide (which is where the
+course names — *Honors Spanish III*, *AP Latin*, *Classical Greek* — come
+from). **What is invented:** every period, room number, and club meeting
+time. The department's real bell schedule isn't published, so those are
+plausible filler — swap them for the real ones before this goes on a wall.
+The proverbs in `mcl-sayings.csv` are the standard, widely-taught ones for
+each language (the Delphic maxims, *ad maiorem Dei gloriam*, *век живи — век
+учись*), with translations kept literal rather than idiomatic so a student
+can map the English back onto the original word by word — the department
+should feel free to replace them with whatever it actually teaches.
+Teacher-to-language assignments are sourced where the site says so (Prep News
+articles, club moderator roles, titles); Dina Fachin and Carson Cornett are
+listed only as MCL faculty, so their Spanish assignment is a guess.
+
+A pin's default position is the country's `data-lx`/`data-ly` (see the
+world-map.svg description above) — already close to the right city for most
+countries, so `dx,dy` only needs to be a small nudge (a couple of percent).
+The zoom itself always centers on that same unnudged point, so the
+highlighted country stays framed regardless of how large a nudge a
+particular pin uses.
 
 ---
 
@@ -110,35 +235,149 @@ Two quirks of the SLUH schedule that the code goes out of its way to handle:
 
 ---
 
+## Shared data
+
+Some data isn't specific to one department. Birthdays cover all faculty and
+staff; a break is a break for the whole school. Both live once, in `data/`,
+and every dashboard fetches them from there:
+
+| File | Purpose |
+|---|---|
+| `data/birthdays.csv` | `date,name,dept` — the whole faculty/staff list. Every dashboard shows every name; `dept` only decides **which names render bold on which display** (`math` → bold on `/math/`, `mcl` → bold on `/mcl/`, blank → bold nowhere). One dept per person. |
+| `data/breaks.csv` | `date,name` — override the auto-detected label for the break starting on `date`. Normally empty; the labels come from the calendar in `data.js`. |
+
+Adding a department means a new `dept` value here **and** a one-line opt-in
+in that dashboard's `parseBirthdaysCsv`. There's no central registry of
+department names — each display only knows its own.
+
+Both files take `#` comment lines, and each carries a header explaining its
+own columns, so the office can edit them without opening any code.
+
+### `data/` vs `data/source/`
+
+`data/` is **shipped** — the dashboards fetch those CSVs from the live site
+at runtime. `data/source/` is **not**: it holds the bulky build inputs
+(`sluh_raw.ics`, the Natural Earth GeoJSON, the teacher `.xlsx`) that
+`scripts/` reads to generate `data.js` and `world-map.svg`. `deploy.sh`
+excludes `data/source/` specifically, so **put new build inputs there**, not
+in `data/` — anything dropped directly in `data/` becomes public.
+
+---
+
 ## Project structure
 
 ```
-index.html, style.css, app.js          the personal start page
-math-office.html, math-office.css,      the wall display
+index.html, style.css, app.js           the personal start page
+math-office.html, mcl-office.html       redirect stubs for the pre-folder URLs
+                                        (see server/nginx-office-folders.conf)
+
+math/                                   the math-office wall display -- /math/
+  index.html, math-office.css,
   math-office.js
+  math-teachers.csv, math-food.csv      its own hand-editable data (section 2)
+
+mcl/                                    the Modern & Classical Languages
+  index.html, mcl-office.css,           wall display -- /mcl/
+  mcl-office.js
+  mcl-*.csv                             its own hand-editable data (section 3)
+  world-map.svg                         built by scripts/build_world_map.py
+
+data/                                   SHIPPED. Data shared by every dashboard:
+  birthdays.csv                         all faculty/staff; dept picks who's bold
+  breaks.csv                            break-label overrides
+  source/                               NOT shipped -- build inputs only:
+    sluh_raw.ics                        raw school calendar export
+    school_year_*.csv, .json            the editable schedule + its JSON build
+    ne_110m_*.geojson                   Natural Earth, for world-map.svg
+    teachers-s1.csv, .xlsx              the wide teacher schedule
+
 data.js                                 the whole year's schedule, embedded as
                                         SCHOOL_YEAR_DATA + QUARTER_MARKS + SENIOR_S2
                                         (this is what the pages actually read)
 version.txt                             deploy timestamp; the wall display polls it to self-reload
 deploy.sh                               rsync the runtime files to the web host
 
-teachers.csv, birthdays.csv,            hand-editable data for the wall display
+api/                                    JSON endpoint for the phone lock-screen widget:
+  period.php                            "what period is it, how long is left" — computed
+                                        server-side in America/Chicago on every request
+  schedule.json                         trimmed copy of data.js, written by csv_to_data.py
+  sluh-period-widget.js                 the Scriptable script that draws the widget
+  sluh-period.scriptable                importable bundle of that script (build-scriptable.py)
+  scriptable.php                        serves the bundle as a download for the phone
+                                        (see api/README.md)
+
+stats.php                               OLD standalone usage counter — kept for its
+                                        historical .stats-data.json only; retired once the
+                                        unified dashboard is confirmed (see "Usage stats")
+
+teachers.csv, birthdays.csv,            hand-editable data for the math-office display
   food.csv, breaks.csv
+mcl-*.csv                               hand-editable data for the mcl-office display
+                                        (teachers, culture, clubs, birthdays, breaks,
+                                        cities, map-languages, map-places)
 
 data/
   school_year_2026_2027.csv             the schedule, hand-editable — THE SOURCE OF TRUTH
   school_year_2026_2027.json            intermediate JSON built from the CSV (not read by the site)
   sluh_raw.ics                          cached copy of the school's public calendar feed
   teachers-s1.csv / .xlsx               raw wide-format teacher schedule (source for teachers.csv)
+  ne_110m_admin_0_countries.geojson     Natural Earth country boundaries (source for world-map.svg)
 
 scripts/
   parse_ics.py                          shared ICS-parsing helpers (not run directly)
   ics_to_csv.py                         ICS  -> CSV.  Run ONCE per year, when the calendar is published.
   csv_to_data.py                        CSV  -> JSON + data.js.  Run after every edit to the CSV.
-  teachers_wide_to_long.py              wide teacher CSV -> teachers.csv
+  teachers_wide_to_long.py              wide teacher CSV -> math/math-teachers.csv
+  build_world_map.py                    geojson -> mcl/world-map.svg (Equal Earth projection). Rerun
+                                        only to pick up a newer Natural Earth release.
 
 pi-kiosk/                               Raspberry Pi setup to run the wall display full-screen
+
+server/                                 web-host setup, installed by hand (not shipped by deploy.sh):
+                                        subdomain move + the old-URL redirect. See server/README.md.
 ```
+
+## Where it's hosted
+
+The site is served from **<https://sluhtime.alvear.cl/>** (wall displays at
+`/math/` and `/mcl/`). It has its own subdomain — rather than a subfolder of
+`static.alvear.cl` — so the host can run PHP for it. The old
+`static.alvear.cl/sluh-time-visualizer/` URL 301-redirects to the new one,
+deep links and all. Host-side setup lives in `server/`.
+
+## Phone lock-screen widget
+
+`api/period.php` is a small JSON endpoint —
+<https://sluhtime.alvear.cl/api/period.php> — that returns the current
+period and the seconds left in it, computed server-side in
+`America/Chicago` on every request. `api/sluh-period-widget.js` is a
+[Scriptable](https://scriptable.app/) script that renders it as an iPhone
+Lock Screen (or Home Screen) widget. Both ship with `deploy.sh`;
+`schedule.json` next to them is regenerated by `csv_to_data.py`. Full
+details, response shape, and setup steps are in [`api/README.md`](api/README.md).
+
+## Usage stats
+
+Usage tracking is now unified across the alvear.cl sites at
+**analytics.alvear.cl** (repo: `../analytics.alvear.cl`). Both pages load the
+shared beacon:
+
+```html
+<script src="https://analytics.alvear.cl/a.js" data-site="time-visualizer" defer></script>
+```
+
+An inline `window.xaExtra` next to it hands the beacon the same fields the old
+`stats.js` computed — which page/view, light/dark, desktop/mobile, whether the
+"my periods" filter is on. A random per-browser id lives in `localStorage`.
+**No IP, cookie, referrer, or names.** The per-site dashboard is at
+**analytics.alvear.cl/time-visualizer.php** (HTTP basic auth).
+
+The old `stats.php` is still deployed (its `.stats-data.json` counters stay
+readable at `stats.php?key=THEKEY`) but no longer receives new hits; it'll be
+removed once the unified dashboard is confirmed.
+
+There's also **Cloudflare Web Analytics** on `index.html` (a `<script>` tag)
+for raw pageview/geography numbers; all independent.
 
 ---
 
@@ -152,7 +391,7 @@ python3 -m http.server 8420
 ```
 
 Then open <http://localhost:8420/> for the main site or
-<http://localhost:8420/math-office.html> for the wall display.
+<http://localhost:8420/math/> for the wall display.
 
 You can also just double-click `index.html` — it works straight off disk
 because `data.js` is a plain script with no network dependency. (The wall
@@ -162,7 +401,7 @@ display does need a server, since it fetches the CSV files.)
 
 ## Editing the schedule (snow days, schedule changes, etc.)
 
-The CSV — `data/school_year_2026_2027.csv` — is the thing you actually edit.
+The CSV — `data/source/school_year_2026_2027.csv` — is the thing you actually edit.
 Open it in Excel, Numbers, or Google Sheets. One row per school day:
 
 | column | meaning |
@@ -186,8 +425,8 @@ time columns just aren't filled left-to-right on those days.
    `No School-Snow Day`. For a shortened day, just edit the time cells.
 2. From `scripts/`, rebuild `data.js`:
    ```bash
-   python3 csv_to_data.py ../data/school_year_2026_2027.csv \
-     ../data/school_year_2026_2027.json ../data.js
+   python3 csv_to_data.py ../data/source/school_year_2026_2027.csv \
+     ../data/source/school_year_2026_2027.json ../data.js
    ```
 3. Read the output. It prints **warnings** (non-blocking — e.g. a `weekday`
    that doesn't match its `date`) and **errors** (blocking — bad time
@@ -212,7 +451,7 @@ period), convert it:
 
 ```bash
 cd scripts
-python3 teachers_wide_to_long.py ../data/teachers-s1.csv ../teachers.csv
+python3 teachers_wide_to_long.py ../data/source/teachers-s1.csv ../math/math-teachers.csv
 ```
 
 ## Starting a new academic year
@@ -222,13 +461,13 @@ files rather than an overwrite:
 
 1. Download the new year's ICS feed from SLUH:
    ```bash
-   curl -sL "<ics-url>" -o data/sluh_raw_2027_2028.ics
+   curl -sL "<ics-url>" -o data/source/sluh_raw_2027_2028.ics
    ```
 2. Bootstrap the CSV from it (adjust the date range to the new year):
    ```bash
    cd scripts
-   python3 ics_to_csv.py ../data/sluh_raw_2027_2028.ics \
-     ../data/school_year_2027_2028.csv --from 20270801 --to 20280615
+   python3 ics_to_csv.py ../data/source/sluh_raw_2027_2028.ics \
+     ../data/source/school_year_2027_2028.csv --from 20270801 --to 20280615
    ```
    This refuses to overwrite an existing CSV; pass `--force` only if you
    deliberately want to regenerate from scratch and are OK losing hand
@@ -237,12 +476,10 @@ files rather than an overwrite:
    its description formats).
 4. Build `data.js`:
    ```bash
-   python3 csv_to_data.py ../data/school_year_2027_2028.csv \
-     ../data/school_year_2027_2028.json ../data.js
+   python3 csv_to_data.py ../data/source/school_year_2027_2028.csv \
+     ../data/source/school_year_2027_2028.json ../data.js
    ```
-5. Update the `<title>` and `<h1>` in `index.html` if you want them to name
-   the new year.
-6. Commit and deploy.
+5. Commit and deploy.
 
 ---
 

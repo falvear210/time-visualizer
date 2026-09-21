@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!--
+  The math-office wall display. Standalone — it shares data.js with the main
+  site but nothing else. Structure only: every element with an id="mo-..."
+  is filled in by math-office.js at runtime. See README.md for the tour.
+  Bump the ?v= cache-buster below whenever the CSS/JS changes.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Office Dashboard</title>
+<link rel="stylesheet" href="math-office.css?v=14">
+</head>
+<body>
+<div class="mo-dashboard">
+  <header class="mo-header">
+    <div class="mo-header-title">
+      <h1>Math Office Dashboard</h1>
+      <a class="mo-header-link" href="../">SLUH Time Visualizer</a>
+    </div>
+    <div class="mo-header-time">
+      <span id="mo-date"></span>
+      <span id="mo-clock"></span>
+    </div>
+  </header>
+
+  <div class="mo-columns">
+    <section class="mo-col">
+      <h2 id="mo-rotator-title">Upcoming Breaks</h2>
+      <div class="mo-col-body">
+        <div id="mo-rotator-body" class="mo-rotator-content"></div>
+      </div>
+    </section>
+
+    <section class="mo-col">
+      <h2>Year at a Glance</h2>
+      <div class="mo-col-body">
+        <div id="mo-squares"></div>
+      </div>
+    </section>
+
+    <section class="mo-col">
+      <h2>Today's Schedule</h2>
+      <div class="mo-col-body">
+        <div id="mo-daily-status"></div>
+        <div id="mo-daily-bars"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="mo-bottom">
+    <section class="mo-col">
+      <div class="mo-col-header-row">
+        <h2>Teachers Teaching</h2>
+        <span class="mo-teachers-period" id="mo-teachers-period"></span>
+      </div>
+      <div class="mo-col-body">
+        <ul class="mo-people-list" id="mo-people-list"></ul>
+      </div>
+    </section>
+
+    <section class="mo-col">
+      <h2>Weather</h2>
+      <div class="mo-col-body">
+        <div class="mo-weather" id="mo-weather"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="../data.js"></script>
+<script src="math-office.js?v=12"></script>
+<script>
+  // Fields for analytics.alvear.cl's automatic "view" event (see a.js).
+  window.xaExtra = function () {
+    var theme = "light";
+    try { theme = localStorage.getItem("tv-theme") === "dark" ? "dark" : "light"; } catch (e) {}
+    var device = Math.min(screen.width || 9999, screen.height || 9999) <= 600 ? "mobile" : "desktop";
+    return { page: "math-office", theme: theme, device: device };
+  };
+</script>
+<script src="https://analytics.alvear.cl/a.js" data-site="time-visualizer" defer></script>
+<script src="https://analytics.alvear.cl/feedback.js" data-site="time-visualizer" defer></script>
+</body>
+</html>

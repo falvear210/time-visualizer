@@ -28,7 +28,7 @@
 <header class="topbar">
   <h1 class="title">SLUH Time Visualizer</h1>
   <div class="header-controls">
-    <a class="header-link" href="math-office.html">math dashboard</a>
+    <a class="header-link" href="math/">math dashboard</a>
     <button id="help-btn" class="icon-btn" type="button" title="Instructions" aria-label="Instructions">?</button>
     <button id="settings-btn" class="icon-btn" type="button" title="Settings" aria-label="Settings">⚙</button>
   </div>
@@ -148,21 +148,18 @@
 </div>
 
 <script src="data.js"></script>
-<script src="app.js?v=31"></script>
+<script src="app.js?v=32"></script>
 <script>
   // Fields for analytics.alvear.cl's automatic "view" event (see a.js).
   window.xaExtra = function () {
-    var page = /math-office/.test(location.pathname) ? "math-office" : "index";
-    var tab = "";
-    if (page === "index") {
-      tab = (location.hash || "").replace(/[^a-z]/gi, "").toLowerCase().slice(0, 20) || "progress";
-    }
+    // Always the index -- math/ and mcl/ each set their own page name.
+    var tab = (location.hash || "").replace(/[^a-z]/gi, "").toLowerCase().slice(0, 20) || "progress";
     var filter = false;
     try { filter = !!(JSON.parse(localStorage.getItem("tv-filter") || "{}") || {}).enabled; } catch (e) {}
     var theme = "light";
     try { theme = localStorage.getItem("tv-theme") === "dark" ? "dark" : "light"; } catch (e) {}
     var device = Math.min(screen.width || 9999, screen.height || 9999) <= 600 ? "mobile" : "desktop";
-    return { page: page, tab: tab, filter: filter, theme: theme, device: device };
+    return { page: "index", tab: tab, filter: filter, theme: theme, device: device };
   };
 </script>
 <script src="https://analytics.alvear.cl/a.js" data-site="time-visualizer" defer></script>

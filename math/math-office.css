@@ -1,5 +1,5 @@
 /*
-  Styles for the math-office wall display (math-office.html + math-office.js).
+  Styles for the math-office wall display (math/index.html + math-office.js).
   This page is light-only (it lives on a TV in a lit room, so there's no
   dark theme to swap) and never scrolls — the whole layout is sized to fit
   exactly one 16:9 screen via flex/grid `fr` units and `min-height: 0`.
@@ -53,14 +53,14 @@ html, body {
 }
 .mo-header h1 { margin: 0; font-size: 1.85rem; }
 .mo-header-link {
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: var(--text-dim);
   text-decoration: none;
   border-bottom: 1px solid var(--border);
 }
 .mo-header-link:hover { color: var(--text); }
 .mo-header-time { text-align: right; }
-#mo-date { display: block; font-size: 1.1rem; color: var(--text-dim); }
+#mo-date { display: block; font-size: 1.2rem; color: var(--text-dim); }
 #mo-clock { display: block; font-size: 2.1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 
 .mo-columns {
@@ -83,7 +83,7 @@ html, body {
 
 .mo-col h2 {
   margin: 0 0 0.9rem;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   color: var(--text-dim);
   font-weight: 600;
   text-transform: uppercase;
@@ -103,7 +103,7 @@ html, body {
 /* --- daily bars column --- */
 
 .mo-countdown { text-align: center; margin-bottom: 1rem; }
-.mo-countdown-label { font-size: 1.1rem; color: var(--text-dim); }
+.mo-countdown-label { font-size: 1.2rem; color: var(--text-dim); }
 .mo-countdown-clock {
   font-size: 5.4rem;
   font-weight: 700;
@@ -112,7 +112,7 @@ html, body {
   line-height: 1.2;
 }
 .mo-countdown-sub {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
 }
@@ -226,7 +226,7 @@ html, body {
   align-items: baseline;
   padding: 0.6rem 0;
   border-bottom: 1px solid var(--border);
-  font-size: 1.05rem;
+  font-size: 1.15rem;
 }
 .mo-break-row:last-child { border-bottom: none; }
 .mo-break-row.is-active { color: var(--accent); font-weight: 700; }
@@ -261,7 +261,7 @@ html, body {
 .mo-person {
   display: flex;
   justify-content: space-between;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   padding: 0.4rem 0;
   border-bottom: 1px solid var(--border);
 }
@@ -269,12 +269,12 @@ html, body {
 .mo-people-list .mo-status {
   grid-column: 1 / -1;
   text-align: left;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   margin: 0.4rem 0;
 }
 
 .mo-teachers-period {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   color: var(--accent);
   font-weight: 600;
   white-space: nowrap;
@@ -297,7 +297,7 @@ html, body {
 }
 .mo-weather-current-icon { font-size: 3.2rem; line-height: 1; }
 .mo-weather-current-temp { font-size: 2.2rem; font-weight: 700; }
-.mo-weather-current-label { font-size: 0.95rem; color: var(--text-dim); }
+.mo-weather-current-label { font-size: 1.05rem; color: var(--text-dim); }
 
 .mo-weather-forecast {
   flex: 1;
@@ -311,9 +311,9 @@ html, body {
   align-items: center;
   text-align: center;
 }
-.mo-weather-card-label { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.2rem; }
+.mo-weather-card-label { font-size: 0.95rem; color: var(--text-dim); margin-bottom: 0.2rem; }
 .mo-weather-card-icon { font-size: 1.8rem; line-height: 1; }
-.mo-weather-card-temp { font-size: 1.05rem; font-weight: 600; }
+.mo-weather-card-temp { font-size: 1.1rem; font-weight: 600; }
 
 .mo-weather-error { color: var(--text-dim); font-size: 1.1rem; }
 

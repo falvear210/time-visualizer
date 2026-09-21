@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Convert a wide teacher schedule CSV (one row per teacher, one column per
 period, cells like "Course Name (Room)") into the long format the Math
-Office dashboard actually reads (teachers.csv: name,period,room -- one row
+Office dashboard actually reads (math/math-teachers.csv: name,period,room -- one row
 per teacher/period, since the same teacher can be in a different room for
 different periods).
 

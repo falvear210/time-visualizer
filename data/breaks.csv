@@ -1,0 +1,6 @@
+# Break-label overrides -- SHARED by every dashboard (/math/, /mcl/).
+# Breaks are detected automatically from the school calendar (data.js); a row
+# here only replaces the auto-generated label for the break starting on `date`.
+# Empty is the normal state -- add a row only when the automatic name is wrong.
+# Date is YYYYMMDD. Lines starting with # are ignored.
+date,name

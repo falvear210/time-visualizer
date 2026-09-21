@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<!--
+  Font test card for the Raspberry Pi kiosks.
+
+  Raspberry Pi OS Lite ships almost no fonts, so the Math Office dashboard's
+  font stack (-apple-system, Segoe UI, Roboto, ...) matches nothing and
+  Chromium falls back to a plain face that looks worse than it does on a Mac.
+  This page shows the real dashboard layout, at the real kiosk sizes, cycling
+  through a set of candidate fonts so you can judge them on the actual screen.
+
+  Self-contained: the five "embedded" candidates are baked into this file as
+  woff2 data: URIs, so they render identically on the Pi and on your Mac and
+  need nothing installed. The "apt" candidates are only there if the matching
+  font package is installed on the Pi (the chip says so).
+
+  Controls (if a keyboard/mouse is attached):
+    Space .... pause / resume the auto-cycle
+    < / > .... previous / next font (also pauses)
+    G ........ toggle the all-fonts contact sheet
+    click a chip to jump to that font
+
+  With no input at all it just auto-cycles every 7s, which is what you want
+  when looking at a cursor-less kiosk screen.
+
+  Built by pi-kiosk/build_font_test.py — do not hand-edit the @font-face blob.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiosk Font Test</title>
+<style>
+/*__FONT_FACES__*/
+
+/* ---- page chrome ---------------------------------------------------------- */
+
+:root {
+  --accent: #005588;      /* SLUH Blue  */
+  --accent-rgb: 0, 85, 136;
+  --navy: #003366;        /* SLUH Navy  */
+  --bg: #ffffff;
+  --panel: #f7f7f5;
+  --border: #dcdcd6;
+  --track: #eeeeee;
+  --text: #003366;
+  --text-dim: #777777;
+}
+
+* { box-sizing: border-box; }
+
+html { font-size: 16px; }           /* matches the kiosk (device-scale-factor 1) */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  font-family: system-ui, sans-serif;
+}
+
+/* fixed switcher bar across the top */
+#switcher {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 10;
+  background: var(--navy);
+  color: #fff;
+  padding: 0.55rem 1.2rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+.sw-now { display: flex; align-items: baseline; gap: 0.9rem; flex-wrap: wrap; }
+.sw-idx {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+.sw-name { font-size: 1.5rem; font-weight: 700; }
+.sw-src { font-size: 0.9rem; opacity: 0.8; }
+.sw-src b { color: #8ecae6; font-weight: 700; }
+
+.sw-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.sw-chip {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.16rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sw-chip.is-active { background: #8ecae6; color: var(--navy); border-color: #8ecae6; font-weight: 700; }
+.sw-chip.is-missing { opacity: 0.4; text-decoration: line-through; }
+
+.sw-hint { font-size: 0.78rem; opacity: 0.6; font-variant-numeric: tabular-nums; }
+.sw-hint kbd {
+  font: inherit;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  padding: 0 0.3em;
+}
+
+/* the dashboard mock takes the font under test */
+#stage {
+  position: absolute;
+  inset: 0;
+  padding-top: 5rem;               /* clear the fixed switcher bar */
+  font-family: var(--test-font, sans-serif);
+}
+#stage.is-paused { outline: 3px solid #f4a259; outline-offset: -3px; }
+
+/* ---- dashboard mock (adapted from math-office.css, sizes unchanged) ------- */
+
+.mo-dashboard {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 1.3rem 1.9rem;
+  gap: 1.3rem;
+}
+.mo-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.8rem;
+}
+.mo-header h1 { margin: 0; font-size: 1.85rem; }
+.mo-header-link { font-size: 1.05rem; color: var(--text-dim); text-decoration: none; border-bottom: 1px solid var(--border); }
+.mo-header-time { text-align: right; }
+#mo-date { display: block; font-size: 1.2rem; color: var(--text-dim); }
+#mo-clock { display: block; font-size: 2.1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.mo-columns { flex: 3; min-height: 0; display: grid; grid-template-columns: 1fr 1fr 1.1fr; gap: 1.5rem; }
+.mo-col {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.2rem 1.4rem;
+}
+.mo-col h2 {
+  margin: 0 0 0.9rem;
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.mo-col-header-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.8rem; }
+.mo-col-header-row h2 { margin: 0 0 0.9rem; }
+.mo-col-body { flex: 1; min-height: 0; overflow: hidden; }
+
+.mo-countdown { text-align: center; margin-bottom: 1rem; }
+.mo-countdown-label { font-size: 1.2rem; color: var(--text-dim); }
+.mo-countdown-clock { font-size: 5.4rem; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.mo-countdown-sub { font-size: 1.05rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+.mo-bar-row { margin-bottom: 1.5rem; }
+.mo-bar-top { display: flex; justify-content: space-between; font-size: 1.15rem; margin-bottom: 0.3rem; }
+.mo-bar-top.is-live { color: var(--accent); font-weight: 700; }
+.mo-bar-track { height: 16px; border-radius: 999px; background: var(--track); overflow: hidden; }
+.mo-bar-fill { height: 100%; background: var(--navy); border-radius: 999px; }
+
+#mo-squares { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 2px; }
+.mo-square { width: 14px; height: 14px; border-radius: 2px; background: var(--track); border: 1px solid var(--border); flex: 0 0 auto; }
+.mo-square.is-done { background: rgba(var(--accent-rgb), 0.4); }
+.mo-square.is-live { border-color: var(--accent); background: var(--accent); }
+.mo-semester-divider { flex-basis: 100%; height: 0; border-top: 1px dashed var(--border); margin: 0.4rem 0; }
+
+.mo-break-row { display: flex; justify-content: space-between; align-items: baseline; padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 1.15rem; }
+.mo-break-row:last-child { border-bottom: none; }
+.mo-break-row.is-active { color: var(--accent); font-weight: 700; }
+.mo-break-days { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+.mo-bottom { flex: 1; min-height: 0; display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+.mo-people-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.7rem 1.3rem; }
+.mo-person { display: flex; justify-content: space-between; font-size: 1.15rem; padding: 0.4rem 0; border-bottom: 1px solid var(--border); }
+.mo-person-room { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.mo-teachers-period { font-size: 1.05rem; color: var(--accent); font-weight: 600; white-space: nowrap; }
+
+.mo-weather { display: flex; align-items: center; gap: 1.5rem; height: 100%; }
+.mo-weather-current { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; padding-right: 1.5rem; border-right: 1px solid var(--border); }
+.mo-weather-current-icon { font-size: 3.2rem; line-height: 1; }
+.mo-weather-current-temp { font-size: 2.2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mo-weather-current-label { font-size: 1.05rem; color: var(--text-dim); }
+.mo-weather-forecast { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem; }
+.mo-weather-card { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.mo-weather-card-label { font-size: 0.95rem; color: var(--text-dim); margin-bottom: 0.2rem; }
+.mo-weather-card-icon { font-size: 1.8rem; line-height: 1; }
+.mo-weather-card-temp { font-size: 1.1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ---- contact sheet (press G) -------------------------------------------- */
+
+#grid {
+  position: absolute;
+  inset: 5rem 0 0 0;
+  overflow-y: auto;
+  background: var(--bg);
+  padding: 1.4rem 1.9rem 3rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(430px, 1fr));
+  gap: 1rem;
+}
+#grid[hidden] { display: none; }
+.gc {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  background: var(--panel);
+}
+.gc-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.5rem; }
+.gc-name { font-size: 1.2rem; font-weight: 700; }
+.gc-src { font-size: 0.8rem; color: var(--text-dim); }
+.gc-big { font-size: 2.6rem; font-weight: 700; line-height: 1.1; color: var(--navy); }
+.gc-line { font-size: 1.1rem; margin-top: 0.3rem; }
+.gc-nums { font-size: 1.1rem; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; color: var(--text-dim); }
+.gc.is-missing { opacity: 0.45; }
+.gc.is-missing::after { content: " · not installed on this Pi — showing fallback"; font-size: 0.8rem; color: #b23; }
+</style>
+</head>
+<body>
+
+<div id="switcher">
+  <div class="sw-now">
+    <span class="sw-idx" id="sw-idx">–</span>
+    <span class="sw-name" id="sw-name">…</span>
+    <span class="sw-src" id="sw-src"></span>
+  </div>
+  <div class="sw-chips" id="sw-chips"></div>
+  <div class="sw-hint">
+    <kbd>Space</kbd> pause &nbsp; <kbd>&larr;</kbd><kbd>&rarr;</kbd> step &nbsp;
+    <kbd>G</kbd> grid &nbsp;&mdash;&nbsp; auto-cycles every 7s
+  </div>
+</div>
+
+<main id="stage">
+  <div class="mo-dashboard">
+    <header class="mo-header">
+      <div>
+        <h1>Math Office Dashboard</h1>
+        <a class="mo-header-link" href="#">SLUH Time Visualizer</a>
+      </div>
+      <div class="mo-header-time">
+        <span id="mo-date">Tuesday, September 2</span>
+        <span id="mo-clock">10:47:15</span>
+      </div>
+    </header>
+
+    <div class="mo-columns">
+      <section class="mo-col">
+        <h2>Upcoming Breaks</h2>
+        <div class="mo-col-body">
+          <div class="mo-break-row is-active"><span>Labor Day</span><span class="mo-break-days">today</span></div>
+          <div class="mo-break-row"><span>Fall Break</span><span class="mo-break-days">in 26 days</span></div>
+          <div class="mo-break-row"><span>Thanksgiving</span><span class="mo-break-days">in 81 days</span></div>
+          <div class="mo-break-row"><span>Christmas Break</span><span class="mo-break-days">in 109 days</span></div>
+          <div class="mo-break-row"><span>Semester Ends</span><span class="mo-break-days">in 116 days</span></div>
+        </div>
+      </section>
+
+      <section class="mo-col">
+        <h2>Year at a Glance</h2>
+        <div class="mo-col-body">
+          <div id="mo-squares"></div>
+        </div>
+      </section>
+
+      <section class="mo-col">
+        <h2>Today's Schedule</h2>
+        <div class="mo-col-body">
+          <div class="mo-countdown">
+            <div class="mo-countdown-label">Period 3 ends in</div>
+            <div class="mo-countdown-clock">18:42</div>
+            <div class="mo-countdown-sub">10:47 AM &ndash; 11:06 AM</div>
+          </div>
+          <div class="mo-bar-row">
+            <div class="mo-bar-top is-live"><span>Period 3</span><span>63%</span></div>
+            <div class="mo-bar-track"><div class="mo-bar-fill" style="width:63%"></div></div>
+          </div>
+          <div class="mo-bar-row">
+            <div class="mo-bar-top"><span>Lunch A</span><span>0%</span></div>
+            <div class="mo-bar-track"><div class="mo-bar-fill" style="width:0%"></div></div>
+          </div>
+          <div class="mo-bar-row">
+            <div class="mo-bar-top"><span>Period 4</span><span>0%</span></div>
+            <div class="mo-bar-track"><div class="mo-bar-fill" style="width:0%"></div></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="mo-bottom">
+      <section class="mo-col">
+        <div class="mo-col-header-row">
+          <h2>Teachers Teaching</h2>
+          <span class="mo-teachers-period">Period 3 &middot; 10:47&ndash;11:06</span>
+        </div>
+        <div class="mo-col-body">
+          <ul class="mo-people-list">
+            <li class="mo-person"><span>Ms. Alvarado</span><span class="mo-person-room">S214</span></li>
+            <li class="mo-person"><span>Mr. Bergthold</span><span class="mo-person-room">S218</span></li>
+            <li class="mo-person"><span>Dr. Chen</span><span class="mo-person-room">S221</span></li>
+            <li class="mo-person"><span>Mr. Dieckhaus</span><span class="mo-person-room">S107</span></li>
+            <li class="mo-person"><span>Ms. Ferguson</span><span class="mo-person-room">S110</span></li>
+            <li class="mo-person"><span>Mr. Grafman</span><span class="mo-person-room">S205</span></li>
+            <li class="mo-person"><span>Mrs. Hoffmann</span><span class="mo-person-room">S209</span></li>
+            <li class="mo-person"><span>Mr. Kesterson</span><span class="mo-person-room">S112</span></li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="mo-col">
+        <h2>Weather</h2>
+        <div class="mo-col-body">
+          <div class="mo-weather">
+            <div class="mo-weather-current">
+              <div class="mo-weather-current-icon">&#9925;</div>
+              <div class="mo-weather-current-temp">78&deg;</div>
+              <div class="mo-weather-current-label">Partly cloudy</div>
+            </div>
+            <div class="mo-weather-forecast">
+              <div class="mo-weather-card"><span class="mo-weather-card-label">Wed</span><span class="mo-weather-card-icon">&#9728;</span><span class="mo-weather-card-temp">81&deg; / 62&deg;</span></div>
+              <div class="mo-weather-card"><span class="mo-weather-card-label">Thu</span><span class="mo-weather-card-icon">&#9925;</span><span class="mo-weather-card-temp">77&deg; / 60&deg;</span></div>
+              <div class="mo-weather-card"><span class="mo-weather-card-label">Fri</span><span class="mo-weather-card-icon">&#127783;</span><span class="mo-weather-card-temp">69&deg; / 58&deg;</span></div>
+              <div class="mo-weather-card"><span class="mo-weather-card-label">Sat</span><span class="mo-weather-card-icon">&#9728;</span><span class="mo-weather-card-temp">75&deg; / 59&deg;</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<div id="grid" hidden></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // Candidate fonts. `stack` is spliced in front of a generic fallback.
+  //  kind: "system" = whatever the OS resolves (no install)
+  //        "embed"  = baked into this file, always available
+  //        "apt"    = only real if the package is installed on the Pi
+  var FONTS = [
+    { name: "System default (current)", stack: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto',
+      src: "what the dashboard uses now", kind: "system" },
+    { name: "Inter",         stack: "'Inter'",         src: "embedded in this file", kind: "embed" },
+    { name: "Source Sans 3", stack: "'Source Sans 3'", src: "embedded in this file", kind: "embed" },
+    { name: "IBM Plex Sans", stack: "'IBM Plex Sans'", src: "embedded in this file", kind: "embed" },
+    { name: "Public Sans",   stack: "'Public Sans'",   src: "embedded in this file", kind: "embed" },
+    { name: "Figtree",       stack: "'Figtree'",       src: "embedded in this file", kind: "embed" },
+    { name: "DejaVu Sans",     stack: "'DejaVu Sans'",     src: "apt install fonts-dejavu-core",     kind: "apt" },
+    { name: "Noto Sans",       stack: "'Noto Sans'",       src: "apt install fonts-noto-core",       kind: "apt" },
+    { name: "Liberation Sans", stack: "'Liberation Sans'", src: "apt install fonts-liberation2",     kind: "apt" },
+    { name: "Cantarell",       stack: "'Cantarell'",       src: "apt install fonts-cantarell",       kind: "apt" },
+    { name: "Roboto",          stack: "'Roboto'",          src: "apt install fonts-roboto-unhinted", kind: "apt" },
+    { name: "Ubuntu",          stack: "'Ubuntu'",          src: "apt install fonts-ubuntu",          kind: "apt" }
+  ];
+
+  // --- is a named font actually installed? (canvas width probe) -------------
+  var probe = document.createElement("canvas").getContext("2d");
+  var SAMPLE = "Math Office Dashboard 0123456789";
+  function textWidth(family) {
+    probe.font = "40px " + family;
+    return probe.measureText(SAMPLE).width;
+  }
+  var baseline = {
+    serif: textWidth("serif"),
+    "sans-serif": textWidth("sans-serif"),
+    monospace: textWidth("monospace")
+  };
+  function isInstalled(family) {
+    // If "<family>, <generic>" renders at a different width than the generic
+    // alone for every generic, the family resolved to a real face.
+    return ["serif", "sans-serif", "monospace"].every(function (g) {
+      return textWidth("'" + family + "', " + g) !== baseline[g];
+    });
+  }
+
+  FONTS.forEach(function (f) {
+    f.available = f.kind !== "apt" || isInstalled(f.name);
+    f.fullStack = f.stack + ", sans-serif";
+  });
+
+  // --- render -------------------------------------------------------------
+  var stage = document.getElementById("stage");
+  var idxEl = document.getElementById("sw-idx");
+  var nameEl = document.getElementById("sw-name");
+  var srcEl = document.getElementById("sw-src");
+  var chipsEl = document.getElementById("sw-chips");
+  var gridEl = document.getElementById("grid");
+
+  var chips = FONTS.map(function (f, i) {
+    var b = document.createElement("button");
+    b.className = "sw-chip" + (f.available ? "" : " is-missing");
+    b.textContent = f.name;
+    b.addEventListener("click", function () { go(i, true); });
+    chipsEl.appendChild(b);
+    return b;
+  });
+
+  // Fill the "Year at a Glance" grid: 2 semesters, 8 days done, 1 live.
+  (function fillSquares() {
+    var host = document.getElementById("mo-squares");
+    for (var s = 0; s < 172; s++) {
+      if (s === 86) {
+        var d = document.createElement("div");
+        d.className = "mo-semester-divider";
+        host.appendChild(d);
+      }
+      var sq = document.createElement("div");
+      sq.className = "mo-square" + (s < 8 ? " is-done" : s === 8 ? " is-live" : "");
+      host.appendChild(sq);
+    }
+  })();
+
+  var current = 0;
+  var paused = false;
+
+  function render() {
+    var f = FONTS[current];
+    stage.style.setProperty("--test-font", f.fullStack);
+    idxEl.textContent = (current + 1) + " / " + FONTS.length;
+    nameEl.textContent = f.name;
+    srcEl.innerHTML = f.available
+      ? "<b>" + f.src + "</b>"
+      : "<b>" + f.src + "</b> &mdash; not installed, showing fallback";
+    chips.forEach(function (c, i) { c.classList.toggle("is-active", i === current); });
+    stage.classList.toggle("is-paused", paused);
+  }
+
+  function go(i, stop) {
+    current = (i + FONTS.length) % FONTS.length;
+    if (stop) paused = true;
+    render();
+  }
+
+  // --- auto-cycle --------------------------------------------------------
+  setInterval(function () {
+    if (!paused && gridEl.hidden) go(current + 1, false);
+  }, 7000);
+
+  // --- contact sheet ---------------------------------------------------
+  function buildGrid() {
+    gridEl.innerHTML = "";
+    FONTS.forEach(function (f) {
+      var cell = document.createElement("div");
+      cell.className = "gc" + (f.available ? "" : " is-missing");
+      cell.style.fontFamily = f.fullStack;
+      cell.innerHTML =
+        '<div class="gc-head"><span class="gc-name">' + f.name + '</span>' +
+        '<span class="gc-src">' + f.src + '</span></div>' +
+        '<div class="gc-big">Math Office</div>' +
+        '<div class="gc-line">Period 3 ends in 18:42 &middot; Lunch A at 11:06</div>' +
+        '<div class="gc-nums">0123456789  10:47:15  78&deg;F  S214 S107</div>';
+      gridEl.appendChild(cell);
+    });
+  }
+
+  // --- keyboard --------------------------------------------------------
+  document.addEventListener("keydown", function (e) {
+    if (e.key === " ") { e.preventDefault(); paused = !paused; render(); }
+    else if (e.key === "ArrowRight") go(current + 1, true);
+    else if (e.key === "ArrowLeft") go(current - 1, true);
+    else if (e.key.toLowerCase() === "g") {
+      if (gridEl.hidden) { buildGrid(); gridEl.hidden = false; }
+      else gridEl.hidden = true;
+    }
+  });
+
+  // Keep the mock (and grid) clear of the switcher bar whatever height it is.
+  function fitToBar() {
+    var h = document.getElementById("switcher").offsetHeight;
+    stage.style.paddingTop = h + 16 + "px";
+    gridEl.style.top = h + "px";
+  }
+  window.addEventListener("resize", fitToBar);
+  fitToBar();
+
+  // --- go ------------------------------------------------------------
+  // Wait for the embedded faces to load so the first frame isn't a fallback.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(render);
+  }
+  render();
+})();
+</script>
+</body>
+</html>

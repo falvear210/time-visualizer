@@ -4,7 +4,7 @@
 # session command by kiosk.service (via startx).
 set -euo pipefail
 
-DASHBOARD_URL="https://sluhtime.alvear.cl/math-office.html"
+DASHBOARD_URL="https://sluhtime.alvear.cl/math/"
 
 xset s off
 xset s noblank
@@ -21,8 +21,16 @@ CHROMIUM_BIN="$(command -v chromium-browser || command -v chromium)"
 # On real Pi hardware Chromium sometimes auto-detects a 2x device scale
 # factor from the GPU driver, which doubles every element's size and only
 # lets half the layout fit on screen. Force it back to 1x.
+#
+# --remote-debugging-port lets you swap what's on screen over SSH (e.g. to
+# temporarily show something else) via curl instead of simulating keyboard
+# input, which kiosk mode + a minimal window manager don't handle reliably.
+# It only binds to localhost by default, so it's SSH-only, not exposed on
+# the network. See the "Remote control" section of README.md.
 exec "$CHROMIUM_BIN" \
   --kiosk \
+  --remote-debugging-port=9222 \
+  --remote-allow-origins=* \
   --noerrdialogs \
   --disable-infobars \
   --disable-session-crashed-bubble \

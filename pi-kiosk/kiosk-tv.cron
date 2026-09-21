@@ -1,0 +1,11 @@
+# Kiosk TV on/off schedule — HDMI-CEC, via /usr/local/bin/kiosk-tv.
+# The Pi keeps running; only the panel sleeps.
+#
+# Install:  sudo install -m644 kiosk-tv.cron /etc/cron.d/kiosk-tv
+# Remove:   sudo rm /etc/cron.d/kiosk-tv
+#
+# Adjust CRON_TZ / times to taste. Fields: m h dom mon dow  user  command
+CRON_TZ=America/Chicago
+
+30 6  * * 1-5  root  /usr/local/bin/kiosk-tv on
+0  17 * * 1-5  root  /usr/local/bin/kiosk-tv off

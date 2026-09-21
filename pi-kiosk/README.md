@@ -7,14 +7,24 @@ it to SSH in later without knowing its address ahead of time.
 Two independent pieces:
 
 - **Kiosk display** (`kiosk.sh`, `kiosk.service`) — boots straight into
-  Chromium full-screen on `math-office.html`.
-- **Fleet tracker** (`report-ip.sh`, `report-ip.service`, `report-ip.timer`,
-  `server/rpis.php`) — the Pi phones home with its IP every 2 minutes; a PHP
-  page on your own site shows every Pi that's checked in.
+  Chromium full-screen on `/math/`.
+- **Fleet tracker** (`report-ip.service`, `report-ip.timer` here; the script
+  and server live in `~/code/analytics.alvear.cl`) — the Pi phones home with
+  its IP every minute and `https://analytics.alvear.cl/fleet.php` shows
+  every Pi that's checked in, so you can SSH to a kiosk without knowing its
+  address ahead of time. The dashboard's check-in reply doubles as a command
+  channel: **TV on / TV off** (HDMI-CEC, §5), reboot, poweroff.
 
-The kiosk display piece has been run end to end on real hardware (a 3B+); the
-fleet tracker piece is still untested on-device and built from documented,
-standard patterns.
+The kiosk display piece has been run end to end on real hardware (a 3B+,
+2025); the Pi 5 caveats in section 1 are from documented differences, not yet
+a second on-device run. The fleet check-in server is deployed and live on
+server3.
+
+> **Note (2026-09):** the original fleet tracker in this folder
+> (`report-ip.sh`, `server/rpis.php`, `server/nginx-snippet.conf`) pointed at
+> `fernando.alvear.cl/rpis/` and has been **retired** — that path is gone.
+> The receiver + dashboard now ship with the `analytics.alvear.cl` project.
+> Section 4 below is the current procedure.
 
 ## 1. Flash the SD card
 
@@ -24,8 +34,28 @@ full-screen browser window. In the Imager's advanced options (gear icon),
 set hostname, enable SSH, and set the Wi-Fi/locale so it's reachable
 headless from first boot.
 
-Give each Pi a distinct hostname (e.g. `pi-mathoffice`) — it shows up in the
-fleet dashboard.
+Give each Pi a distinct hostname (e.g. `pi-mathoffice`, `pi-mathoffice2`) —
+it shows up in the fleet dashboard.
+
+### Pi 5 notes
+
+The tested path is the same on a Pi 5, with a few hardware caveats:
+
+- **OS:** still **Raspberry Pi OS Lite (64-bit)** (Bookworm). A Pi 5 has the
+  RAM to spare for the full desktop, but a single full-screen browser doesn't
+  need it, and Lite keeps this the tested config. Chromium is packaged as
+  `chromium` on Bookworm — `kiosk.sh` already checks for both names.
+- **Power:** use the official **27 W USB-C PD** supply. On an underpowered
+  supply the Pi 5 logs undervoltage warnings and down-clocks, which shows up
+  as a sluggish kiosk.
+- **Cooling:** for 24/7 use fit the active cooler (or a case with a fan). The
+  nightly reboot in the reliability section matters more on a hot SoC.
+- **Video:** micro-HDMI, same as Pi 4 — use the port nearest the USB-C jack
+  (HDMI0). `kiosk.sh` already forces `--force-device-scale-factor=1`, which is
+  still needed on the Pi 5's KMS driver.
+- **Boot media:** SD is fine. If this Pi has an NVMe HAT, flashing to the SSD
+  instead is a durability win for a device that runs for years, but nothing
+  in this setup depends on it.
 
 ### Enterprise Wi-Fi (username + password networks)
 
@@ -58,11 +88,15 @@ plugged into the Pi instead:
 ```bash
 sudo apt update
 sudo apt install -y --no-install-recommends xserver-xorg x11-xserver-utils xinit chromium-browser curl \
-  matchbox-window-manager fonts-liberation2 fonts-noto-color-emoji
+  matchbox-window-manager fonts-liberation2 fonts-noto-color-emoji cec-utils
 ```
 
 (On Raspberry Pi OS Bookworm the package may just be called `chromium`
-instead of `chromium-browser` — `kiosk.sh` checks for both.)
+instead of `chromium-browser` — `kiosk.sh` checks for both. If `cec-utils`
+isn't available on your image, install `v4l-utils` instead — `kiosk-tv`
+falls back to its `cec-ctl`.)
+
+`cec-utils` is for turning the TV on and off over HDMI-CEC (§5).
 
 `matchbox-window-manager` is a minimal window manager — without one, bare X
 has nothing to grant Chromium's `--kiosk` fullscreen request, and the window
@@ -137,81 +171,274 @@ echo "0 3 * * * root /sbin/reboot" | sudo tee /etc/cron.d/kiosk-reboot
 
 ## 4. Set up the fleet tracker (find-my-Pi)
 
-### Server side (once, not per-Pi)
+The check-in receiver (`fleet-report.php`) and dashboard (`fleet.php`) ship
+with the **`analytics.alvear.cl`** project and are already deployed on
+server3 — there is **no per-site server setup** and nothing to configure in
+this repo. The Pi only needs to run the check-in script on a timer.
 
-This assumes nginx via WordOps (`wo`), not Apache — the earlier `.htaccess`
-approach doesn't apply here since nginx never reads `.htaccess` files at all.
-
-1. Confirm `fernando.alvear.cl` already has PHP wired up: run
-   `wo site info fernando.alvear.cl` (or `cat /etc/nginx/sites-available/fernando.alvear.cl`
-   and look for an `include common/php*.conf;` line). If it's a plain
-   `html`-type WordOps site with no PHP, `rpis.php` will get served back as
-   plain text instead of executing — which would leak your secrets straight
-   out of the source. Enable PHP for the site first if it's missing (the
-   exact `wo site update` flag for adding PHP has changed across WordOps
-   versions, so check `wo site update --help` on your box for the current
-   one, e.g. something like `wo site update fernando.alvear.cl --php`).
-2. Pick two long random secrets — e.g. run `openssl rand -hex 24` twice, one
-   for reporting and one for viewing.
-3. Edit `server/rpis.php`, replacing `REPORT_SECRET` and `VIEW_SECRET` with
-   those values.
-4. Upload `server/rpis.php` to your site, e.g. into a `rpis/` subfolder of
-   `fernando.alvear.cl`'s webroot. No `chmod +x` needed — PHP files just
-   need to be readable by the web server; php-fpm is what executes them,
-   not the file's execute bit (that's only for scripts the OS itself runs
-   directly, like `kiosk.sh` or `report-ip.sh` below).
-5. Add the block from `server/nginx-snippet.conf` to that site's nginx vhost
-   (`/etc/nginx/sites-available/fernando.alvear.cl` under WordOps), adjusting
-   the path if you didn't use a `rpis/` subfolder, then
-   `sudo nginx -t && sudo systemctl reload nginx`.
-6. Visit `https://fernando.alvear.cl/rpis/rpis.php` in a browser and check
-   view-source — if you see raw `<?php` text instead of an HTML page or the
-   key prompt, PHP isn't executing for that path; go back to step 1.
-7. Visit `https://fernando.alvear.cl/rpis/rpis.php?key=<your VIEW_SECRET>`
-   once — it sets a cookie so you won't need `?key=` on later visits from
-   the same browser.
-8. Confirm the deny rule actually works:
-   `curl -i https://fernando.alvear.cl/rpis/rpis_data.json` should come back
-   403 or 404, never the raw JSON.
-9. Make sure the `rpis/` directory is writable by the web server user (it
-   creates `rpis_data.json` there on first report) — under WordOps that's
-   usually the `www-data` user, matching whatever owns the rest of the
-   site's files.
+- **Dashboard:** `https://analytics.alvear.cl/fleet.php?key=<FLEET_VIEW_SECRET>`
+  once (sets a `fleet_key` cookie; later visits need no `?key=`).
+- **Both secrets** are in `~/code/analytics.alvear.cl/server/fleet-config.php`.
+  The Pi gets `FLEET_REPORT_SECRET`; you type `FLEET_VIEW_SECRET` into the
+  dashboard.
 
 ### Per-Pi side
 
-```bash
-sudo mkdir -p /etc/kiosk
-echo "<your REPORT_SECRET>" | sudo tee /etc/kiosk/report-secret >/dev/null
-sudo chmod 600 /etc/kiosk/report-secret
-cp label.example /tmp/label && sudo mv /tmp/label /etc/kiosk/label
-sudo nano /etc/kiosk/label   # give this specific Pi a human-readable name
+The Pis have no repo checkout — everything is copied from your Mac. From
+`~/code`, scp all five files to the Pi (swap `<user>@<pi>` for the real target,
+e.g. `falvear@pi-mathoffice`):
 
-sudo cp report-ip.sh /usr/local/bin/report-ip.sh
-sudo chmod +x /usr/local/bin/report-ip.sh
-sudo cp report-ip.service report-ip.timer /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now report-ip.timer
+```bash
+scp analytics.alvear.cl/scripts/report-ip.sh \
+    time-visualizer/pi-kiosk/kiosk-tv.sh \
+    time-visualizer/pi-kiosk/kiosk-tv.cron \
+    time-visualizer/pi-kiosk/report-ip.service \
+    time-visualizer/pi-kiosk/report-ip.timer \
+    <user>@<pi>:/tmp/
 ```
 
-Before that, edit `REPORT_URL` at the top of `report-ip.sh` to match wherever
-you actually uploaded `rpis.php`.
+Then, on the Pi:
+
+```bash
+# 1. This Pi's check-in secret + label — FIRST-TIME SETUP ONLY.
+#    Skip this whole block on a Pi that already checks in (see warning below).
+sudo install -d -m700 /etc/kiosk
+printf '%s' 'PASTE_FLEET_REPORT_SECRET' | sudo tee /etc/kiosk/report-secret >/dev/null
+sudo chmod 600 /etc/kiosk/report-secret
+echo 'Math Office Kiosk 2' | sudo tee /etc/kiosk/label >/dev/null
+
+# 2. Scripts + the CEC tool (both scripts run as root from the timer)
+sudo install -Dm755 /tmp/report-ip.sh /usr/local/bin/kiosk-report-ip
+sudo install -Dm755 /tmp/kiosk-tv.sh  /usr/local/bin/kiosk-tv
+sudo apt install -y cec-utils          # or v4l-utils on images without it
+
+# 3. Check-in timer, every minute
+sudo cp /tmp/report-ip.service /tmp/report-ip.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now report-ip.timer
+
+# 4. Optional: automatic TV on/off schedule (§5)
+sudo install -m644 /tmp/kiosk-tv.cron /etc/cron.d/kiosk-tv
+```
+
+> **Never run step 1 on a Pi that already checks in.** The real
+> `FLEET_REPORT_SECRET` is the 63-hex-char value in
+> `analytics.alvear.cl/server/fleet-config.php` (`grep FLEET_REPORT_SECRET` it
+> on your Mac). Writing the literal `PASTE_FLEET_REPORT_SECRET` — or leaving any
+> placeholder — overwrites a working secret, and every check-in then 403s
+> (`curl: (22) ... error: 403` in the journal). To recover: put the real hex
+> value back and `sudo systemctl start report-ip.service`.
+
+The timer runs as **root**, which is what lets the check-in act on the
+dashboard's TV-power / reboot / poweroff buttons (§5). Don't move it to a user
+crontab.
+
+**Adding TV power to a Pi that's already on the fleet** (e.g. an existing
+kiosk): do the scp above, then only steps 2–4 — step 1 is already done and must
+be left alone.
 
 Check it worked:
 
 ```bash
-sudo systemctl start report-ip.service   # fire one report immediately
+sudo systemctl start report-ip.service   # fire one check-in immediately
 sudo journalctl -u report-ip.service -n 20
 ```
 
-...then load the dashboard URL — the Pi should appear with a green dot,
-its hostname, label, and local IP to SSH into.
+...then load the dashboard — the Pi should appear with an online dot, its
+hostname, label, LAN IP (to SSH into) and public IP. Blank/wrong secret is a
+403; a non-IP `local_ip` (no network yet) is a 400.
+
+## 5. TV power (HDMI-CEC)
+
+Turn the TV on and off from the Pi over the HDMI cable — the Pi keeps running,
+only the panel sleeps. The `kiosk-tv` helper and `cec-utils` are installed in
+§4 (step 2); this section is the TV-side setup and the two ways to trigger it.
+
+**Enable CEC on the TV.** It's off by default and hidden under a brand name —
+*Anynet+* (Samsung), *Bravia Sync* (Sony), *SimpLink* (LG), *Viera Link*
+(Panasonic), *EasyLink* (Philips). The HDMI port label (`HDMI3`, `eARC`, …)
+doesn't matter; CEC is on every port.
+
+**Check it reaches the TV** (as root — the timer runs `kiosk-tv` as root):
+
+```bash
+echo 'scan' | sudo cec-client -s -d 1   # should list the TV, not just the Pi
+sudo kiosk-tv off      # TV to standby
+sudo kiosk-tv on       # wake it, switch input back to the Pi
+sudo kiosk-tv status   # CEC power state
+```
+
+If `scan` shows only the Pi, CEC isn't enabled on the TV (or on that input). If
+`kiosk-tv off` works but `on` doesn't, your TV ignores CEC wake (some do) — the
+schedule's morning "on" won't help and you'll need the TV's own *On Timer*, but
+the "off" half still works.
+
+Latency note: a dashboard button press is queued and acted on at the Pi's *next*
+check-in, so allow up to ~1 min between click and the TV reacting.
+
+### Trigger 1 — buttons on the fleet dashboard
+
+`https://analytics.alvear.cl/fleet.php` has **TV on / TV off** (and Reboot /
+Power off) per Pi. A press is queued and the Pi picks it up on its next
+check-in (≤ ~1 min). `report-ip.sh` calls `kiosk-tv` for the TV commands, so
+just having `/usr/local/bin/kiosk-tv` installed is enough — nothing else to
+wire up.
+
+### Trigger 2 — a fixed on/off schedule
+
+`kiosk-tv.cron` (installed in §4 step 4 as `/etc/cron.d/kiosk-tv`) is TV
+**off 17:00, on 06:30, Mon–Fri**, `America/Chicago`. To change the times or
+timezone, edit `/etc/cron.d/kiosk-tv` in place — cron picks up changes within a
+minute, no reload needed.
+
+The buttons and the schedule are independent — run either, or both.
+
+**Check the schedule is live:**
+
+```bash
+# 1. The file is installed and readable, root-owned, mode 644
+ls -l /etc/cron.d/kiosk-tv && cat /etc/cron.d/kiosk-tv
+
+# 2. cron parsed it — no "bad minute" / parse errors, and it logs each run
+journalctl -u cron --since today | grep -i kiosk-tv
+
+# 3. The Pi's clock/timezone is what you think it is (times are CRON_TZ, or
+#    system-local if you removed that line)
+timedatectl
+
+# 4. Force a run now, without waiting for 17:00
+sudo /usr/local/bin/kiosk-tv off   # then `... on`
+```
+
+If `journalctl -u cron` shows nothing, cron isn't installed/running
+(`sudo apt install -y cron && sudo systemctl enable --now cron`) or the file has
+a syntax error — every line needs the `user` field (`root`) between the time
+spec and the command, which `/etc/cron.d/*` requires and a normal crontab
+doesn't.
+
+After 17:00 or 06:30 passes, confirm it actually fired — `kiosk-tv` logs each
+run to syslog with tag `kiosk-tv`, and cron logs the command line it launched:
+
+```bash
+journalctl -t kiosk-tv --since today       # "TV off" / "TV on" from the helper
+journalctl -u cron --since today | grep kiosk-tv   # the cron line that ran it
+```
+
+### If the kiosk comes back at the wrong resolution
+
+A few TVs drop the HDMI hotplug line in standby, so X reconfigures when the TV
+wakes. If you hit that, force the mode by adding `video=HDMI-A-1:1920x1080@60D`
+to `/boot/firmware/cmdline.txt` (one line, space-separated) and rebooting.
+
+## 6. Choosing a dashboard font
+
+Raspberry Pi OS Lite ships almost no fonts, so the dashboard's font stack
+(`-apple-system, "Segoe UI", Roboto, …`) matches nothing on the Pi and
+Chromium falls back to a plain face that looks worse than it does on a Mac.
+`font-test.html` in this folder is a full-screen card that shows the real
+dashboard layout, at the real kiosk sizes, cycling through candidate fonts so
+you can judge them on the actual screen.
+
+It's a single self-contained file — five of the candidates (Inter, Source Sans
+3, IBM Plex Sans, Public Sans, Figtree) are baked in as `woff2` data URIs and
+render identically on the Pi and on your Mac with nothing installed. The rest
+are `apt`-installable system fonts; each chip says whether that package is
+present on this Pi.
+
+It auto-cycles every 7 s, so it works on a cursor-less screen with no input.
+With a keyboard attached: **Space** pause, **← / →** step, **G** toggle an
+all-fonts contact sheet.
+
+### Rebuilding it
+
+Only needed if you edit the layout or the candidate list:
+
+```bash
+python3 pi-kiosk/build_font_test.py   # reads font-test-src/, writes font-test.html
+```
+
+`font-test-src/` holds the template and the raw `woff2` files (latin-subset
+variable fonts pulled from Google Fonts).
+
+### Showing it on a kiosk
+
+Copy it over and point the kiosk at it instead of the dashboard, then put the
+URL back when you've chosen:
+
+```bash
+scp pi-kiosk/font-test.html <pi>:/home/<user>/font-test.html
+```
+
+On the Pi, edit `DASHBOARD_URL` at the top of `/usr/local/bin/kiosk.sh` to:
+
+```sh
+DASHBOARD_URL="file:///home/<user>/font-test.html"
+```
+
+then `sudo reboot`. When you're done, set `DASHBOARD_URL` back to
+`https://sluhtime.alvear.cl/math/` and reboot again.
+
+### Applying your choice
+
+- **An embedded font (Inter etc.):** best rendering, identical everywhere.
+  Copy that `woff2` from `font-test-src/` into the site, add an `@font-face`
+  to `math-office.css`, and put the family first in the `font-family` stack.
+- **An `apt` font:** `sudo apt install <the package the chip named>` on each
+  Pi, then put that family first in the `math-office.css` stack (keep the
+  existing entries after it as the Mac/Windows fallback).
+
+### Making the Pi render text crisply
+
+The dashboard stack is `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+sans-serif` — on a Mac the first entry wins (San Francisco); on the Pi the
+first three don't exist, so **Roboto** is used if it's installed. Two things
+make small text on the Pi look softer than the same screen driven by a Mac,
+and both are fixed on the Pi (not in this repo):
+
+1. **Install the *hinted* Roboto.** The plain `fonts-roboto` metapackage pulls
+   the *unhinted* build, which is the blurry one at small sizes:
+
+   ```bash
+   sudo apt install -y --no-install-recommends fonts-roboto-hinted \
+     || sudo apt install -y --no-install-recommends fonts-roboto
+   ```
+
+2. **Turn on hinting + subpixel rendering in fontconfig.** Raspberry Pi OS
+   defaults to slight hinting and grayscale antialiasing; this switches on
+   full LCD subpixel rendering, which is what closes most of the gap:
+
+   ```bash
+   sudo tee /etc/fonts/local.conf >/dev/null <<'EOF'
+   <?xml version="1.0"?>
+   <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+   <fontconfig>
+     <match target="font">
+       <edit name="antialias" mode="assign"><bool>true</bool></edit>
+       <edit name="hinting"   mode="assign"><bool>true</bool></edit>
+       <edit name="hintstyle" mode="assign"><const>hintslight</const></edit>
+       <edit name="rgba"      mode="assign"><const>rgb</const></edit>
+       <edit name="lcdfilter" mode="assign"><const>lcddefault</const></edit>
+     </match>
+   </fontconfig>
+   EOF
+   sudo fc-cache -f
+   sudo reboot
+   ```
+
+   Chromium reads these through fontconfig at startup, hence the reboot. If
+   text ends up with faint colour fringes (some TV panels aren't RGB-ordered)
+   set `rgba` to `none`; if it still looks soft, step `hintstyle` up to
+   `hintmedium` then `hintfull`.
+
+The small labels/rows on the dashboard were also bumped up a step in
+`math-office.css` (2026-09) so they read from across the room — that part
+ships with a normal `deploy.sh`.
 
 ## Notes
 
-- The "local IP" reported is whatever `hostname -I` returns first — fine for
-  a Pi with a single active NIC (the normal kiosk case). If a Pi ever has
-  both Ethernet and Wi-Fi up at once, double check which IP comes back.
+- The "local IP" reported is the source address the Pi uses to reach its
+  default gateway (`ip route get`), so it stays correct even if a Pi has both
+  Ethernet and Wi-Fi up at once.
 - The dashboard only tells you IPs *within the Pi's own LAN*. If a kiosk is
   at a different physical site than you are, you'll still need to be on
   that site's network (or VPN'd into it) to actually SSH to the reported

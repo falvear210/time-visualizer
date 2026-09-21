@@ -7,7 +7,7 @@ instead of the Mercator-style bias (Greenland/Russia/Canada blown up) that
 the previous hand-drawn vendored map had.
 
 Run ONCE (country borders don't change often enough to justify rerunning):
-    python3 scripts/build_world_map.py data/ne_110m_admin_0_countries.geojson ../world-map.svg
+    python3 scripts/build_world_map.py data/source/ne_110m_admin_0_countries.geojson mcl/world-map.svg
 
 The source GeoJSON is cached in data/ (Natural Earth is public domain, no
 attribution required) so this has no network dependency and is
@@ -19,7 +19,10 @@ Each country becomes a single <path id="xx"> keyed by its lowercase ISO
 3166-1 alpha-2 code (a handful of disputed/unrecognized places that Natural
 Earth doesn't give an ISO code get an "_name" id instead, same convention as
 the map this replaces) -- multi-part countries (islands, exclaves) are just
-multiple "M...Z" subpaths within that one <path>.
+multiple "M...Z" subpaths within that one <path>. The exception is
+SPLIT_TERRITORIES below, where an overseas department Natural Earth draws as
+part of its parent country is given its own path so it can be shaded
+independently of the mainland.
 
 Each <path> also carries data-lx/data-ly: Natural Earth's own hand-curated
 "best point for this country's label" (LABEL_X/LABEL_Y), projected the same
@@ -63,6 +66,23 @@ _M = math.sqrt(3) / 2
 # below for the knob that actually controls how much ocean shows at the edge.
 LON_CROP_MIN, LON_CROP_MAX = -142, 145
 
+# Natural Earth draws a country's overseas *departments* as part of the parent
+# country itself -- they're legally France, not dependencies, so one feature
+# with one ISO code covers both the mainland and land an ocean away. That's
+# wrong for this map: the Latin page shades "fr" and a patch of South America
+# lights up with it. Each entry below pulls the rings that fall inside a
+# lon/lat box out of the parent and gives them their own <path id="...">, so
+# mcl-map-languages.csv can shade the mainland and the territory separately
+# (French Guiana is on the French page via "gf", and not on the Latin one).
+#
+#   parent id, new id, name, (lon_min, lon_max, lat_min, lat_max), label lon/lat
+# The box only has to separate the territory from the rest of ITS OWN parent,
+# so generous bounds are fine. The label point is hand-picked here because
+# Natural Earth only ships one LABEL_X/Y for the combined feature.
+SPLIT_TERRITORIES = [
+    ("fr", "gf", "French Guiana", (-56, -50, 1, 7), (-53.2, 4.0)),
+]
+
 
 def equal_earth(lon_deg, lat_deg):
     lam = math.radians(lon_deg)
@@ -96,6 +116,12 @@ def iso_of(props, seen, dupes):
     return slug
 
 
+def ring_in_box(ring, box):
+    """True if every point of this ring falls inside a lon/lat box."""
+    lon_min, lon_max, lat_min, lat_max = box
+    return all(lon_min <= lon <= lon_max and lat_min <= lat <= lat_max for lon, lat in ring)
+
+
 def rings_of(geometry):
     t = geometry["type"]
     polys = geometry["coordinates"] if t == "MultiPolygon" else [geometry["coordinates"]]
@@ -116,17 +142,40 @@ def main():
     seen_ids, dupes = set(), []
     countries = []  # (id, name, [ [(x,y), ...], ... rings ], label_point) in equal-earth units
     all_x, all_y = [], []
-    for f in features:
-        props = f["properties"]
-        cid = iso_of(props, seen_ids, dupes)
-        rings = []
-        for ring in rings_of(f["geometry"]):
+
+    def project_rings(raw_rings):
+        """lon/lat rings -> equal-earth rings, feeding the viewBox bounds as we go."""
+        out = []
+        for ring in raw_rings:
             pts = [equal_earth(lon, lat) for lon, lat in ring]
-            rings.append(pts)
+            out.append(pts)
             for (lon, _lat), (x, y) in zip(ring, pts):
                 if LON_CROP_MIN <= lon <= LON_CROP_MAX:
                     all_x.append(x)
                     all_y.append(y)
+        return out
+
+    for f in features:
+        props = f["properties"]
+        cid = iso_of(props, seen_ids, dupes)
+        raw_rings = list(rings_of(f["geometry"]))
+
+        # Split out any overseas territory bundled into this feature (see
+        # SPLIT_TERRITORIES) before projecting, while we still have lon/lat.
+        for parent, new_id, new_name, box, label_lonlat in SPLIT_TERRITORIES:
+            if cid != parent:
+                continue
+            moved = [r for r in raw_rings if ring_in_box(r, box)]
+            if not moved:
+                print(f"warning: split {new_id} matched no rings in {parent} -- "
+                      "the source data changed, check the box", file=sys.stderr)
+                continue
+            moved_ids = {id(r) for r in moved}
+            raw_rings = [r for r in raw_rings if id(r) not in moved_ids]
+            seen_ids.add(new_id)
+            countries.append((new_id, new_name, project_rings(moved), equal_earth(*label_lonlat)))
+
+        rings = project_rings(raw_rings)
         # Natural Earth ships a hand-curated "best point for this country's
         # label" per feature (LABEL_X/Y) -- cartographer-placed, so it lands
         # in the populated heartland rather than a country's geometric

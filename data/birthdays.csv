@@ -1,3 +1,12 @@
+# Faculty & staff birthdays -- SHARED by every dashboard (/math/, /mcl/).
+# Both wall displays show this whole list; `dept` only controls which names
+# render bold on which display:
+#     math   bold on /math/
+#     mcl    bold on /mcl/
+#     blank  shown on both, bold on neither
+# One dept per person. Add a new value here and the matching dashboard has
+# to opt in too (see parseBirthdaysCsv in math/math-office.js, mcl/mcl-office.js).
+# Date is YYYYMMDD. Lines starting with # are ignored.
 date,name,dept
 20260804,Jessi Austin,
 20260806,Jeff Pottinger,
@@ -11,7 +20,7 @@ date,name,dept
 20260818,Kathy Whitaker,
 20260821,Ann Murphy,
 20260823,Ethan Steingruby,
-20260825,Javier Moreno,
+20260825,Javier Moreno,mcl
 20260825,Travis Meyer,
 20260827,Karen Zenor,
 20260829,Jared Thornberry,
@@ -21,7 +30,7 @@ date,name,dept
 20260906,Serena,
 20260907,Kevin McKernan,
 20260907,Brian Reeves,
-20260908,Richard Esswein,
+20260908,Rich Esswein,mcl
 20260908,Todd Hoffmann,
 20260911,Lori West,
 20260912,Chris Stahl,
@@ -35,14 +44,14 @@ date,name,dept
 20260921,Andrew Kresyman,
 20260922,Jacob Fitts,
 20260926,Karla Morris-Holmes,
-20260928,Maria-Paz Erker,
+20260928,Maria-Paz Erker,mcl
 20260929,Robyn Wellen,
 20261001,Jack Gorman,
-20261002,Kate Toussaint,
+20261002,Kate Toussaint,mcl
 20261003,Jonathan Dickmann,
 20261003,Tracy Lyons,math
 20261003,Beth Chipley,
-20261005,Fr. Daniel Tesvich SJ,
+20261005,Daniel Tesvich,
 20261009,Bob O'Connell,
 20261013,Correo Harris,
 20261013,Shane Kreutztrager,
@@ -99,19 +108,19 @@ date,name,dept
 20270113,Nick LaPresta,
 20270121,Dan See (half birthday),math
 20270124,Walker Yane (half birthday),math
-20270124,Mohamed Amira,
+20270124,Mohamed Amira,mcl
 20270126,Lucas Navarro (half birthday),math
 20270126,Terry Quinn,
 20270127,Chris Muskopf,
 20270129,Ben DuMont,
 20270129,Juan Artigas,
 20270206,Beth Voegtli,
-20270209,Dr. Dina Fachin,
-20270215,Rob Chura,
+20270209,Dina Fachin,mcl
+20270215,Rob Chura,mcl
 20270217,Tim Curdt,
 20270219,Brock Kesterson,
 20270222,Julie Lewis,
-20270301,Annie Hilmes,
+20270301,Annie Hilmes,mcl
 20270303,Bill Anderson,
 20270304,Fr. Houlihan,
 20270317,Nicholas Snyder,
@@ -132,18 +141,18 @@ date,name,dept
 20270423,LaMarr Brown,
 20270428,Jennifer Kelly,
 20270429,Lisa Fister,
-20270430,Myriam Aliste,
+20270430,Myriam Aliste,mcl
 20270501,Chris Keeven,
-20270504,Yude Huang,
+20270504,Yude Huang,mcl
 20270505,Matthew Jellinek,
 20270506,Mike Harlan,
 20270509,Mary Marshall,
 20270511,Lindsey Ehret,
-20270512,Fr. Eric Ramirez,
+20270512,Eric Ramirez,
 20270513,Jamie Cordia,
 20270515,Molly Kelly,math
 20270516,Mary Michalski,
-20270517,Jennifer Ice,
+20270517,Jennifer Ice,mcl
 20270518,Jon Ott,
 20270518,Chris Buerke,
 20270522,Kara Mauzy,
@@ -164,10 +173,10 @@ date,name,dept
 20270626,Charles Busenhart,
 20270702,Kate Essig,
 20270705,Reginald Davis,
-20270706,Marina Chura,
+20270706,Marina Chura,mcl
 20270706,Steven Kuensting,
 20270711,Thomas Phillips,
-20270716,Carson Cornett,
+20270716,Carson Cornett,mcl
 20270718,Steve Missey,
 20270718,Megan Menne,
 20270718,John Hugger,

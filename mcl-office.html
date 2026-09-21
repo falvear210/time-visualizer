@@ -1,112 +1,36 @@
 <!DOCTYPE html>
 <!--
-  The Modern & Classical Languages (MCL) office wall display. A sibling of
-  math-office.html: same SLUH theme, same "runs unattended full-screen on a
-  TV" job, same data.js for the school calendar -- but built for the
-  languages department instead of math.
+  Redirect stub for the OLD URL: /mcl-office.html
 
-  What's different from math-office:
-    - a rotating greeting in the header (Salve / Hola / Bonjour / ...)
-    - "Languages Teaching Now" instead of a plain teacher list -- each row
-      carries the language + level being taught
-    - a WORLD MAP panel in place of "Year at a Glance": it rotates between
-      shading the countries where a language is spoken, the department's
-      exchange-partner schools, and the places SLUH travels during the year
-      -- the last two showing one place at a time as a pulsing dot + name
-    - the rotating box carries a "Cultural Calendar" of upcoming festivities
-      and national days for the countries behind the taught languages, plus
-      the next meeting of each cultural / affinity club
-    - weather shows St. Louis plus a few cities around the language world
+  The wall display moved into its own folder, /mcl/, so that every SLUH
+  Time project can live at a URL ending in "/". This file stays behind at
+  the old path forever -- it is what a stale bookmark, a printed QR code,
+  or a Pi kiosk that missed the config update actually hits.
 
-  Structure only: every element with an id="mcl-..." is filled in by
-  mcl-office.js at runtime. Bump the ?v= cache-busters below when CSS/JS
-  changes. See README.md ("The MCL office wall display") for the full tour.
+  Two layers, because the kiosks run unattended:
+    - the <meta refresh> works with JavaScript disabled
+    - the script runs first in practice and carries ?query + #hash across
+
+  A server-side 301 is the better answer for anything a search engine
+  indexes -- that is server/nginx-office-folders.conf, pasted into the
+  sluhtime.alvear.cl vhost by hand. This stub is the no-server-access
+  fallback, and it deploys itself with the rest of the site.
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Languages Office Dashboard</title>
-<link rel="stylesheet" href="mcl-office.css?v=15">
-</head>
-<body>
-<div class="mcl-dashboard">
-  <header class="mcl-header">
-    <div class="mcl-header-title">
-      <h1>Languages Office Dashboard</h1>
-      <a class="mcl-header-link" href="index.html">SLUH Time Visualizer</a>
-    </div>
-    <div class="mcl-header-greeting" id="mcl-greeting"></div>
-    <div class="mcl-header-time">
-      <span id="mcl-date"></span>
-      <span id="mcl-clock"></span>
-    </div>
-  </header>
-
-  <div class="mcl-columns">
-    <section class="mcl-col">
-      <h2 id="mcl-rotator-title">Cultural Calendar</h2>
-      <div class="mcl-col-body">
-        <div id="mcl-rotator-body" class="mcl-rotator-content"></div>
-      </div>
-    </section>
-
-    <section class="mcl-col mcl-map-col">
-      <div class="mcl-col-header-row">
-        <h2 id="mcl-map-title">World Map</h2>
-        <span class="mcl-map-sub" id="mcl-map-sub"></span>
-      </div>
-      <div class="mcl-col-body">
-        <div class="mcl-map-wrap" id="mcl-map-wrap">
-          <div class="mcl-map-stage" id="mcl-map-stage">
-            <div class="mcl-map-svg" id="mcl-map-svg"></div>
-          </div>
-          <div class="mcl-map-pins" id="mcl-map-pins"></div>
-          <div class="mcl-map-frame" id="mcl-map-frame"></div>
-        </div>
-        <div class="mcl-map-legend" id="mcl-map-legend"></div>
-      </div>
-    </section>
-
-    <section class="mcl-col">
-      <h2>Today's Schedule</h2>
-      <div class="mcl-col-body">
-        <div id="mcl-daily-status"></div>
-        <div id="mcl-daily-bars"></div>
-      </div>
-    </section>
-  </div>
-
-  <div class="mcl-bottom">
-    <section class="mcl-col">
-      <div class="mcl-col-header-row">
-        <h2>Languages Teaching Now</h2>
-        <span class="mcl-teachers-period" id="mcl-teachers-period"></span>
-      </div>
-      <div class="mcl-col-body">
-        <ul class="mcl-people-list" id="mcl-people-list"></ul>
-      </div>
-    </section>
-
-    <section class="mcl-col">
-      <h2>Weather</h2>
-      <div class="mcl-col-body">
-        <div class="mcl-weather" id="mcl-weather"></div>
-      </div>
-    </section>
-  </div>
-</div>
-
-<script src="data.js"></script>
-<script src="mcl-office.js?v=15"></script>
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="0; url=mcl/">
+<link rel="canonical" href="https://sluhtime.alvear.cl/mcl/">
+<title>Moved — SLUH MCL Office Display</title>
 <script>
-  // Fields for analytics.alvear.cl's automatic "view" event (see a.js).
-  window.xaExtra = function () {
-    var device = Math.min(screen.width || 9999, screen.height || 9999) <= 600 ? "mobile" : "desktop";
-    return { page: "mcl-office", theme: "light", device: device };
-  };
+  (function () {
+    location.replace("mcl/" + location.search + location.hash);
+  })();
 </script>
-<script src="https://analytics.alvear.cl/a.js" data-site="time-visualizer" defer></script>
-<script src="https://analytics.alvear.cl/feedback.js" data-site="time-visualizer" defer></script>
+</head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:32rem;margin:4rem auto;padding:0 1rem;">
+  <p>The Modern &amp; Classical Languages display has moved to
+     <a href="mcl/">sluhtime.alvear.cl/mcl/</a>.</p>
 </body>
 </html>

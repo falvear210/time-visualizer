@@ -129,6 +129,21 @@ function formatCountdownClock(totalMs) {
   return (h > 0 ? `${h}:` : "") + `${mm}:${String(s).padStart(2, "0")}`;
 }
 
+// A percent meant for human eyes, NEVER rounded up. Math.round() turns 99.7%
+// into "100%", which lets a bar announce that a period (or a semester, or the
+// year) is over while it is still running -- the one lie a progress bar must
+// never tell. So anything short of finished reads at most 99%.
+//
+// Genuinely-finished work arrives here as exactly 100, because periodProgress()
+// returns exactly 1 for a period that's over; the epsilon below only absorbs
+// floating-point dust from summing hundreds of those 1s, so a completed stretch
+// still reads "100%".
+function displayPct(pct) {
+  const clamped = Math.max(0, Math.min(100, pct));
+  if (clamped >= 100 - 1e-9) return 100; // actually done
+  return Math.floor(clamped);            // everything else rounds DOWN
+}
+
 // Monday (YYYYMMDD) of the calendar week containing this date, for weekly grouping.
 function mondayOf(dateStr) {
   const { y, m, d } = parseDate(dateStr);
@@ -412,7 +427,7 @@ function bar(label, pct, sub, celebrate) {
   const clamped = Math.max(0, Math.min(100, pct));
   return `
     <div class="bar-row${celebrate ? " is-celebrating" : ""}">
-      <div class="bar-top"><div class="bar-label">${label}</div><div class="bar-pct">${Math.round(clamped)}%</div></div>
+      <div class="bar-top"><div class="bar-label">${label}</div><div class="bar-pct">${displayPct(clamped)}%</div></div>
       <div class="bar-track"><div class="bar-fill" style="width:${clamped}%"></div></div>
       <div class="bar-sub">${sub}</div>
     </div>`;
@@ -602,8 +617,8 @@ function main() {
     const meta = p.meta;
     const semLabel = meta.semester === "s1" ? "Semester 1" : "Semester 2";
     const semTotal = semesterTotals[meta.semester];
-    const semPct = Math.round((meta.semesterIndex / semTotal) * 100);
-    const yearPct = Math.round((meta.overall / yearTotal) * 100);
+    const semPct = displayPct((meta.semesterIndex / semTotal) * 100);
+    const yearPct = displayPct((meta.overall / yearTotal) * 100);
 
     infoPanel.innerHTML = `
       <div class="info-date">${formatFullDate(day.date, day.weekday)}</div>
@@ -935,7 +950,7 @@ function main() {
 
     return `
       <div class="bar-row is-live" id="${id}">
-        <div class="bar-top"><div class="bar-label">Current Period — ${live.label}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
+        <div class="bar-top"><div class="bar-label">Current Period — ${live.label}</div><div class="bar-pct">${displayPct(pct)}%</div></div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
         <div class="bar-sub">${formatClockTenths(elapsedMs)} elapsed · ${formatClockTenths(remainingMs)} remaining</div>
         ${waveToggle}
@@ -986,7 +1001,7 @@ function main() {
 
     return `
       <div class="bar-row${isLastDay ? " is-celebrating" : ""}" id="${id}">
-        <div class="bar-top"><div class="bar-label">Next Break (3+ days) — ${name}</div><div class="bar-pct">${Math.round(pct)}%</div></div>
+        <div class="bar-top"><div class="bar-label">Next Break (3+ days) — ${name}</div><div class="bar-pct">${displayPct(pct)}%</div></div>
         <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
         <div class="bar-sub">${daysLeft} school day${daysLeft === 1 ? "" : "s"} left${isLastDay ? " 🎉🙌" : ""}</div>
       </div>`;
@@ -1090,7 +1105,7 @@ function main() {
       const { startMinutes, endMinutes } = resolvePeriodTimes(live, wave);
       const totalMs = (endMinutes - startMinutes) * 60000;
       const elapsedMs = Math.min(totalMs, Math.max(0, (now.minutes - startMinutes) * 60000 + now.seconds * 1000 + now.ms));
-      const pct = Math.round((elapsedMs / totalMs) * 100);
+      const pct = displayPct((elapsedMs / totalMs) * 100);
       return `
         <div class="daily-countdown">
           <div class="daily-countdown-label">Period ${live.label} in progress</div>
@@ -1205,7 +1220,7 @@ function main() {
     const remainingMs = totalMs - elapsedMs;
     const pct = (elapsedMs / totalMs) * 100;
 
-    el.querySelector(".bar-pct").textContent = `${Math.round(pct)}%`;
+    el.querySelector(".bar-pct").textContent = `${displayPct(pct)}%`;
     el.querySelector(".bar-fill").style.width = `${pct}%`;
     el.querySelector(".bar-sub").textContent = `${formatClockTenths(elapsedMs)} elapsed · ${formatClockTenths(remainingMs)} remaining`;
     el.querySelectorAll(".wave-pill").forEach((btn) => {

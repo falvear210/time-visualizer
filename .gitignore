@@ -1,2 +1,6 @@
 .DS_Store
 __pycache__/
+
+# stats endpoint runtime files -- live only on the server (see stats.php)
+.stats-data.json
+.stats-key.txt

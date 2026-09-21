@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+  Fallback redirect for the OLD location: static.alvear.cl/sluh-time-visualizer/
+
+  The real redirect is server/nginx-redirect.conf (a 301 in the
+  static.alvear.cl vhost). This file is only a backstop: after you stop
+  deploying to the old directory, replace everything in it with just this
+  one file, so a visitor who lands there before the nginx change (or if
+  the nginx block is ever removed) still ends up in the right place.
+
+      rm -rf /var/www/static.alvear.cl/htdocs/sluh-time-visualizer/*
+      cp index.html /var/www/static.alvear.cl/htdocs/sluh-time-visualizer/
+
+  The <meta> tag handles the no-JS case (lands on the site root); the
+  script carries the deep path and #hash across so bookmarks to a specific
+  page/tab keep working.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="0; url=https://sluhtime.alvear.cl/">
+<link rel="canonical" href="https://sluhtime.alvear.cl/">
+<title>Moved — SLUH Time Visualizer</title>
+<script>
+  (function () {
+    var base = "https://sluhtime.alvear.cl/";
+    // Strip the old "/sluh-time-visualizer/" prefix, keep the rest of the
+    // path (e.g. "math-office.html"), plus any query string and #hash.
+    var rest = location.pathname.replace(/^\/sluh-time-visualizer\/?/, "");
+    location.replace(base + rest + location.search + location.hash);
+  })();
+</script>
+</head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:32rem;margin:4rem auto;padding:0 1rem;">
+  <p>This page has moved to
+     <a href="https://sluhtime.alvear.cl/">sluhtime.alvear.cl</a>.</p>
+</body>
+</html>

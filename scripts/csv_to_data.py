@@ -26,6 +26,7 @@ Usage: python3 csv_to_data.py <input.csv> <output.json> <output.js>
 """
 import csv
 import json
+import os
 import re
 import sys
 from datetime import datetime
@@ -244,6 +245,20 @@ def main():
         f.write("const SENIOR_S2 = ")
         json.dump(senior_s2, f)
         f.write(";\n")
+
+    # also drop a trimmed copy where api/period.php (the lock-screen widget
+    # endpoint) can read it. Only when the api/ dir exists next to data.js,
+    # so this stays a no-op for anyone who doesn't deploy the API.
+    api_dir = os.path.join(os.path.dirname(os.path.abspath(js_path)), "api")
+    if os.path.isdir(api_dir):
+        api_path = os.path.join(api_dir, "schedule.json")
+        with open(api_path, "w", encoding="utf-8") as f:
+            json.dump({
+                "timezone": "America/Chicago",
+                "generated": int(datetime.now().timestamp()),
+                "days": clean_days,
+            }, f)
+        print(f"  wrote {api_path} (lock-screen widget API)")
 
     print(f"\nOK: {len(clean_days)} days -> {json_path} and {js_path}")
     if quarter_marks:
