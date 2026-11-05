@@ -23,7 +23,8 @@
 //   4. Formatting helpers
 //   5. CSV loading
 //   6. Weather (Open-Meteo, no API key)
-//   7. render() -- rebuilds every panel once a second
+//   7. Confetti when a class ends (rainbow on the last school day of the week)
+//   8. render() -- rebuilds every panel once a second
 // =============================================================================
 
 const TIME_ZONE = "America/Chicago";
@@ -98,8 +99,8 @@ function setupDebugBar() {
   input.addEventListener("change", () => {
     if (!input.value) return;
     const [date, time] = input.value.split("T");
-    const [h, m] = time.split(":").map(Number);
-    base = { dateStr: date.replace(/-/g, ""), totalSeconds: h * 3600 + m * 60 };
+    const [h, m, sec = 0] = time.split(":").map(Number); // seconds only if typed
+    base = { dateStr: date.replace(/-/g, ""), totalSeconds: h * 3600 + m * 60 + Math.floor(sec) };
     pickedAt = Date.now();
   });
   document.getElementById("il-debug-live").addEventListener("click", () => {
@@ -107,6 +108,9 @@ function setupDebugBar() {
     debugNow = null;
     input.value = "";
   });
+  // test buttons: fire either confetti style on demand
+  document.getElementById("il-debug-confetti").addEventListener("click", () => fireConfetti(CONFETTI_BLUES));
+  document.getElementById("il-debug-confetti-week").addEventListener("click", () => fireConfetti(CONFETTI_RAINBOW));
   setInterval(() => {
     if (!base) return;
     const t = base.totalSeconds + Math.floor((Date.now() - pickedAt) / 1000);
@@ -142,6 +146,23 @@ function buildDay(day, classes) {
 // The first school day (one with periods) strictly after dateStr.
 function nextSchoolDay(dateStr) {
   return SCHOOL_YEAR_DATA.find((d) => d.date > dateStr && d.periods.length > 0) || null;
+}
+
+// Monday (YYYYMMDD) of the calendar week containing dateStr.
+function mondayOf(dateStr) {
+  const { y, m, d } = parseDate(dateStr);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  const dow = dt.getUTCDay(); // 0 = Sunday
+  dt.setUTCDate(dt.getUTCDate() + (dow === 0 ? -6 : 1 - dow));
+  return `${dt.getUTCFullYear()}${String(dt.getUTCMonth() + 1).padStart(2, "0")}${String(dt.getUTCDate()).padStart(2, "0")}`;
+}
+
+// True on the last school day of the week -- usually Friday, but also e.g.
+// the Wednesday before Thanksgiving, or a Thursday before a long weekend.
+// "Last" means the next school day falls in a later calendar week.
+function isLastSchoolDayOfWeek(dateStr) {
+  const next = nextSchoolDay(dateStr);
+  return !next || mondayOf(next.date) !== mondayOf(dateStr);
 }
 
 // ---- 4. formatting ----
@@ -283,7 +304,96 @@ function renderWeather() {
     </div>`;
 }
 
-// ---- 7. render ----
+// ---- 7. confetti (fires when a class ends) ----
+// A tiny hand-rolled particle system on a full-screen canvas -- no library,
+// so it keeps working offline on the kiosk. Two "cannons" in the bottom
+// corners shoot paper up and inward; gravity and air drag bring it down.
+// The animation loop only runs while confetti is on screen.
+
+const CONFETTI_BLUES = ["#003366", "#005588", "#88ccec", "#4a90c2", "#c9dbe9"];
+const CONFETTI_RAINBOW = ["#e63946", "#f4a261", "#e9c46a", "#2a9d8f", "#3a86ff", "#8338ec", "#ff006e", "#005588"];
+const CONFETTI_PER_CANNON = 110;
+
+const confettiCanvas = document.getElementById("il-confetti");
+const confettiCtx = confettiCanvas.getContext("2d");
+let confettiPieces = [];
+let confettiRunning = false;
+
+function fireConfetti(colors) {
+  // match the canvas to the screen (in device pixels, so it's crisp)
+  const dpr = window.devicePixelRatio || 1;
+  confettiCanvas.width = innerWidth * dpr;
+  confettiCanvas.height = innerHeight * dpr;
+  confettiCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const size = Math.min(innerWidth, innerHeight * 1.778) / 100; // same scale as --u
+  for (const side of [-1, 1]) { // -1 = left cannon, 1 = right cannon
+    for (let i = 0; i < CONFETTI_PER_CANNON; i++) {
+      const angle = (-90 + side * -(20 + Math.random() * 35)) * Math.PI / 180; // up and inward
+      const speed = (1.1 + Math.random() * 0.9) * innerHeight / 55;
+      confettiPieces.push({
+        x: side === -1 ? 0 : innerWidth,
+        y: innerHeight,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        w: size * (0.8 + Math.random() * 0.8),
+        h: size * (0.4 + Math.random() * 0.5),
+        rot: Math.random() * Math.PI,
+        spin: (Math.random() - 0.5) * 0.3,
+        wobble: Math.random() * Math.PI * 2, // makes pieces flutter as they fall
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+    }
+  }
+  if (!confettiRunning) {
+    confettiRunning = true;
+    requestAnimationFrame(confettiFrame);
+  }
+}
+
+function confettiFrame() {
+  confettiCtx.clearRect(0, 0, innerWidth, innerHeight);
+  const gravity = innerHeight / 2600;
+  for (const p of confettiPieces) {
+    p.vx *= 0.985; // air drag
+    p.vy = p.vy * 0.985 + gravity;
+    p.wobble += 0.12;
+    p.x += p.vx + Math.sin(p.wobble) * 0.8;
+    p.y += p.vy;
+    p.rot += p.spin;
+    confettiCtx.save();
+    confettiCtx.translate(p.x, p.y);
+    confettiCtx.rotate(p.rot);
+    confettiCtx.scale(1, Math.cos(p.wobble)); // fake 3D flip
+    confettiCtx.fillStyle = p.color;
+    confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    confettiCtx.restore();
+  }
+  // drop pieces that have fallen off the bottom (only once they're falling)
+  confettiPieces = confettiPieces.filter((p) => !(p.vy > 0 && p.y > innerHeight + 40));
+  if (confettiPieces.length > 0) {
+    requestAnimationFrame(confettiFrame);
+  } else {
+    confettiRunning = false;
+    confettiCtx.clearRect(0, 0, innerWidth, innerHeight);
+  }
+}
+
+// The moment of the previous render, so render() can tell when a class's end
+// time was just crossed. Only a real tick-by-tick crossing counts (a few
+// seconds apart, same day) -- not a page load or a #debug jump past it.
+let lastTick = null;
+
+function checkClassEnded(slots, now, nowSec) {
+  const prev = lastTick;
+  lastTick = { dateStr: now.dateStr, sec: nowSec };
+  if (!prev || prev.dateStr !== now.dateStr) return;
+  if (nowSec < prev.sec || nowSec - prev.sec > 5) return;
+  const justEnded = slots.some((s) => s.cls && prev.sec < s.end * 60 && nowSec >= s.end * 60);
+  if (justEnded) fireConfetti(isLastSchoolDayOfWeek(now.dateStr) ? CONFETTI_RAINBOW : CONFETTI_BLUES);
+}
+
+// ---- 8. render ----
 
 let classes = {};
 
@@ -354,7 +464,7 @@ function setNextFromNextSchoolDay(dateStr) {
   const first = buildDay(nd, classes)[0];
   const lines = classLines(first);
   setNext({
-    label: `${formatWeekday(nd.date)} · ${first.label} Period · ${hmAmPm(first.start)}`,
+    label: `${formatWeekday(nd.date)} · Period ${first.label} · ${hmAmPm(first.start)}`,
     course: lines.course,
     teacher: lines.open ? "" : lines.teacher,
     muted: lines.open,
@@ -395,6 +505,9 @@ function render() {
 
   const day = SCHOOL_YEAR_DATA.find((d) => d.date === now.dateStr);
   const slots = buildDay(day, classes);
+  checkClassEnded(slots, now, nowSec);
+  // the progress bar goes multicolor on the last school day of the week
+  els["now-fill"].classList.toggle("il-is-week-end", slots.length > 0 && isLastSchoolDayOfWeek(now.dateStr));
   renderSchedule(slots, nowMin, day ? day.summary.replace(/^No (School|Classes)-/, "") : "No school today");
 
   // --- no classes at all today (weekend, break, exam day) ---
@@ -417,11 +530,11 @@ function render() {
     const cur = slots[currentIdx];
     const lines = classLines(cur);
     setNow({
-      label: `Now · ${cur.label} Period`,
+      label: `Now · Period ${cur.label}`,
       course: lines.course,
       teacher: lines.teacher,
       countdown: formatCountdown(cur.end * 60 - nowSec),
-      note: `left · ends ${hmAmPm(cur.end)}`,
+      note: `left\nends ${hmAmPm(cur.end)}`,
       fraction: (nowSec - cur.start * 60) / ((cur.end - cur.start) * 60),
       muted: lines.open,
     });
@@ -440,7 +553,7 @@ function render() {
       course: before ? "Before School" : gap >= LONG_GAP_MINUTES ? "Break" : "Passing",
       teacher: "",
       countdown: formatCountdown(nxt.start * 60 - nowSec),
-      note: `until ${nxt.label} Period`,
+      note: `until\nPeriod ${nxt.label}`,
       muted: true,
     });
   }
@@ -450,7 +563,7 @@ function render() {
   if (upcoming) {
     const lines = classLines(upcoming);
     setNext({
-      label: `Next · ${upcoming.label} Period · ${hmAmPm(upcoming.start)}`,
+      label: `Next · Period ${upcoming.label} · ${hmAmPm(upcoming.start)}`,
       course: lines.course,
       teacher: lines.open ? "" : lines.teacher,
       muted: lines.open,

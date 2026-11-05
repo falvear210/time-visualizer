@@ -19,7 +19,7 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
-<link rel="stylesheet" href="ilab.css?v=2">
+<link rel="stylesheet" href="ilab.css?v=5">
 </head>
 <body>
 <div class="il-dashboard">
@@ -74,10 +74,15 @@
     <input type="datetime-local" id="il-debug-time" class="il-debug-input">
   </label>
   <button id="il-debug-live" class="il-ghost-btn" type="button">live</button>
+  <button id="il-debug-confetti" class="il-ghost-btn" type="button">confetti</button>
+  <button id="il-debug-confetti-week" class="il-ghost-btn" type="button">Friday confetti</button>
 </div>
 
+<!-- confetti is drawn here when a class ends (see ilab.js) -->
+<canvas class="il-confetti" id="il-confetti"></canvas>
+
 <script src="../data.js"></script>
-<script src="ilab.js?v=2"></script>
+<script src="ilab.js?v=5"></script>
 <script>
   // Fields for analytics.alvear.cl's automatic "view" event (see a.js).
   window.xaExtra = function () {

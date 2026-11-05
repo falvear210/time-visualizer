@@ -178,21 +178,24 @@ html, body {
 .il-now .il-teacher { font-size: calc(var(--u) * 2.8); }
 .il-countdown-row {
   display: flex;
-  align-items: baseline;
-  gap: calc(var(--u) * 1.2);
-  margin-top: calc(var(--u) * 1.2);
+  align-items: center;
+  gap: calc(var(--u) * 1.4);
+  margin-top: calc(var(--u) * 0.8);
 }
 .il-countdown-row:has(.il-countdown:empty) { display: none; }
 .il-countdown {
-  font-size: calc(var(--u) * 5.8);
+  font-size: calc(var(--u) * 9.5);
   font-weight: 700;
   line-height: 1;
+  letter-spacing: -0.02em;
   color: var(--blue);
 }
 .il-countdown-note {
   font-size: calc(var(--u) * 2.6);
   font-weight: 600;
+  line-height: 1.2;
   color: var(--text-dim);
+  white-space: pre-line; /* the note is two lines: "left" / "ends 10:35 AM" */
 }
 .il-bar-track {
   height: calc(var(--u) * 1.8);
@@ -205,18 +208,46 @@ html, body {
   height: 100%;
   width: 0%;
   border-radius: 999px;
-  background: var(--blue);
+  /* a slow shimmer through the SLUH blues -- the gradient is wider than the
+     bar and slides back and forth, so it gently "moves" without distracting */
+  background: linear-gradient(90deg, var(--navy), var(--blue), var(--spirit), var(--blue), var(--navy));
+  background-size: 300% 100%;
+  animation: il-bar-shift 6s ease-in-out infinite alternate;
   transition: width 1s linear;
+}
+/* last school day of the week (usually Friday): a celebratory multicolor
+   version. Deliberately off the SLUH palette -- it's a once-a-week treat. */
+.il-bar-fill.il-is-week-end {
+  background: linear-gradient(90deg,
+    #e63946, #f4a261, #e9c46a, #2a9d8f, #3a86ff, #8338ec, #ff006e, #e63946);
+  background-size: 400% 100%;
+  animation-duration: 8s;
+}
+@keyframes il-bar-shift {
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
+}
+
+/* confetti layer -- covers the screen but never blocks anything */
+.il-confetti {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 50;
 }
 
 /* NEXT: smaller, but still readable from the back */
 .il-next {
   flex-shrink: 0;
+  padding-top: calc(var(--u) * 1.1);
+  padding-bottom: calc(var(--u) * 1.1);
   border-left: calc(var(--u) * 0.9) solid var(--border);
 }
-.il-next .il-card-label { color: var(--text-dim); }
-.il-next .il-course { font-size: calc(var(--u) * 4.2); margin-top: calc(var(--u) * 0.3); }
-.il-next .il-teacher { font-size: calc(var(--u) * 2.4); }
+.il-next .il-card-label { color: var(--text-dim); font-size: calc(var(--u) * 1.9); }
+.il-next .il-course { font-size: calc(var(--u) * 3.2); margin-top: calc(var(--u) * 0.2); }
+.il-next .il-teacher { font-size: calc(var(--u) * 2); }
 
 /* passing / before school / open period / no school: quieter */
 .il-is-muted .il-course { color: var(--text-dim); }
