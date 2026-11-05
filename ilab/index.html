@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--
+  The iLab classroom display -- a small screen in the iLab that has to be
+  readable from across the room. Shows: the clock + date + weather (header),
+  the class happening NOW with a countdown, the class coming up NEXT, and
+  today's full period list.
+
+  Data: the day's period times come from ../data.js (shared with every other
+  display); which class meets in each period comes from ilab-classes.csv in
+  this folder (hand-editable). Structure only -- every id="il-..." element
+  is filled in by ilab.js. Bump the ?v= cache-busters when CSS/JS changes.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iLab Dashboard</title>
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="ilab.css?v=2">
+</head>
+<body>
+<div class="il-dashboard">
+
+  <!-- navy bar: room name, clock/date, weather -->
+  <header class="il-header">
+    <div class="il-time">
+      <div class="il-clock" id="il-clock">--:--</div>
+      <div class="il-date" id="il-date">&nbsp;</div>
+    </div>
+    <div class="il-room">iLab</div>
+    <div class="il-weather" id="il-weather"></div>
+  </header>
+
+  <div class="il-body">
+    <!-- left column: what's happening now, and what's next -->
+    <div class="il-left">
+      <section class="il-card il-now" id="il-now">
+        <div class="il-card-label" id="il-now-label">Now</div>
+        <div class="il-course" id="il-now-course">&nbsp;</div>
+        <div class="il-teacher" id="il-now-teacher">&nbsp;</div>
+        <div class="il-countdown-row">
+          <span class="il-countdown" id="il-now-countdown"></span>
+          <span class="il-countdown-note" id="il-now-note"></span>
+        </div>
+        <div class="il-bar-track" id="il-now-track">
+          <div class="il-bar-fill" id="il-now-fill"></div>
+        </div>
+      </section>
+
+      <section class="il-card il-next" id="il-next">
+        <div class="il-card-label" id="il-next-label">Next</div>
+        <div class="il-course" id="il-next-course">&nbsp;</div>
+        <div class="il-teacher" id="il-next-teacher">&nbsp;</div>
+      </section>
+    </div>
+
+    <!-- right column: every period today -->
+    <section class="il-card il-schedule">
+      <div class="il-card-label" id="il-schedule-label">Today</div>
+      <ol class="il-schedule-list" id="il-schedule-list"></ol>
+    </section>
+  </div>
+
+</div>
+
+<!-- Hidden unless the URL ends in #debug -- jump to any date/time to check
+     every state (before school, passing, lunch, after school, no-school
+     days) without waiting for the real clock. -->
+<div class="il-debug-bar" id="il-debug-bar" hidden>
+  <label>debug time
+    <input type="datetime-local" id="il-debug-time" class="il-debug-input">
+  </label>
+  <button id="il-debug-live" class="il-ghost-btn" type="button">live</button>
+</div>
+
+<script src="../data.js"></script>
+<script src="ilab.js?v=2"></script>
+<script>
+  // Fields for analytics.alvear.cl's automatic "view" event (see a.js).
+  window.xaExtra = function () {
+    var device = Math.min(screen.width || 9999, screen.height || 9999) <= 600 ? "mobile" : "desktop";
+    return { page: "ilab", theme: "light", device: device };
+  };
+</script>
+<script src="https://analytics.alvear.cl/a.js" data-site="time-visualizer" defer></script>
+<script src="https://analytics.alvear.cl/feedback.js" data-site="time-visualizer" defer></script>
+</body>
+</html>

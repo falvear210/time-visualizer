@@ -1,0 +1,332 @@
+/*
+  Styles for the iLab classroom display (index.html + ilab.js).
+
+  Built to be read from across a room on a small screen:
+    - Everything is sized in --u, one unit that is 1% of the screen width
+      on a 16:9 display (and shrinks with the height on anything squatter),
+      so the whole layout scales as one piece and never scrolls.
+    - Light only: a lit classroom, unattended, nobody to toggle themes.
+    - SLUH palette only (see ~/code/sluh-brand/BRAND-GUIDELINES.md).
+  All class names are prefixed `il-`.
+*/
+
+:root {
+  --navy: #003366;       /* SLUH Navy -- anchor */
+  --blue: #005588;       /* SLUH Blue -- accents */
+  --spirit: #88ccec;     /* Spirit Blue -- only ever on navy */
+  --bg: #f4f5f7;
+  --card: #ffffff;
+  --border: #d8dce2;
+  --track: #e4e8ee;
+  --text: #003366;
+  --text-dim: #5f6b7a;
+  --text-faint: #9aa3ae;
+
+  /* 1% of the width on a 16:9 screen; on narrower-than-16:9 screens the
+     width still wins, on wider ones the height limits it. */
+  --u: min(1vw, 1.778vh);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden; /* kiosk -- never scrolls */
+}
+
+[hidden] { display: none !important; }
+
+.il-dashboard {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- header: clock + date | room | weather ---- */
+
+.il-header {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: calc(var(--u) * 2);
+  background: var(--navy);
+  color: #fff;
+  padding: calc(var(--u) * 1.2) calc(var(--u) * 2.5);
+}
+.il-clock {
+  font-size: calc(var(--u) * 6.5);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.il-ampm {
+  font-size: 0.4em;
+  font-weight: 600;
+  margin-left: 0.25em;
+  color: var(--spirit);
+  letter-spacing: 0;
+}
+.il-date {
+  font-size: calc(var(--u) * 2.4);
+  font-weight: 600;
+  color: var(--spirit);
+  margin-top: calc(var(--u) * 0.5);
+}
+.il-room {
+  font-size: calc(var(--u) * 4.2);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.il-weather {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 1.4);
+}
+.il-weather-icon {
+  font-size: calc(var(--u) * 5.5);
+  line-height: 1;
+}
+.il-weather-temp {
+  font-size: calc(var(--u) * 6.2);
+  font-weight: 700;
+  line-height: 1;
+}
+.il-weather-main {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 1.4);
+}
+.il-weather-sub {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 0.3);
+  font-size: calc(var(--u) * 2.3);
+  font-weight: 600;
+  color: var(--spirit);
+  white-space: nowrap;
+}
+.il-weather-sub span:first-child { color: #fff; }
+
+/* ---- body: two columns ---- */
+
+.il-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 56fr 44fr;
+  gap: calc(var(--u) * 1.8);
+  padding: calc(var(--u) * 1.8) calc(var(--u) * 2.5) calc(var(--u) * 2);
+}
+.il-left {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 1.8);
+}
+
+.il-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--u) * 1.4);
+  padding: calc(var(--u) * 1.6) calc(var(--u) * 2.2);
+  min-width: 0;
+}
+.il-card-label {
+  font-size: calc(var(--u) * 2.3);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--blue);
+}
+
+/* course names are fitted to one line by ilab.js (fitText) -- these
+   font-sizes are the MAX they're allowed to grow to */
+.il-course {
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.il-teacher {
+  font-weight: 600;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* NOW: the biggest thing on the screen */
+.il-now {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: calc(var(--u) * 0.9) solid var(--blue);
+}
+.il-now > * { flex-shrink: 0; }
+.il-now .il-course { font-size: calc(var(--u) * 6.5); margin-top: calc(var(--u) * 0.4); }
+.il-now .il-teacher { font-size: calc(var(--u) * 2.8); }
+.il-countdown-row {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--u) * 1.2);
+  margin-top: calc(var(--u) * 1.2);
+}
+.il-countdown-row:has(.il-countdown:empty) { display: none; }
+.il-countdown {
+  font-size: calc(var(--u) * 5.8);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--blue);
+}
+.il-countdown-note {
+  font-size: calc(var(--u) * 2.6);
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.il-bar-track {
+  height: calc(var(--u) * 1.8);
+  margin-top: calc(var(--u) * 1.2);
+  border-radius: 999px;
+  background: var(--track);
+  overflow: hidden;
+}
+.il-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: var(--blue);
+  transition: width 1s linear;
+}
+
+/* NEXT: smaller, but still readable from the back */
+.il-next {
+  flex-shrink: 0;
+  border-left: calc(var(--u) * 0.9) solid var(--border);
+}
+.il-next .il-card-label { color: var(--text-dim); }
+.il-next .il-course { font-size: calc(var(--u) * 4.2); margin-top: calc(var(--u) * 0.3); }
+.il-next .il-teacher { font-size: calc(var(--u) * 2.4); }
+
+/* passing / before school / open period / no school: quieter */
+.il-is-muted .il-course { color: var(--text-dim); }
+.il-now.il-is-muted { border-left-color: var(--text-faint); }
+.il-now.il-is-muted .il-countdown { color: var(--text-dim); }
+
+/* ---- today's schedule ---- */
+
+.il-schedule {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.il-schedule-list {
+  list-style: none;
+  margin: calc(var(--u) * 1) 0 0;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 0.8);
+}
+.il-row {
+  flex: 1;
+  max-height: calc(var(--u) * 9);
+  display: grid;
+  grid-template-columns: calc(var(--u) * 4.6) calc(var(--u) * 7.4) 1fr;
+  align-items: center;
+  gap: calc(var(--u) * 1);
+  padding: 0 calc(var(--u) * 1.2);
+  border-radius: calc(var(--u) * 1);
+  font-size: calc(var(--u) * 2.6);
+  font-weight: 600;
+}
+.il-row-letter {
+  display: grid;
+  place-items: center;
+  width: calc(var(--u) * 4.4);
+  height: calc(var(--u) * 4.4);
+  border-radius: 50%;
+  background: var(--track);
+  font-size: calc(var(--u) * 2.8);
+  font-weight: 700;
+}
+.il-row-time { color: var(--text-dim); }
+.il-row-what {
+  line-height: 1.1;
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.il-row-teacher {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+.il-row-open {
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+/* the period happening right now */
+.il-row.il-is-current {
+  background: var(--navy);
+  color: #fff;
+}
+.il-row.il-is-current .il-row-letter { background: var(--spirit); color: var(--navy); }
+.il-row.il-is-current .il-row-time,
+.il-row.il-is-current .il-row-teacher { color: var(--spirit); }
+.il-row.il-is-current .il-row-open { color: var(--spirit); }
+
+/* periods already over */
+.il-row.il-is-past { color: var(--text-faint); }
+.il-row.il-is-past .il-row-time,
+.il-row.il-is-past .il-row-teacher { color: var(--text-faint); }
+.il-row.il-is-past .il-row-letter { background: transparent; border: 2px solid var(--track); }
+
+.il-schedule-empty {
+  font-size: calc(var(--u) * 3);
+  font-weight: 600;
+  color: var(--text-dim);
+  padding-top: calc(var(--u) * 2);
+}
+
+/* ---- debug time override, only at #debug ---- */
+
+.il-debug-bar {
+  position: fixed;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+.il-debug-input { font: inherit; }
+.il-ghost-btn {
+  font: inherit;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.2rem 0.6rem;
+  color: var(--text);
+  cursor: pointer;
+}

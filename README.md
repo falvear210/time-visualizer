@@ -214,6 +214,33 @@ The zoom itself always centers on that same unnudged point, so the
 highlighted country stays framed regardless of how large a nudge a
 particular pin uses.
 
+### 4. `/ilab/` — iLab classroom display
+
+A small screen in the iLab, built to be read from across the room, so it
+shows only four things:
+
+- **Header** (navy): clock, date, and the weather (current temperature,
+  conditions, today's high/low, and rain chance when it's 20% or more).
+  Weather comes from Open-Meteo, set up the same way as `math/`.
+- **Now:** the class meeting right now (course, teacher, section), a
+  countdown to the end of the period, and a progress bar (floored, never
+  reads done early). Between periods it shows *Passing* or *Break* (gaps of
+  15+ minutes) with a countdown to the next one; it also covers *Before
+  School*, *Classes are done*, and no-school days (e.g. *Thanksgiving Break*).
+- **Next:** the next period today, or after school / on days off, the first
+  period of the next school day.
+- **Today:** every period of the day with its start time; the current one is
+  highlighted in navy and finished ones fade out.
+
+Period letters and times come from `data.js`. Which class meets in each
+letter comes from **`ilab/ilab-classes.csv`** (`period,teacher,course,section,lunch`);
+edit it when the room's schedule changes. A blank `course` means the room is
+open that period. `lunch` is `jrsr` for a class on the Jr/Sr lunch wave
+(anything else means Fr/So). It only matters on days that class's period
+lands in the lunch slot. Everything is sized from one viewport unit, so the
+layout fits any screen without scrolling. Add `#debug` to the URL for the
+time-jump field. Like the other displays, it reloads itself after a deploy.
+
 ---
 
 ## Lunch waves and seniors (the tricky scheduling bits)
@@ -282,6 +309,10 @@ mcl/                                    the Modern & Classical Languages
   mcl-*.csv                             its own hand-editable data (section 3)
   world-map.svg                         built by scripts/build_world_map.py
 
+ilab/                                   classroom display -- /ilab/ (section 4)
+  index.html, ilab.css, ilab.js         the display itself
+  ilab-classes.csv                      which class meets in each period letter
+
 data/                                   SHIPPED. Data shared by every dashboard:
   birthdays.csv                         all faculty/staff; dept picks who's bold
   breaks.csv                            break-label overrides
@@ -332,6 +363,8 @@ scripts/
                                         only to pick up a newer Natural Earth release.
 
 pi-kiosk/                               Raspberry Pi setup to run the wall display full-screen
+                                        (kiosk display only -- fleet tracking/find-my-Pi now
+                                        lives in ../analytics.alvear.cl. See pi-kiosk/README.md.)
 
 server/                                 web-host setup, installed by hand (not shipped by deploy.sh):
                                         subdomain move + the old-URL redirect. See server/README.md.
