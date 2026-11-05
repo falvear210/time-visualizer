@@ -40,6 +40,7 @@ rsync -avz --delete \
   --exclude "pi-kiosk/" \
   --exclude "server/" \
   --exclude "deploy.sh" \
+  --exclude "build-icons.py" \
   --exclude ".stats-data.json" \
   --exclude ".stats-key.txt" \
   ./ "$REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH"
