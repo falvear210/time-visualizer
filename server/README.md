@@ -131,6 +131,10 @@ location = /math/ { expires -1; add_header Cache-Control "no-cache, must-revalid
 location = /mcl/  { expires -1; add_header Cache-Control "no-cache, must-revalidate"; }
 location = /ilab/ { expires -1; add_header Cache-Control "no-cache, must-revalidate"; }
 location = /      { expires -1; add_header Cache-Control "no-cache, must-revalidate"; }
+
+# version.txt is polled by every display to spot a new deploy. Skip nginx's
+# open_file_cache (120s server-wide) so a deploy is seen on the next poll.
+location = /version.txt { open_file_cache off; expires -1; add_header Cache-Control "no-store"; }
 CONF
 nginx -t && systemctl reload nginx
 for u in math-office.html mcl-office.html math/ mcl/; do
