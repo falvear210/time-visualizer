@@ -18,6 +18,13 @@ freshmen/sophomores (class, then lunch) and once for juniors/seniors
 columns record that day's Jr/Sr variant (the {letter}_start/{letter}_end
 columns already hold the Fr/So time for that letter).
 
+An optional "blocks" column lists the day's named non-class blocks --
+Studium, Activity Period, Advisory Period, etc. -- as
+"Name HH:MM-HH:MM", separated by semicolons, e.g.
+"Advisory Period 09:35-10:35; Studium 10:35-11:25". They're written to
+data.js as each day's "blocks" list (left off on days without any), for
+displays that show the whole day rather than just the A-G classes.
+
 An optional "senior_s2" column marks "start" on the first day seniors'
 second-semester schedule resumes and "end" on their last day of classes,
 for periods a teacher marks as seniors-only in Settings.
@@ -33,6 +40,8 @@ from datetime import datetime
 
 LETTERS = ["A", "B", "C", "D", "E", "F", "G"]
 TIME_RE = re.compile(r"^([01]\d|2[0-3]):([0-5]\d)$")
+# one entry of the "blocks" column: "Studium 10:35-11:25"
+BLOCK_RE = re.compile(r"^(.+?)\s+(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})$")
 
 
 def parse_time(value, row_num, field, errors):
@@ -140,6 +149,28 @@ def process_row(row, row_num, errors, warnings):
                         match["jrsrStartMinutes"] = jrsr_start
                         match["jrsrEndMinutes"] = jrsr_end
 
+    blocks = []
+    for item in filter(None, (x.strip() for x in row.get("blocks", "").split(";"))):
+        m = BLOCK_RE.match(item)
+        if not m:
+            errors.append(f"row {row_num} ({raw_date}): blocks entry \"{item}\" should look like \"Studium 10:35-11:25\"")
+            continue
+        start = parse_time(m.group(2), row_num, "blocks", errors)
+        end = parse_time(m.group(3), row_num, "blocks", errors)
+        if start is None or end is None:
+            continue
+        if end <= start:
+            errors.append(f"row {row_num} ({raw_date}): block \"{m.group(1)}\" ends at or before it starts")
+            continue
+        blocks.append({"name": m.group(1), "startMinutes": start, "endMinutes": end})
+    blocks.sort(key=lambda b: b["startMinutes"])
+    # a block landing on top of a class is almost certainly a typo -- but
+    # schedules do get odd, so warn rather than refuse
+    for b in blocks:
+        for p in periods:
+            if b["startMinutes"] < p["endMinutes"] and p["startMinutes"] < b["endMinutes"]:
+                warnings.append(f"row {row_num} ({raw_date}): block \"{b['name']}\" overlaps period {p['label']}")
+
     senior_s2 = row.get("senior_s2", "").strip().lower()
     if senior_s2 and senior_s2 not in ("start", "end"):
         errors.append(f"row {row_num} ({raw_date}): senior_s2=\"{senior_s2}\" -- only \"start\" or \"end\" make sense here")
@@ -147,7 +178,7 @@ def process_row(row, row_num, errors, warnings):
 
     return {
         "date": date_str, "weekday": computed_weekday, "summary": summary,
-        "periods": periods, "quarter_end": quarter_end, "senior_s2": senior_s2, "row_num": row_num,
+        "periods": periods, "blocks": blocks, "quarter_end": quarter_end, "senior_s2": senior_s2, "row_num": row_num,
     }
 
 
@@ -231,7 +262,13 @@ def main():
         sys.exit(1)
 
     # strip the CSV-only bookkeeping fields before writing the site's data
-    clean_days = [{"date": d["date"], "weekday": d["weekday"], "summary": d["summary"], "periods": d["periods"]} for d in days]
+    # ("blocks" only appears on days that have some, to keep data.js small)
+    clean_days = []
+    for d in days:
+        clean = {"date": d["date"], "weekday": d["weekday"], "summary": d["summary"], "periods": d["periods"]}
+        if d["blocks"]:
+            clean["blocks"] = d["blocks"]
+        clean_days.append(clean)
 
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(clean_days, f, indent=2)

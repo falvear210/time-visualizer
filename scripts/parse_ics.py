@@ -61,6 +61,46 @@ def to_minutes(hour: int, minute: int, meridiem: str) -> int:
     return hour * 60 + minute
 
 
+def line_minutes(m):
+    """(start, end) minutes-since-midnight for a LINE_RE match. The calendar
+    often omits the start's am/pm, so infer it from the end's, flipping it
+    if that would put the start after the end (e.g. "11:55 - 12:55pm")."""
+    sh, sm, smer, eh, em, emer, _ = m.groups()
+    end_minutes = to_minutes(int(eh), int(em), emer)
+    if smer:
+        return to_minutes(int(sh), int(sm), smer), end_minutes
+    start_minutes = to_minutes(int(sh), int(sm), emer)
+    if start_minutes > end_minutes:
+        start_minutes = to_minutes(int(sh), int(sm), "am" if emer.lower() == "pm" else "pm")
+    return start_minutes, end_minutes
+
+
+# Whole-school blocks without a class letter that the displays still want to
+# show by name (the iLab display lists them in its day schedule). Matched
+# exactly against the calendar's line label. Lunch, homeroom, exams, etc.
+# are deliberately not here.
+BLOCK_NAMES = (
+    "Studium",
+    "Activity Period",
+    "Advisory Period",
+    "Assembly & Advisory",
+    "Lunch Advisory",
+)
+
+
+def parse_blocks(description: str):
+    """Return the day's named non-class blocks (see BLOCK_NAMES) as
+    [{"name", "startMinutes", "endMinutes"}] in time order."""
+    blocks = []
+    for line in description.split("\n"):
+        m = LINE_RE.match(line.strip())
+        if not m or m.group(7).strip() not in BLOCK_NAMES:
+            continue
+        start_minutes, end_minutes = line_minutes(m)
+        blocks.append({"name": m.group(7).strip(), "startMinutes": start_minutes, "endMinutes": end_minutes})
+    return sorted(blocks, key=lambda b: b["startMinutes"])
+
+
 def parse_periods(description: str):
     """Return one square per lettered class (A-G) in the day, in chronological
     order. When a letter is split into Fr/So and Jr/Sr lunch-wave variants,
@@ -73,22 +113,12 @@ def parse_periods(description: str):
         m = LINE_RE.match(line)
         if not m:
             continue
-        sh, sm, smer, eh, em, emer, label = m.groups()
-        label = label.strip()
+        label = m.group(7).strip()
         lm = LETTER_RE.search(label)
         if not lm:
-            continue  # no rotating-class letter: exam/advisory/studium/lunch/etc.
+            continue  # no rotating-class letter: exam/advisory/studium/lunch/etc. (see parse_blocks)
         letter = lm.group(1)
-
-        end_minutes = to_minutes(int(eh), int(em), emer)
-        if smer:
-            start_minutes = to_minutes(int(sh), int(sm), smer)
-        else:
-            # infer start meridiem from end meridiem, flipping if that would
-            # put start after end (e.g. "11:55 - 12:55pm" -> start is am)
-            start_minutes = to_minutes(int(sh), int(sm), emer)
-            if start_minutes > end_minutes:
-                start_minutes = to_minutes(int(sh), int(sm), "am" if emer.lower() == "pm" else "pm")
+        start_minutes, end_minutes = line_minutes(m)
 
         entry = {"startMinutes": start_minutes, "endMinutes": end_minutes}
         gm = GRADE_RE.search(label)

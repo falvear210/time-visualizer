@@ -31,6 +31,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -65,6 +72,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -93,6 +107,18 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -155,6 +181,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Lunch Advisory",
+        "startMinutes": 635,
+        "endMinutes": 775
+      }
     ]
   },
   {
@@ -188,6 +221,13 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -223,6 +263,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -251,6 +298,18 @@
         "label": "B",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -286,6 +345,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -314,6 +380,13 @@
         "label": "D",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -349,6 +422,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -383,6 +463,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -411,6 +498,18 @@
         "label": "D",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -446,6 +545,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -480,6 +586,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -508,6 +621,13 @@
         "label": "D",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Assembly & Advisory",
+        "startMinutes": 575,
+        "endMinutes": 685
       }
     ]
   },
@@ -544,6 +664,18 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -578,6 +710,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -606,6 +745,13 @@
         "label": "C",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -640,6 +786,13 @@
         "label": "A",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -676,6 +829,18 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -709,6 +874,13 @@
         "label": "C",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -744,6 +916,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -777,6 +956,13 @@
         "label": "F",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -812,6 +998,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -840,6 +1033,18 @@
         "label": "A",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -875,6 +1080,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -903,6 +1115,13 @@
         "label": "C",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -938,6 +1157,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -972,6 +1198,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1000,6 +1233,18 @@
         "label": "C",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -1035,6 +1280,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1063,6 +1315,13 @@
         "label": "E",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -1098,6 +1357,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1132,6 +1398,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1160,6 +1433,18 @@
         "label": "E",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -1195,6 +1480,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1221,6 +1513,13 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Lunch Advisory",
+        "startMinutes": 635,
+        "endMinutes": 775
       }
     ]
   },
@@ -1256,6 +1555,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1290,6 +1596,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1318,6 +1631,18 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -1352,6 +1677,13 @@
         "label": "E",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -1399,6 +1731,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1427,6 +1766,18 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -1461,6 +1812,13 @@
         "label": "E",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -1508,6 +1866,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1536,6 +1901,18 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -1571,6 +1948,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1599,6 +1983,13 @@
         "label": "B",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -1634,6 +2025,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1668,6 +2066,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1696,6 +2101,18 @@
         "label": "B",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -1731,6 +2148,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1764,6 +2188,13 @@
         "label": "E",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -1799,6 +2230,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1833,6 +2271,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1861,6 +2306,18 @@
         "label": "E",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -1896,6 +2353,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1924,6 +2388,13 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -1959,6 +2430,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -1993,6 +2471,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2021,6 +2506,18 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -2056,6 +2553,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2084,6 +2588,13 @@
         "label": "B",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Assembly & Advisory",
+        "startMinutes": 575,
+        "endMinutes": 685
       }
     ]
   },
@@ -2119,6 +2630,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2153,6 +2671,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2181,6 +2706,18 @@
         "label": "B",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -2234,6 +2771,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2262,6 +2806,18 @@
         "label": "D",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -2297,6 +2853,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2325,6 +2888,13 @@
         "label": "F",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -2360,6 +2930,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2394,6 +2971,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2422,6 +3006,13 @@
         "label": "F",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Assembly & Advisory",
+        "startMinutes": 575,
+        "endMinutes": 685
       }
     ]
   },
@@ -2457,6 +3048,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2485,6 +3083,13 @@
         "label": "A",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 575,
+        "endMinutes": 685
       }
     ]
   },
@@ -2520,6 +3125,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2554,6 +3166,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2575,6 +3194,13 @@
         "label": "G",
         "startMinutes": 685,
         "endMinutes": 750
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -2694,6 +3320,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2728,6 +3361,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2756,6 +3396,13 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -2791,6 +3438,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2825,6 +3479,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2853,6 +3514,18 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -2888,6 +3561,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2921,6 +3601,13 @@
         "label": "C",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -2963,6 +3650,18 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -2997,6 +3696,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3025,6 +3731,13 @@
         "label": "B",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -3060,6 +3773,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3094,6 +3814,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3122,6 +3849,18 @@
         "label": "B",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -3157,6 +3896,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3190,6 +3936,13 @@
         "label": "E",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -3225,6 +3978,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3254,6 +4014,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Assembly & Advisory",
+        "startMinutes": 575,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3282,6 +4049,18 @@
         "label": "D",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -3317,6 +4096,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3345,6 +4131,13 @@
         "label": "F",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -3386,6 +4179,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3415,6 +4215,18 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3443,6 +4255,13 @@
         "label": "E",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Assembly & Advisory",
+        "startMinutes": 575,
+        "endMinutes": 685
       }
     ]
   },
@@ -3478,6 +4297,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3511,6 +4337,13 @@
         "label": "A",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -3547,6 +4380,18 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3581,6 +4426,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3609,6 +4461,13 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -3644,6 +4503,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3678,6 +4544,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3706,6 +4579,18 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -3741,6 +4626,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3767,6 +4659,13 @@
         "label": "B",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Lunch Advisory",
+        "startMinutes": 635,
+        "endMinutes": 775
       }
     ]
   },
@@ -3802,6 +4701,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3836,6 +4742,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3864,6 +4777,18 @@
         "label": "B",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -3899,6 +4824,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3927,6 +4859,13 @@
         "label": "D",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -3962,6 +4901,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -3996,6 +4942,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4024,6 +4977,18 @@
         "label": "D",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -4059,6 +5024,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4092,6 +5064,13 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -4163,6 +5142,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4191,6 +5177,18 @@
         "label": "B",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -4225,6 +5223,13 @@
         "label": "G",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -4273,6 +5278,18 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4307,6 +5324,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4335,6 +5359,13 @@
         "label": "F",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -4376,6 +5407,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4404,6 +5442,18 @@
         "label": "A",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -4438,6 +5488,13 @@
         "label": "F",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -4485,6 +5542,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4513,6 +5577,18 @@
         "label": "A",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -4548,6 +5624,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4581,6 +5664,13 @@
         "label": "D",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -4616,6 +5706,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4650,6 +5747,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4678,6 +5782,18 @@
         "label": "D",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -4713,6 +5829,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4742,6 +5865,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Assembly & Advisory",
+        "startMinutes": 575,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4763,6 +5893,13 @@
         "label": "B",
         "startMinutes": 685,
         "endMinutes": 750
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -4798,6 +5935,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4826,6 +5970,18 @@
         "label": "D",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -4861,6 +6017,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4889,6 +6052,13 @@
         "label": "F",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Assembly & Advisory",
+        "startMinutes": 575,
+        "endMinutes": 685
       }
     ]
   },
@@ -4924,6 +6094,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -4957,6 +6134,13 @@
         "label": "B",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -4992,6 +6176,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -5026,6 +6217,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -5054,6 +6252,13 @@
         "label": "B",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Assembly & Advisory",
+        "startMinutes": 575,
+        "endMinutes": 685
       }
     ]
   },
@@ -5089,6 +6294,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -5123,6 +6335,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -5151,6 +6370,18 @@
         "label": "B",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -5186,6 +6417,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -5214,6 +6452,13 @@
         "label": "D",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -5249,6 +6494,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -5283,6 +6535,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -5311,6 +6570,18 @@
         "label": "D",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Advisory Period",
+        "startMinutes": 575,
+        "endMinutes": 635
+      },
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -5346,6 +6617,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -5374,6 +6652,13 @@
         "label": "F",
         "startMinutes": 845,
         "endMinutes": 910
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },
@@ -5409,6 +6694,13 @@
         "startMinutes": 845,
         "endMinutes": 910
       }
+    ],
+    "blocks": [
+      {
+        "name": "Activity Period",
+        "startMinutes": 635,
+        "endMinutes": 685
+      }
     ]
   },
   {
@@ -5430,6 +6722,13 @@
         "label": "G",
         "startMinutes": 685,
         "endMinutes": 750
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Studium",
+        "startMinutes": 635,
+        "endMinutes": 685
       }
     ]
   },

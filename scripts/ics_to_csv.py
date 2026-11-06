@@ -14,7 +14,7 @@ import os
 import sys
 from datetime import datetime
 
-from parse_ics import parse_events, parse_periods
+from parse_ics import parse_blocks, parse_events, parse_periods
 
 LETTERS = ["A", "B", "C", "D", "E", "F", "G"]
 
@@ -22,6 +22,14 @@ LETTERS = ["A", "B", "C", "D", "E", "F", "G"]
 def minutes_to_hhmm(m):
     h, mm = divmod(m, 60)
     return f"{h:02d}:{mm:02d}"
+
+
+def format_blocks(blocks):
+    """[{name, startMinutes, endMinutes}] -> the CSV's "blocks" cell, e.g.
+    "Advisory Period 09:35-10:35; Studium 10:35-11:25" (csv_to_data.py reads it back)."""
+    return "; ".join(
+        f"{b['name']} {minutes_to_hhmm(b['startMinutes'])}-{minutes_to_hhmm(b['endMinutes'])}" for b in blocks
+    )
 
 
 def main():
@@ -59,14 +67,14 @@ def main():
         summary = ev.get("SUMMARY", "").strip()
         description = ev.get("DESCRIPTION", "").strip()
         periods = parse_periods(description)
-        entry = {"date": d, "summary": summary, "periods": periods}
+        entry = {"date": d, "summary": summary, "periods": periods, "blocks": parse_blocks(description)}
         if d not in days or (not days[d]["periods"] and periods):
             days[d] = entry
 
     header = ["date", "weekday", "summary"]
     for letter in LETTERS:
         header += [f"{letter}_start", f"{letter}_end"]
-    header += ["quarter_end", "split_letter", "jrsr_start", "jrsr_end", "senior_s2"]
+    header += ["quarter_end", "split_letter", "jrsr_start", "jrsr_end", "senior_s2", "blocks"]
 
     with open(out_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -91,6 +99,7 @@ def main():
             row.append("")  # quarter_end: fill in by hand once real dates are known
             row += [split_letter, jrsr_start, jrsr_end]
             row.append("")  # senior_s2: fill in by hand once real dates are known
+            row.append(format_blocks(entry["blocks"]))  # Studium, Activity Period, etc.
             writer.writerow(row)
 
     print(f"Wrote {len(days)} days -> {out_path}")
