@@ -19,7 +19,7 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
-<link rel="stylesheet" href="ilab.css?v=5">
+<link rel="stylesheet" href="ilab.css?v=6">
 </head>
 <body>
 <div class="il-dashboard">
@@ -81,8 +81,10 @@
 <!-- confetti is drawn here when a class ends (see ilab.js) -->
 <canvas class="il-confetti" id="il-confetti"></canvas>
 
-<script src="../data.js"></script>
-<script src="ilab.js?v=5"></script>
+<!-- data.js is served with a 1-year cache lifetime, so bump this ?v= whenever
+     the schedule data changes, or a kiosk can keep running on the old copy -->
+<script src="../data.js?v=2"></script>
+<script src="ilab.js?v=6"></script>
 <script>
   // Fields for analytics.alvear.cl's automatic "view" event (see a.js).
   window.xaExtra = function () {

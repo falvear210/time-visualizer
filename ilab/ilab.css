@@ -310,6 +310,12 @@ html, body {
   color: var(--text-faint);
   font-style: italic;
 }
+/* whole-school blocks (Studium, Activity Period, Advisory): named, but
+   quieter than a class -- and their two-letter code needs a smaller circle font */
+.il-row-blockname { color: var(--blue); }
+.il-row-block .il-row-letter { font-size: calc(var(--u) * 1.9); letter-spacing: 0.02em; }
+.il-row.il-is-current .il-row-blockname { color: #fff; }
+.il-row.il-is-past .il-row-blockname { color: var(--text-faint); }
 
 /* the period happening right now */
 .il-row.il-is-current {

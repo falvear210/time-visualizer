@@ -130,17 +130,40 @@ function timesFor(period, cls) {
   return { start: period.startMinutes, end: period.endMinutes };
 }
 
-// Today's periods as a simple list the renderer can use:
-// [{ label, start, end, cls }] in time order. cls is null for open periods.
+// Short codes for the whole-school blocks in data.js's "blocks" list. The
+// code goes in the schedule's circle (where a period shows its letter) and is
+// also the key for that block in ilab-classes.csv, if a group uses the iLab
+// during it.
+const BLOCK_CODES = {
+  "Studium": "ST",
+  "Activity Period": "AP",
+  "Advisory Period": "AD",
+  "Assembly & Advisory": "AS",
+  "Lunch Advisory": "LA",
+};
+
+function blockCode(name) {
+  // unknown block names fall back to their initials, e.g. "Pep Rally" -> "PR"
+  return BLOCK_CODES[name] || name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+}
+
+// Today's schedule as a simple list the renderer can use, in time order:
+//   classes: { kind: "period", label: "D", title: "Period D", start, end, cls }
+//   blocks:  { kind: "block", label: "ST", title: "Studium", start, end, cls }
+// cls is the matching ilab-classes.csv row, or null when nothing is booked
+// (an open period, or a block with no iLab group).
 function buildDay(day, classes) {
   if (!day) return [];
-  return day.periods
-    .map((p) => {
-      const cls = classes[p.label] || null;
-      const { start, end } = timesFor(p, cls);
-      return { label: p.label, start, end, cls };
-    })
-    .sort((a, b) => a.start - b.start);
+  const periods = day.periods.map((p) => {
+    const cls = classes[p.label] || null;
+    const { start, end } = timesFor(p, cls);
+    return { kind: "period", label: p.label, title: `Period ${p.label}`, start, end, cls };
+  });
+  const blocks = (day.blocks || []).map((b) => {
+    const code = blockCode(b.name);
+    return { kind: "block", label: code, title: b.name, start: b.startMinutes, end: b.endMinutes, cls: classes[code] || null };
+  });
+  return periods.concat(blocks).sort((a, b) => a.start - b.start);
 }
 
 // The first school day (one with periods) strictly after dateStr.
@@ -218,6 +241,7 @@ function escapeHtml(s) {
 
 // Minimal CSV reader: no quoted fields needed for this file.
 // Returns { A: {teacher, course, section, lunch}, ... }; open periods are omitted.
+// Rows can also be keyed by a block code (ST, AP, AD -- see BLOCK_CODES).
 function parseClassesCsv(text) {
   const lines = text.trim().split(/\r?\n/);
   const header = lines.shift().split(",").map((h) => h.trim());
@@ -428,6 +452,8 @@ window.addEventListener("resize", () => {
 
 // Course + teacher lines for a period (or an open period).
 function classLines(slot) {
+  // a whole-school block with no iLab group booked: just its name
+  if (slot.kind === "block" && !slot.cls) return { course: slot.title, teacher: "", open: false };
   if (!slot.cls) return { course: "Open", teacher: "No class scheduled", open: true };
   return {
     course: slot.cls.course,
@@ -464,7 +490,7 @@ function setNextFromNextSchoolDay(dateStr) {
   const first = buildDay(nd, classes)[0];
   const lines = classLines(first);
   setNext({
-    label: `${formatWeekday(nd.date)} · Period ${first.label} · ${hmAmPm(first.start)}`,
+    label: `${formatWeekday(nd.date)} · ${first.title} · ${hmAmPm(first.start)}`,
     course: lines.course,
     teacher: lines.open ? "" : lines.teacher,
     muted: lines.open,
@@ -482,9 +508,11 @@ function renderSchedule(slots, nowMin, summary) {
     const state = nowMin >= s.end ? "il-is-past" : nowMin >= s.start ? "il-is-current" : "";
     const what = s.cls
       ? escapeHtml(s.cls.course) // teacher is on the NOW/NEXT cards; the list stays short
-      : `<span class="il-row-open">Open</span>`;
+      : s.kind === "block"
+        ? `<span class="il-row-blockname">${escapeHtml(s.title)}</span>`
+        : `<span class="il-row-open">Open</span>`;
     return `
-      <li class="il-row ${state}">
+      <li class="il-row il-row-${s.kind} ${state}">
         <span class="il-row-letter">${s.label}</span>
         <span class="il-row-time">${hm(s.start)}</span>
         <span class="il-row-what">${what}</span>
@@ -530,7 +558,8 @@ function render() {
     const cur = slots[currentIdx];
     const lines = classLines(cur);
     setNow({
-      label: `Now · Period ${cur.label}`,
+      // a block's name is already the big text, so the label just says "Now"
+      label: cur.kind === "block" && !cur.cls ? "Now" : `Now · ${cur.title}`,
       course: lines.course,
       teacher: lines.teacher,
       countdown: formatCountdown(cur.end * 60 - nowSec),
@@ -553,7 +582,7 @@ function render() {
       course: before ? "Before School" : gap >= LONG_GAP_MINUTES ? "Break" : "Passing",
       teacher: "",
       countdown: formatCountdown(nxt.start * 60 - nowSec),
-      note: `until\nPeriod ${nxt.label}`,
+      note: `until\n${nxt.title}`,
       muted: true,
     });
   }
@@ -563,7 +592,7 @@ function render() {
   if (upcoming) {
     const lines = classLines(upcoming);
     setNext({
-      label: `Next · Period ${upcoming.label} · ${hmAmPm(upcoming.start)}`,
+      label: `Next · ${upcoming.kind === "block" && !upcoming.cls ? "" : `${upcoming.title} · `}${hmAmPm(upcoming.start)}`,
       course: lines.course,
       teacher: lines.open ? "" : lines.teacher,
       muted: lines.open,

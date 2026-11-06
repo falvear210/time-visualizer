@@ -229,13 +229,18 @@ shows only four things:
   School*, *Classes are done*, and no-school days (e.g. *Thanksgiving Break*).
 - **Next:** the next period today, or after school / on days off, the first
   period of the next school day.
-- **Today:** every period of the day with its start time; the current one is
-  highlighted in navy and finished ones fade out.
+- **Today:** every period of the day with its start time, plus the
+  whole-school blocks (Studium **ST**, Activity Period **AP**, Advisory
+  **AD**, Assembly & Advisory **AS**, Lunch Advisory **LA**); the current one
+  is highlighted in navy and finished ones fade out. During a block the Now
+  card shows its name and a countdown, like a class.
 
 Period letters and times come from `data.js`. Which class meets in each
 letter comes from **`ilab/ilab-classes.csv`** (`period,teacher,course,section,lunch`);
 edit it when the room's schedule changes. A blank `course` means the room is
-open that period. `lunch` is `jrsr` for a class on the Jr/Sr lunch wave
+open that period. A row can also be keyed by a block code (e.g. `AP`) when a
+group uses the iLab during that block; then the display shows that group
+instead of just the block's name. `lunch` is `jrsr` for a class on the Jr/Sr lunch wave
 (anything else means Fr/So). It only matters on days that class's period
 lands in the lunch slot. Everything is sized from one viewport unit, so the
 layout fits any screen without scrolling. Add `#debug` to the URL for the
@@ -446,6 +451,7 @@ Open it in Excel, Numbers, or Google Sheets. One row per school day:
 | `quarter_end` | optional. `1` on Q1's last day, `3` on Q3's last day. Blank everywhere else — Q2 always ends at the semester boundary and Q4 at the last day of the year |
 | `split_letter`, `jrsr_start`, `jrsr_end` | optional, all-or-nothing. Records the Jr/Sr lunch-wave time for whichever period splits that day |
 | `senior_s2` | optional. `start` on the first day seniors' second-semester schedule resumes, `end` on their last day |
+| `blocks` | optional. The day's named non-class blocks, `Name HH:MM-HH:MM` separated by `;` — e.g. `Advisory Period 09:35-10:35; Studium 10:35-11:25`. Filled in from the calendar by `ics_to_csv.py` (Studium, Activity Period, Advisory Period, Assembly & Advisory, Lunch Advisory); written to `data.js` as each day's `blocks` list |
 
 The rotation cycles continuously through A→B→C→D→E→F→G→A… — a given day
 might run, say, `[F,G,A,B,C]`, wrapping past G back to A. That's normal; the
