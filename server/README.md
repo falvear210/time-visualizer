@@ -116,6 +116,10 @@ it just rewrites the same file:
 ssh -i ~/.ssh/id_rsa root@server3.alvear.cl bash -s <<'EOF'
 set -e
 cat > /var/www/sluhtime.alvear.cl/conf/nginx/office-folders.conf <<'CONF'
+# Serve every file fresh from disk: the server-wide open_file_cache (120s)
+# kept serving pre-deploy files after kiosks had already reloaded.
+open_file_cache off;
+
 # Redirect the old flat dashboard URLs to their new folders.
 # Source of truth: server/nginx-office-folders.conf in the time-visualizer repo.
 # nginx re-appends the original query string; the URL #hash never leaves the
