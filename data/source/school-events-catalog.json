@@ -1,0 +1,1836 @@
+{
+ "generated": "2026-11-06T19:12:33-06:00",
+ "titles": [
+  {
+   "title": "Senior Retreat Leadership Retreat",
+   "name": "Senior Retreat Leadership Retreat",
+   "category": "retreats",
+   "dates": [
+    "20260804"
+   ]
+  },
+  {
+   "title": "IC/SLC Meetings",
+   "name": "IC/SLC Meetings",
+   "category": "faculty-meetings",
+   "dates": [
+    "20260806",
+    "20260807"
+   ]
+  },
+  {
+   "title": "Senior Yearbook Pictures (Option 3)",
+   "name": "Senior Yearbook Pictures (Option 3)",
+   "category": "student-life",
+   "dates": [
+    "20260807"
+   ]
+  },
+  {
+   "title": "Faculty Retreat",
+   "name": "Faculty Retreat",
+   "category": "faculty-life",
+   "dates": [
+    "20260810",
+    "20270104"
+   ]
+  },
+  {
+   "title": "Faculty/Staff Welcome Back Party",
+   "name": "Faculty/Staff Welcome Back Party",
+   "category": "faculty-life",
+   "dates": [
+    "20260810"
+   ]
+  },
+  {
+   "title": "Faculty Meetings",
+   "name": "Faculty Meetings",
+   "category": "faculty-meetings",
+   "dates": [
+    "20260811",
+    "20260812"
+   ]
+  },
+  {
+   "title": "Freshman Parent Orientation and Social",
+   "name": "Freshman Parent Orientation and Social",
+   "category": "conferences",
+   "dates": [
+    "20260811"
+   ]
+  },
+  {
+   "title": "Convocation",
+   "name": "Convocation",
+   "category": "assemblies",
+   "dates": [
+    "20260813"
+   ]
+  },
+  {
+   "title": "Freshman/Sophomore/Junior Pictures",
+   "name": "Freshman/Sophomore/Junior Pictures",
+   "category": "student-life",
+   "dates": [
+    "20260813"
+   ]
+  },
+  {
+   "title": "Activity Period Meetings",
+   "name": "Activity Period Meetings",
+   "category": "clubs",
+   "dates": [
+    "20260814",
+    "20260817",
+    "20260821",
+    "20260824",
+    "20260826",
+    "20260828",
+    "20260831",
+    "20260902",
+    "20260909",
+    "20260911",
+    "20260916",
+    "20260918",
+    "20260921",
+    "20260923",
+    "20260925",
+    "20260930",
+    "20261002",
+    "20261005",
+    "20261007",
+    "20261012",
+    "20261014",
+    "20261019",
+    "20261021",
+    "20261026",
+    "20261028",
+    "20261030",
+    "20261102",
+    "20261104",
+    "20261106",
+    "20261109",
+    "20261111",
+    "20261113",
+    "20261116",
+    "20261118",
+    "20261120",
+    "20261123",
+    "20261130",
+    "20261202",
+    "20261204",
+    "20261207",
+    "20261209",
+    "20261211",
+    "20261214",
+    "20270106",
+    "20270108",
+    "20270111",
+    "20270113",
+    "20270120",
+    "20270122",
+    "20270125",
+    "20270127",
+    "20270129",
+    "20270203",
+    "20270208",
+    "20270212",
+    "20270217",
+    "20270219",
+    "20270222",
+    "20270224",
+    "20270226",
+    "20270301",
+    "20270303",
+    "20270305",
+    "20270308",
+    "20270310",
+    "20270322",
+    "20270324",
+    "20270331",
+    "20270405",
+    "20270407",
+    "20270412",
+    "20270414",
+    "20270416",
+    "20270419",
+    "20270421",
+    "20270426",
+    "20270428",
+    "20270430",
+    "20270503",
+    "20270505",
+    "20270507",
+    "20270510",
+    "20270512",
+    "20270514",
+    "20270517",
+    "20270519",
+    "20270521"
+   ]
+  },
+  {
+   "title": "First Day of Classes",
+   "name": "First Day of Classes",
+   "category": "schedule",
+   "dates": [
+    "20260814"
+   ]
+  },
+  {
+   "title": "Back to School Night",
+   "name": "Back to School Night",
+   "category": "conferences",
+   "dates": [
+    "20260818"
+   ]
+  },
+  {
+   "title": "Late Start",
+   "name": "Late Start",
+   "category": "faculty-meetings",
+   "dates": [
+    "20260819"
+   ]
+  },
+  {
+   "title": "Back to School Mixer",
+   "name": "Back to School Mixer",
+   "category": "student-life",
+   "dates": [
+    "20260821"
+   ]
+  },
+  {
+   "title": "Mix-it-Up",
+   "name": "Mix-it-Up",
+   "category": "student-life",
+   "dates": [
+    "20260821"
+   ]
+  },
+  {
+   "title": "Sketch Play Auditions",
+   "name": "Sketch Play Auditions",
+   "category": "arts",
+   "dates": [
+    "20260826",
+    "20260827"
+   ]
+  },
+  {
+   "title": "Late Start-Department Meetings",
+   "name": "Late Start \u00b7 Department Meetings",
+   "category": "faculty-meetings",
+   "dates": [
+    "20260827",
+    "20260924",
+    "20270107",
+    "20270204",
+    "20270513"
+   ]
+  },
+  {
+   "title": "Food Drive",
+   "name": "Food Drive",
+   "category": "clubs",
+   "dates": [
+    "20260828"
+   ]
+  },
+  {
+   "title": "Freshman Fun Day",
+   "name": "Freshman Fun Day",
+   "category": "student-life",
+   "dates": [
+    "20260828"
+   ]
+  },
+  {
+   "title": "Running of the Bills",
+   "name": "Running of the Bills",
+   "category": "sports",
+   "dates": [
+    "20260828"
+   ]
+  },
+  {
+   "title": "Running of the Bills Parent Reception",
+   "name": "Running of the Bills Parent Reception",
+   "category": "parents-clubs",
+   "dates": [
+    "20260828"
+   ]
+  },
+  {
+   "title": "Activities Fair",
+   "name": "Activities Fair",
+   "category": "clubs",
+   "dates": [
+    "20260901"
+   ]
+  },
+  {
+   "title": "Sophomore Parent Meeting",
+   "name": "Sophomore Parent Meeting",
+   "category": "conferences",
+   "dates": [
+    "20260901"
+   ]
+  },
+  {
+   "title": "Mass of the Holy Spirit",
+   "name": "Mass of the Holy Spirit",
+   "category": "masses",
+   "dates": [
+    "20260904"
+   ]
+  },
+  {
+   "title": "President Installation Reception",
+   "name": "President Installation Reception",
+   "category": "parents-clubs",
+   "dates": [
+    "20260904"
+   ]
+  },
+  {
+   "title": "No School-Labor Day",
+   "name": "No School \u00b7 Labor Day",
+   "category": "days-off",
+   "dates": [
+    "20260907"
+   ]
+  },
+  {
+   "title": "Senior Retreat",
+   "name": "Senior Retreat",
+   "category": "retreats",
+   "dates": [
+    "20260907",
+    "20270118",
+    "20270125"
+   ]
+  },
+  {
+   "title": "College Visits at SLUH",
+   "name": "College Visits at SLUH",
+   "category": "admissions",
+   "dates": [
+    "20260909",
+    "20260911",
+    "20260915",
+    "20260916",
+    "20260918",
+    "20260921",
+    "20260923",
+    "20260925",
+    "20260928",
+    "20260929",
+    "20260930",
+    "20261002",
+    "20261012",
+    "20261014",
+    "20261019",
+    "20261021",
+    "20261026",
+    "20261028",
+    "20261030",
+    "20261102",
+    "20261104",
+    "20261106",
+    "20261109",
+    "20261111",
+    "20261113"
+   ]
+  },
+  {
+   "title": "Rowing Presentation",
+   "name": "Rowing Presentation",
+   "category": "sports",
+   "dates": [
+    "20260909"
+   ]
+  },
+  {
+   "title": "Shadow@SLUH Visit Day",
+   "name": "Shadow@SLUH Visit Day",
+   "category": "admissions",
+   "dates": [
+    "20260909",
+    "20260911",
+    "20260916",
+    "20260918",
+    "20260921",
+    "20260923",
+    "20260925",
+    "20260928",
+    "20260930",
+    "20261002",
+    "20261005",
+    "20261007",
+    "20261009",
+    "20261012",
+    "20261014",
+    "20261021",
+    "20261028",
+    "20261030",
+    "20261102",
+    "20261104",
+    "20261106",
+    "20261109",
+    "20261111",
+    "20261113",
+    "20261116",
+    "20261118",
+    "20261120",
+    "20261123",
+    "20261202",
+    "20261204"
+   ]
+  },
+  {
+   "title": "Late Start-Faculty Meeting",
+   "name": "Late Start \u00b7 Faculty Meeting",
+   "category": "faculty-meetings",
+   "dates": [
+    "20260910",
+    "20261001",
+    "20261112",
+    "20261203",
+    "20270121",
+    "20270218",
+    "20270520"
+   ]
+  },
+  {
+   "title": "No School-Professional Development Day",
+   "name": "No School \u00b7 Professional Development Day",
+   "category": "days-off",
+   "dates": [
+    "20260914",
+    "20270115"
+   ]
+  },
+  {
+   "title": "Mother's Club Bunco",
+   "name": "Mother's Club Bunco",
+   "category": "parents-clubs",
+   "dates": [
+    "20260916"
+   ]
+  },
+  {
+   "title": "Senior Art Retreat",
+   "name": "Senior Art Retreat",
+   "category": "retreats",
+   "dates": [
+    "20260916"
+   ]
+  },
+  {
+   "title": "Improv Show Auditions",
+   "name": "Improv Show Auditions",
+   "category": "arts",
+   "dates": [
+    "20260917"
+   ]
+  },
+  {
+   "title": "Selective College Sunday",
+   "name": "Selective College Sunday",
+   "category": "admissions",
+   "dates": [
+    "20260920"
+   ]
+  },
+  {
+   "title": "Mothers Club Mass and Brunch",
+   "name": "Mothers Club Mass and Brunch",
+   "category": "masses",
+   "dates": [
+    "20260927"
+   ]
+  },
+  {
+   "title": "Hispanic Heritage Month Celebration",
+   "name": "Hispanic Heritage Month Celebration",
+   "category": "clubs",
+   "dates": [
+    "20260928"
+   ]
+  },
+  {
+   "title": "Junior Kairos Retreat",
+   "name": "Junior Kairos Retreat",
+   "category": "retreats",
+   "dates": [
+    "20260928",
+    "20261123",
+    "20270106",
+    "20270215",
+    "20270414"
+   ]
+  },
+  {
+   "title": "Safety Drills (internal training-not all school)",
+   "name": "Safety Drills (internal training-not all school)",
+   "category": "other",
+   "dates": [
+    "20260928"
+   ]
+  },
+  {
+   "title": "Father's Club Beer and Brats",
+   "name": "Father's Club Beer and Brats",
+   "category": "parents-clubs",
+   "dates": [
+    "20260930"
+   ]
+  },
+  {
+   "title": "Jesuit Excellence Tour",
+   "name": "Jesuit Excellence Tour",
+   "category": "admissions",
+   "dates": [
+    "20260930"
+   ]
+  },
+  {
+   "title": "Picture Retakes",
+   "name": "Picture Retakes",
+   "category": "student-life",
+   "dates": [
+    "20260930"
+   ]
+  },
+  {
+   "title": "Senior Wilderness Retreat",
+   "name": "Senior Wilderness Retreat",
+   "category": "retreats",
+   "dates": [
+    "20260930",
+    "20270331",
+    "20270407"
+   ]
+  },
+  {
+   "title": "Cookie Sales",
+   "name": "Cookie Sales",
+   "category": "clubs",
+   "dates": [
+    "20261001",
+    "20261105",
+    "20270203"
+   ]
+  },
+  {
+   "title": "First Friday Mass",
+   "name": "First Friday Mass",
+   "category": "masses",
+   "dates": [
+    "20261002",
+    "20261106",
+    "20261204",
+    "20270305",
+    "20270402",
+    "20270507"
+   ]
+  },
+  {
+   "title": "Choir Concert - Joseph Schulte Theater",
+   "name": "Choir Concert - Joseph Schulte Theater",
+   "category": "arts",
+   "dates": [
+    "20261004"
+   ]
+  },
+  {
+   "title": "Spirit Week",
+   "name": "Spirit Week",
+   "category": "assemblies",
+   "dates": [
+    "20261005"
+   ]
+  },
+  {
+   "title": "Band & Orchestra Concert",
+   "name": "Band & Orchestra Concert",
+   "category": "arts",
+   "dates": [
+    "20261006",
+    "20261201",
+    "20270504"
+   ]
+  },
+  {
+   "title": "Lunch Advisory-Billy Bash",
+   "name": "Lunch Advisory-Billy Bash",
+   "category": "clubs",
+   "dates": [
+    "20261008"
+   ]
+  },
+  {
+   "title": "Fall Fest",
+   "name": "Fall Fest",
+   "category": "student-life",
+   "dates": [
+    "20261009"
+   ]
+  },
+  {
+   "title": "Mandatory Pep Rally",
+   "name": "Mandatory Pep Rally",
+   "category": "assemblies",
+   "dates": [
+    "20261009"
+   ]
+  },
+  {
+   "title": "Open House Set Up (Entire Campus)",
+   "name": "Open House Set Up (Entire Campus)",
+   "category": "conferences",
+   "dates": [
+    "20261010"
+   ]
+  },
+  {
+   "title": "Open House (Entire Campus)",
+   "name": "Open House (Entire Campus)",
+   "category": "conferences",
+   "dates": [
+    "20261011"
+   ]
+  },
+  {
+   "title": "Junior Ring Orders (Last Names A-L)",
+   "name": "Junior Ring Orders (Last Names A-L)",
+   "category": "student-life",
+   "dates": [
+    "20261012"
+   ]
+  },
+  {
+   "title": "End of 1st Quarter",
+   "name": "End of 1st Quarter",
+   "category": "exams-grades",
+   "dates": [
+    "20261013"
+   ]
+  },
+  {
+   "title": "Junior Ring Orders (Last Names M-Z)",
+   "name": "Junior Ring Orders (Last Names M-Z)",
+   "category": "student-life",
+   "dates": [
+    "20261014"
+   ]
+  },
+  {
+   "title": "Fall Break - No Classes",
+   "name": "Fall Break - No Classes",
+   "category": "days-off",
+   "dates": [
+    "20261015"
+   ]
+  },
+  {
+   "title": "First Quarter Grades Due @ 11:25 a.m.",
+   "name": "First Quarter Grades Due @ 11:25 a.m.",
+   "category": "exams-grades",
+   "dates": [
+    "20261020"
+   ]
+  },
+  {
+   "title": "Junior Ring Orders (Make Up Day)",
+   "name": "Junior Ring Orders (Make Up Day)",
+   "category": "student-life",
+   "dates": [
+    "20261021"
+   ]
+  },
+  {
+   "title": "No Freshman Classes",
+   "name": "No Freshman Classes",
+   "category": "days-off",
+   "dates": [
+    "20261022"
+   ]
+  },
+  {
+   "title": "PSAT/PACT - Soph/Jrs",
+   "name": "PSAT/PACT - Soph/Jrs",
+   "category": "exams-grades",
+   "dates": [
+    "20261022"
+   ]
+  },
+  {
+   "title": "Parent-Teacher Conferences",
+   "name": "Parent-Teacher Conferences",
+   "category": "conferences",
+   "dates": [
+    "20261022"
+   ]
+  },
+  {
+   "title": "Parent/Teacher Conferences",
+   "name": "Parent/Teacher Conferences",
+   "category": "conferences",
+   "dates": [
+    "20261022",
+    "20261023",
+    "20270401",
+    "20270402"
+   ]
+  },
+  {
+   "title": "Senior Project Interview Day - All Seniors",
+   "name": "Senior Project Interview Day - All Seniors",
+   "category": "other",
+   "dates": [
+    "20261022"
+   ]
+  },
+  {
+   "title": "No Classes - P/T Conferences",
+   "name": "No Classes - P/T Conferences",
+   "category": "days-off",
+   "dates": [
+    "20261023"
+   ]
+  },
+  {
+   "title": "Sketch Studio Show",
+   "name": "Sketch Studio Show",
+   "category": "arts",
+   "dates": [
+    "20261023",
+    "20261024",
+    "20261025"
+   ]
+  },
+  {
+   "title": "Fall Blood Drive",
+   "name": "Fall Blood Drive",
+   "category": "clubs",
+   "dates": [
+    "20261026"
+   ]
+  },
+  {
+   "title": "Jostens - Late Graduation Orders",
+   "name": "Jostens - Late Graduation Orders",
+   "category": "other",
+   "dates": [
+    "20261027"
+   ]
+  },
+  {
+   "title": "Late Start-Department Meeting",
+   "name": "Late Start \u00b7 Department Meeting",
+   "category": "faculty-meetings",
+   "dates": [
+    "20261029"
+   ]
+  },
+  {
+   "title": "First Day of Basketball and Rifle",
+   "name": "First Day of Basketball and Rifle",
+   "category": "sports",
+   "dates": [
+    "20261102"
+   ]
+  },
+  {
+   "title": "Passback Sport Goods Collection Drive",
+   "name": "Passback Sport Goods Collection Drive",
+   "category": "clubs",
+   "dates": [
+    "20261102"
+   ]
+  },
+  {
+   "title": "Senior Parent Mandatory Meeting",
+   "name": "Senior Parent Mandatory Meeting",
+   "category": "conferences",
+   "dates": [
+    "20261105"
+   ]
+  },
+  {
+   "title": "Fall Ball Dance (All Classes)",
+   "name": "Fall Ball Dance (All Classes)",
+   "category": "student-life",
+   "dates": [
+    "20261107"
+   ]
+  },
+  {
+   "title": "Jesuit Vocations Promotion Week",
+   "name": "Jesuit Vocations Promotion Week",
+   "category": "student-life",
+   "dates": [
+    "20261109"
+   ]
+  },
+  {
+   "title": "Junior Family College Kickoff",
+   "name": "Junior Family College Kickoff",
+   "category": "conferences",
+   "dates": [
+    "20261110"
+   ]
+  },
+  {
+   "title": "Ignatian Family Teach-in For Justice",
+   "name": "Ignatian Family Teach-in For Justice",
+   "category": "clubs",
+   "dates": [
+    "20261113"
+   ]
+  },
+  {
+   "title": "Grandparent Mass",
+   "name": "Grandparent Mass",
+   "category": "masses",
+   "dates": [
+    "20261115"
+   ]
+  },
+  {
+   "title": "Senior Urban Encounter Retreat",
+   "name": "Senior Urban Encounter Retreat",
+   "category": "retreats",
+   "dates": [
+    "20261116"
+   ]
+  },
+  {
+   "title": "Assembly Schedule-Gambling Presentation",
+   "name": "Assembly: Gambling Presentation",
+   "category": "assemblies",
+   "dates": [
+    "20261119"
+   ]
+  },
+  {
+   "title": "Musical Auditions",
+   "name": "Musical Auditions",
+   "category": "arts",
+   "dates": [
+    "20261119",
+    "20261120",
+    "20261123",
+    "20261124"
+   ]
+  },
+  {
+   "title": "Class of 2031 HSPT Test",
+   "name": "Class of 2031 HSPT Test",
+   "category": "admissions",
+   "dates": [
+    "20261121",
+    "20261212"
+   ]
+  },
+  {
+   "title": "SLUHtique",
+   "name": "SLUHtique",
+   "category": "clubs",
+   "dates": [
+    "20261122"
+   ]
+  },
+  {
+   "title": "Thanksgiving Break",
+   "name": "Thanksgiving Break",
+   "category": "days-off",
+   "dates": [
+    "20261125"
+   ]
+  },
+  {
+   "title": "Christmas Drive Begins",
+   "name": "Christmas Drive Begins",
+   "category": "clubs",
+   "dates": [
+    "20261129"
+   ]
+  },
+  {
+   "title": "STUCO 12 Days of Christmas",
+   "name": "STUCO 12 Days of Christmas",
+   "category": "clubs",
+   "dates": [
+    "20261130",
+    "20261207",
+    "20261214"
+   ]
+  },
+  {
+   "title": "Music District Assignment Release",
+   "name": "Music District Assignment Release",
+   "category": "arts",
+   "dates": [
+    "20261201"
+   ]
+  },
+  {
+   "title": "Freshman Survey: Dance Blocking Rehearsal",
+   "name": "Freshman Survey: Dance Blocking Rehearsal",
+   "category": "student-life",
+   "dates": [
+    "20261203"
+   ]
+  },
+  {
+   "title": "SLUH Class of 2031 Application Deadline",
+   "name": "SLUH Class of 2031 Application Deadline",
+   "category": "admissions",
+   "dates": [
+    "20261204"
+   ]
+  },
+  {
+   "title": "Faculty/Staff Christmas Party",
+   "name": "Faculty/Staff Christmas Party",
+   "category": "faculty-life",
+   "dates": [
+    "20261205"
+   ]
+  },
+  {
+   "title": "Father Son Bowling",
+   "name": "Father Son Bowling",
+   "category": "parents-clubs",
+   "dates": [
+    "20261205"
+   ]
+  },
+  {
+   "title": "Dance & Choir Concert",
+   "name": "Dance & Choir Concert",
+   "category": "arts",
+   "dates": [
+    "20261206"
+   ]
+  },
+  {
+   "title": "Advent Confessions",
+   "name": "Advent Confessions",
+   "category": "masses",
+   "dates": [
+    "20261207"
+   ]
+  },
+  {
+   "title": "All-School Mass-Feast of the Immaculate Conception",
+   "name": "All-School Mass-Feast of the Immaculate Conception",
+   "category": "masses",
+   "dates": [
+    "20261208"
+   ]
+  },
+  {
+   "title": "Feast of the Immaculate Conception Mass",
+   "name": "Feast of the Immaculate Conception Mass",
+   "category": "masses",
+   "dates": [
+    "20261208"
+   ]
+  },
+  {
+   "title": "Jazz Band Concert",
+   "name": "Jazz Band Concert",
+   "category": "arts",
+   "dates": [
+    "20261208",
+    "20270427"
+   ]
+  },
+  {
+   "title": "Studio Art Show Opening",
+   "name": "Studio Art Show Opening",
+   "category": "arts",
+   "dates": [
+    "20261208",
+    "20270504"
+   ]
+  },
+  {
+   "title": "Christmas Drive Ends",
+   "name": "Christmas Drive Ends",
+   "category": "clubs",
+   "dates": [
+    "20261211"
+   ]
+  },
+  {
+   "title": "Faculty Karaoke",
+   "name": "Faculty Karaoke",
+   "category": "faculty-life",
+   "dates": [
+    "20261211"
+   ]
+  },
+  {
+   "title": "Early Dismissal (12:30pm)",
+   "name": "Early Dismissal (12:30pm)",
+   "category": "schedule",
+   "dates": [
+    "20261215"
+   ]
+  },
+  {
+   "title": "First Semester Exams",
+   "name": "First Semester Exams",
+   "category": "exams-grades",
+   "dates": [
+    "20261216"
+   ]
+  },
+  {
+   "title": "MCL & Science Exams",
+   "name": "MCL & Science Exams",
+   "category": "exams-grades",
+   "dates": [
+    "20261216"
+   ]
+  },
+  {
+   "title": "Open House Tour Host, Shadow Host & Student Admissions Ambassador Pizza Party (after 2nd exam concludes)",
+   "name": "Open House Tour Host, Shadow Host & Student Admissions Ambassador Pizza Party (after 2nd exam concludes)",
+   "category": "exams-grades",
+   "dates": [
+    "20261216"
+   ]
+  },
+  {
+   "title": "Social Studies & Math Exams",
+   "name": "Social Studies & Math Exams",
+   "category": "exams-grades",
+   "dates": [
+    "20261217"
+   ]
+  },
+  {
+   "title": "Pan-Pastoral Team Retreat",
+   "name": "Pan-Pastoral Team Retreat",
+   "category": "retreats",
+   "dates": [
+    "20261218",
+    "20270527"
+   ]
+  },
+  {
+   "title": "Theology & English Exams",
+   "name": "Theology & English Exams",
+   "category": "exams-grades",
+   "dates": [
+    "20261218"
+   ]
+  },
+  {
+   "title": "Exam Make-up Day",
+   "name": "Exam Make-up Day",
+   "category": "exams-grades",
+   "dates": [
+    "20261221"
+   ]
+  },
+  {
+   "title": "Christmas Break",
+   "name": "Christmas Break",
+   "category": "days-off",
+   "dates": [
+    "20261222"
+   ]
+  },
+  {
+   "title": "Start of Senior Project",
+   "name": "Start of Senior Project",
+   "category": "schedule",
+   "dates": [
+    "20270104"
+   ]
+  },
+  {
+   "title": "First Semester Grades Due @ 11:25 a.m.",
+   "name": "First Semester Grades Due @ 11:25 a.m.",
+   "category": "exams-grades",
+   "dates": [
+    "20270106"
+   ]
+  },
+  {
+   "title": "AY 28 Calendar Planning Meeting",
+   "name": "AY 28 Calendar Planning Meeting",
+   "category": "faculty-meetings",
+   "dates": [
+    "20270111"
+   ]
+  },
+  {
+   "title": "Senior Project Reflection Night",
+   "name": "Senior Project Reflection Night",
+   "category": "other",
+   "dates": [
+    "20270111"
+   ]
+  },
+  {
+   "title": "Admissions Committee Meeting",
+   "name": "Admissions Committee Meeting",
+   "category": "admissions",
+   "dates": [
+    "20270113",
+    "20270114"
+   ]
+  },
+  {
+   "title": "No School-MLK Jr. Day",
+   "name": "No School \u00b7 MLK Jr. Day",
+   "category": "days-off",
+   "dates": [
+    "20270118"
+   ]
+  },
+  {
+   "title": "Spring Activities Fair",
+   "name": "Spring Activities Fair",
+   "category": "student-life",
+   "dates": [
+    "20270126"
+   ]
+  },
+  {
+   "title": "Class of 2031 Admissions Decisions Posted",
+   "name": "Class of 2031 Admissions Decisions Posted",
+   "category": "admissions",
+   "dates": [
+    "20270129"
+   ]
+  },
+  {
+   "title": "Seniors Return to SLUH",
+   "name": "Seniors Return to SLUH",
+   "category": "schedule",
+   "dates": [
+    "20270129"
+   ]
+  },
+  {
+   "title": "Class of 2031 Get Your Gear Event",
+   "name": "Class of 2031 Get Your Gear Event",
+   "category": "admissions",
+   "dates": [
+    "20270130"
+   ]
+  },
+  {
+   "title": "Assembly Schedule-Senior Project Ceremony",
+   "name": "Assembly: Senior Project Ceremony",
+   "category": "assemblies",
+   "dates": [
+    "20270201"
+   ]
+  },
+  {
+   "title": "CASHBAH Student Raffle begins",
+   "name": "CASHBAH Student Raffle begins",
+   "category": "clubs",
+   "dates": [
+    "20270201"
+   ]
+  },
+  {
+   "title": "Senior Project Return Ceremony",
+   "name": "Senior Project Return Ceremony",
+   "category": "assemblies",
+   "dates": [
+    "20270201"
+   ]
+  },
+  {
+   "title": "Class of 2031 Admitted Student Welcome Celebration (Commons & Theater)",
+   "name": "Class of 2031 Admitted Student Welcome Celebration (Commons & Theater)",
+   "category": "admissions",
+   "dates": [
+    "20270202"
+   ]
+  },
+  {
+   "title": "Freshman Retreat - SLUH",
+   "name": "Freshman Retreat - SLUH",
+   "category": "retreats",
+   "dates": [
+    "20270205"
+   ]
+  },
+  {
+   "title": "No Classes - Soph/Jr/Sr",
+   "name": "No Classes - Soph/Jr/Sr",
+   "category": "days-off",
+   "dates": [
+    "20270205"
+   ]
+  },
+  {
+   "title": "Father Son Banquet",
+   "name": "Father Son Banquet",
+   "category": "parents-clubs",
+   "dates": [
+    "20270207"
+   ]
+  },
+  {
+   "title": "Ash Wednesday",
+   "name": "Ash Wednesday",
+   "category": "masses",
+   "dates": [
+    "20270210"
+   ]
+  },
+  {
+   "title": "Ash Wednesday Mass",
+   "name": "Ash Wednesday Mass",
+   "category": "masses",
+   "dates": [
+    "20270210"
+   ]
+  },
+  {
+   "title": "Class of 2031 Enrollment Contracts & Deposit Submission Deadline",
+   "name": "Class of 2031 Enrollment Contracts & Deposit Submission Deadline",
+   "category": "admissions",
+   "dates": [
+    "20270212"
+   ]
+  },
+  {
+   "title": "No School-President's Day",
+   "name": "No School \u00b7 President's Day",
+   "category": "days-off",
+   "dates": [
+    "20270215"
+   ]
+  },
+  {
+   "title": "7th Grade InsideSLUH Visit Day",
+   "name": "7th Grade InsideSLUH Visit Day",
+   "category": "admissions",
+   "dates": [
+    "20270216",
+    "20270217",
+    "20270219",
+    "20270222",
+    "20270223",
+    "20270224",
+    "20270225",
+    "20270226",
+    "20270301",
+    "20270302",
+    "20270303",
+    "20270305",
+    "20270308",
+    "20270309",
+    "20270310",
+    "20270311",
+    "20270322",
+    "20270323",
+    "20270324",
+    "20270330",
+    "20270331",
+    "20270401",
+    "20270405",
+    "20270406",
+    "20270407",
+    "20270412",
+    "20270413",
+    "20270414",
+    "20270415",
+    "20270416",
+    "20270419",
+    "20270420",
+    "20270421",
+    "20270423",
+    "20270426",
+    "20270427",
+    "20270428",
+    "20270430"
+   ]
+  },
+  {
+   "title": "Prospective Transfer Applicant Process Opens",
+   "name": "Prospective Transfer Applicant Process Opens",
+   "category": "admissions",
+   "dates": [
+    "20270216"
+   ]
+  },
+  {
+   "title": "Musical Performance",
+   "name": "Musical Performance",
+   "category": "arts",
+   "dates": [
+    "20270218",
+    "20270219",
+    "20270220",
+    "20270221"
+   ]
+  },
+  {
+   "title": "Arrupe Leaders Summit (JSN)",
+   "name": "Arrupe Leaders Summit (JSN)",
+   "category": "clubs",
+   "dates": [
+    "20270219"
+   ]
+  },
+  {
+   "title": "Clavius Jamboree",
+   "name": "Clavius Jamboree",
+   "category": "clubs",
+   "dates": [
+    "20270220"
+   ]
+  },
+  {
+   "title": "Mom Prom Lessons",
+   "name": "Mom Prom Lessons",
+   "category": "student-life",
+   "dates": [
+    "20270221"
+   ]
+  },
+  {
+   "title": "Mission Week",
+   "name": "Mission Week",
+   "category": "assemblies",
+   "dates": [
+    "20270222"
+   ]
+  },
+  {
+   "title": "Class of 2031 On-Campus Academic Orientation & Course Registration",
+   "name": "Class of 2031 On-Campus Academic Orientation & Course Registration",
+   "category": "admissions",
+   "dates": [
+    "20270225"
+   ]
+  },
+  {
+   "title": "Lunch Advisory",
+   "name": "Lunch Advisory",
+   "category": "clubs",
+   "dates": [
+    "20270225"
+   ]
+  },
+  {
+   "title": "SLUH Fish Fry",
+   "name": "SLUH Fish Fry",
+   "category": "clubs",
+   "dates": [
+    "20270226"
+   ]
+  },
+  {
+   "title": "SnoBall Dance (Jr/Sr)",
+   "name": "SnoBall Dance (Jr/Sr)",
+   "category": "student-life",
+   "dates": [
+    "20270227"
+   ]
+  },
+  {
+   "title": "SLUH/Cor Jesu Choir Concert",
+   "name": "SLUH/Cor Jesu Choir Concert",
+   "category": "arts",
+   "dates": [
+    "20270228"
+   ]
+  },
+  {
+   "title": "Lent Confessions",
+   "name": "Lent Confessions",
+   "category": "masses",
+   "dates": [
+    "20270301"
+   ]
+  },
+  {
+   "title": "Class of 2031 Virtual Academic Orientation & Course Registration",
+   "name": "Class of 2031 Virtual Academic Orientation & Course Registration",
+   "category": "admissions",
+   "dates": [
+    "20270302"
+   ]
+  },
+  {
+   "title": "Assembly Schedule-Voices of SLUH",
+   "name": "Assembly: Voices of SLUH",
+   "category": "assemblies",
+   "dates": [
+    "20270304"
+   ]
+  },
+  {
+   "title": "Mother Son Trivia Night",
+   "name": "Mother Son Trivia Night",
+   "category": "parents-clubs",
+   "dates": [
+    "20270306"
+   ]
+  },
+  {
+   "title": "End of 3rd Quarter",
+   "name": "End of 3rd Quarter",
+   "category": "exams-grades",
+   "dates": [
+    "20270311"
+   ]
+  },
+  {
+   "title": "No School-Spring Break",
+   "name": "No School \u00b7 Spring Break",
+   "category": "days-off",
+   "dates": [
+    "20270312"
+   ]
+  },
+  {
+   "title": "Spring Break",
+   "name": "Spring Break",
+   "category": "days-off",
+   "dates": [
+    "20270315"
+   ]
+  },
+  {
+   "title": "Third Quarter Grades Due @ 11:25 a.m.",
+   "name": "Third Quarter Grades Due @ 11:25 a.m.",
+   "category": "exams-grades",
+   "dates": [
+    "20270324"
+   ]
+  },
+  {
+   "title": "No School-Holy Thursday",
+   "name": "No School \u00b7 Holy Thursday",
+   "category": "days-off",
+   "dates": [
+    "20270325"
+   ]
+  },
+  {
+   "title": "No School-Good Friday",
+   "name": "No School \u00b7 Good Friday",
+   "category": "days-off",
+   "dates": [
+    "20270326"
+   ]
+  },
+  {
+   "title": "No School-Easter Monday",
+   "name": "No School \u00b7 Easter Monday",
+   "category": "days-off",
+   "dates": [
+    "20270329"
+   ]
+  },
+  {
+   "title": "Philia Retreat",
+   "name": "Philia Retreat",
+   "category": "retreats",
+   "dates": [
+    "20270329"
+   ]
+  },
+  {
+   "title": "Car Free Day",
+   "name": "Car Free Day",
+   "category": "clubs",
+   "dates": [
+    "20270401"
+   ]
+  },
+  {
+   "title": "Parent-Teacher Conferences (evening)",
+   "name": "Parent-Teacher Conferences (evening)",
+   "category": "conferences",
+   "dates": [
+    "20270401"
+   ]
+  },
+  {
+   "title": "No School-Parent-Teacher Conferences",
+   "name": "No School \u00b7 Parent-Teacher Conferences",
+   "category": "days-off",
+   "dates": [
+    "20270402"
+   ]
+  },
+  {
+   "title": "Sophomore Retreat",
+   "name": "Sophomore Retreat",
+   "category": "retreats",
+   "dates": [
+    "20270408",
+    "20270409"
+   ]
+  },
+  {
+   "title": "Sophomore Retreat (No Classes: Fr, Jr, & Sr)",
+   "name": "Sophomore Retreat (No Classes: Fr, Jr, & Sr)",
+   "category": "days-off",
+   "dates": [
+    "20270408",
+    "20270409"
+   ]
+  },
+  {
+   "title": "CASHBAH Set-Up",
+   "name": "CASHBAH Set-Up",
+   "category": "clubs",
+   "dates": [
+    "20270409"
+   ]
+  },
+  {
+   "title": "CASHBAH",
+   "name": "CASHBAH",
+   "category": "clubs",
+   "dates": [
+    "20270410"
+   ]
+  },
+  {
+   "title": "~ 6th Grade Explore SLUH Event (Entire Campus)",
+   "name": "~ 6th Grade Explore SLUH Event (Entire Campus)",
+   "category": "admissions",
+   "dates": [
+    "20270414"
+   ]
+  },
+  {
+   "title": "Freshman Mixer",
+   "name": "Freshman Mixer",
+   "category": "student-life",
+   "dates": [
+    "20270416"
+   ]
+  },
+  {
+   "title": "ACT at SLUH",
+   "name": "ACT at SLUH",
+   "category": "exams-grades",
+   "dates": [
+    "20270420"
+   ]
+  },
+  {
+   "title": "NHS Induction Ceremony",
+   "name": "NHS Induction Ceremony",
+   "category": "other",
+   "dates": [
+    "20270421"
+   ]
+  },
+  {
+   "title": "Awards Assembly",
+   "name": "Awards Assembly",
+   "category": "assemblies",
+   "dates": [
+    "20270422"
+   ]
+  },
+  {
+   "title": "Studio Performance",
+   "name": "Studio Performance",
+   "category": "arts",
+   "dates": [
+    "20270422",
+    "20270424",
+    "20270425"
+   ]
+  },
+  {
+   "title": "Junior Ring Day (12:30pm dismissal for Fr, Soph, Sr)",
+   "name": "Junior Ring Day (12:30pm dismissal for Fr, Soph, Sr)",
+   "category": "schedule",
+   "dates": [
+    "20270423"
+   ]
+  },
+  {
+   "title": "Junior Ring Mass",
+   "name": "Junior Ring Mass",
+   "category": "masses",
+   "dates": [
+    "20270423"
+   ]
+  },
+  {
+   "title": "Set Up for 6th Grade Family Explore SLUH event (entire campus)",
+   "name": "Set Up for 6th Grade Family Explore SLUH event (entire campus)",
+   "category": "admissions",
+   "dates": [
+    "20270423"
+   ]
+  },
+  {
+   "title": "6th Grade Explore SLUH Event (Entire Campus)",
+   "name": "6th Grade Explore SLUH Event (Entire Campus)",
+   "category": "admissions",
+   "dates": [
+    "20270424"
+   ]
+  },
+  {
+   "title": "Mom Prom Set Up",
+   "name": "Mom Prom Set Up",
+   "category": "student-life",
+   "dates": [
+    "20270424"
+   ]
+  },
+  {
+   "title": "Mom Prom",
+   "name": "Mom Prom",
+   "category": "student-life",
+   "dates": [
+    "20270425"
+   ]
+  },
+  {
+   "title": "Returning Shadow@SLUH & Annual Admissions Student Ambassador Application Window Opens",
+   "name": "Returning Shadow@SLUH & Annual Admissions Student Ambassador Application Window Opens",
+   "category": "admissions",
+   "dates": [
+    "20270426"
+   ]
+  },
+  {
+   "title": "Mass Schedule-Mass of Praise and Gratitude",
+   "name": "Mass of Praise and Gratitude",
+   "category": "masses",
+   "dates": [
+    "20270429"
+   ]
+  },
+  {
+   "title": "Mass of Praise and Gratitude",
+   "name": "Mass of Praise and Gratitude",
+   "category": "masses",
+   "dates": [
+    "20270429"
+   ]
+  },
+  {
+   "title": "State Music Festival",
+   "name": "State Music Festival",
+   "category": "arts",
+   "dates": [
+    "20270429"
+   ]
+  },
+  {
+   "title": "Sophomore Dance",
+   "name": "Sophomore Dance",
+   "category": "student-life",
+   "dates": [
+    "20270430"
+   ]
+  },
+  {
+   "title": "Senior Follies",
+   "name": "Senior Follies",
+   "category": "arts",
+   "dates": [
+    "20270502"
+   ]
+  },
+  {
+   "title": "Assembly Schedule-Faculty Farewell",
+   "name": "Assembly: Faculty Farewell",
+   "category": "assemblies",
+   "dates": [
+    "20270506"
+   ]
+  },
+  {
+   "title": "Returning Shadow@SLUH & Annual Admissions Student Ambassador Application Closes",
+   "name": "Returning Shadow@SLUH & Annual Admissions Student Ambassador Application Closes",
+   "category": "admissions",
+   "dates": [
+    "20270507"
+   ]
+  },
+  {
+   "title": "Seniors Last Day",
+   "name": "Seniors Last Day",
+   "category": "schedule",
+   "dates": [
+    "20270507"
+   ]
+  },
+  {
+   "title": "Choir/Dance Concert",
+   "name": "Choir/Dance Concert",
+   "category": "arts",
+   "dates": [
+    "20270509"
+   ]
+  },
+  {
+   "title": "Second Semester Senior Exams",
+   "name": "Second Semester Senior Exams",
+   "category": "exams-grades",
+   "dates": [
+    "20270510"
+   ]
+  },
+  {
+   "title": "Graduation Practice and Lunch",
+   "name": "Graduation Practice and Lunch",
+   "category": "other",
+   "dates": [
+    "20270514"
+   ]
+  },
+  {
+   "title": "Senior Prom Dance",
+   "name": "Senior Prom Dance",
+   "category": "student-life",
+   "dates": [
+    "20270514"
+   ]
+  },
+  {
+   "title": "Senior Grades Due @ 11:25 a.m.",
+   "name": "Senior Grades Due @ 11:25 a.m.",
+   "category": "exams-grades",
+   "dates": [
+    "20270518"
+   ]
+  },
+  {
+   "title": "Baccalaureate Dinner",
+   "name": "Baccalaureate Dinner",
+   "category": "graduation",
+   "dates": [
+    "20270522"
+   ]
+  },
+  {
+   "title": "Baccalaureate Mass",
+   "name": "Baccalaureate Mass",
+   "category": "masses",
+   "dates": [
+    "20270522"
+   ]
+  },
+  {
+   "title": "Commencement",
+   "name": "Commencement",
+   "category": "graduation",
+   "dates": [
+    "20270523"
+   ]
+  },
+  {
+   "title": "Graduation",
+   "name": "Graduation",
+   "category": "graduation",
+   "dates": [
+    "20270523"
+   ]
+  },
+  {
+   "title": "Early Dismissal (12:30 pm)",
+   "name": "Early Dismissal (12:30 pm)",
+   "category": "schedule",
+   "dates": [
+    "20270524"
+   ]
+  },
+  {
+   "title": "Second Semester Exams",
+   "name": "Second Semester Exams",
+   "category": "exams-grades",
+   "dates": [
+    "20270525"
+   ]
+  },
+  {
+   "title": "Exam Make up Day",
+   "name": "Exam Make up Day",
+   "category": "exams-grades",
+   "dates": [
+    "20270528"
+   ]
+  },
+  {
+   "title": "Direction Day Senior Training",
+   "name": "Direction Day Senior Training",
+   "category": "retreats",
+   "dates": [
+    "20270601"
+   ]
+  },
+  {
+   "title": "Underclass Grades Due @ 11:25 a.m.",
+   "name": "Underclass Grades Due @ 11:25 a.m.",
+   "category": "exams-grades",
+   "dates": [
+    "20270601"
+   ]
+  },
+  {
+   "title": "Direction Days",
+   "name": "Direction Days",
+   "category": "retreats",
+   "dates": [
+    "20270603",
+    "20270604"
+   ]
+  },
+  {
+   "title": "Festival of Miles",
+   "name": "Festival of Miles",
+   "category": "arts",
+   "dates": [
+    "20270603"
+   ]
+  },
+  {
+   "title": "Summer School Begins",
+   "name": "Summer School Begins",
+   "category": "schedule",
+   "dates": [
+    "20270607"
+   ]
+  },
+  {
+   "title": "No Classes: Juneteenth",
+   "name": "No Classes: Juneteenth",
+   "category": "days-off",
+   "dates": [
+    "20270618"
+   ]
+  },
+  {
+   "title": "Father Son Golf Tournament",
+   "name": "Father Son Golf Tournament",
+   "category": "parents-clubs",
+   "dates": [
+    "20270619"
+   ]
+  }
+ ]
+}

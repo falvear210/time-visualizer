@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<!--
+  Design L -- "Sliders"  (Desmos iteration 4 of 4)
+  Every progress bar on the old dashboard becomes a Desmos slider, from the
+  smallest time scale to the largest: block, day, week, quarter, semester,
+  year. The graph side holds what sliders can't show: a bar chart of class
+  days per month (done vs. left, from data.js) with the milestones marked,
+  today's blocks as a Desmos table, and the countdown as a big result.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L · Sliders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="desmos.css">
+<style>
+  .slider .body { padding: 22px 22px 18px; }
+  .slider .val { font-size: 27px; }
+  .slider .val small { font-family: Inter, sans-serif; font-size: 19px; color: var(--gray); }
+  .slider .track { height: 8px; margin: 16px 6px 6px; }
+  .slider .track .dot { width: 28px; height: 28px; margin: -14px 0 0 -14px; }
+
+  /* cards on the paper */
+  .count { left: 40px; top: 36px; width: 560px; padding: 20px 26px; }
+  .count .row { display: flex; align-items: baseline; justify-content: space-between; }
+  .count .expr { font-size: 34px; }
+  .count .big { font-family: Caveat, cursive; font-weight: 700; font-size: 150px; line-height: 0.95; color: var(--red); }
+  .count p { margin: 4px 0 0; font-size: 22px; color: var(--gray); }
+  .count p b { color: var(--ink); }
+  .today { left: 640px; top: 36px; width: 640px; }
+  .today .dtable td.d { color: var(--muted); }
+  .today .dtable tr.live td { color: var(--red); font-weight: 700; background: #fdf3f3; }
+  .rooms { left: 640px; top: 470px; width: 640px; }
+  .rooms .dtable td:nth-child(even) { color: var(--blue); font-weight: 600; }
+  .dtable { font-size: 21px; }
+  .dtable td { padding: 5px 12px; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <aside class="exprs">
+    <header><h1>Math Office</h1><span class="clock">Tue, Nov. 10 · 10:40</span></header>
+    <div class="folder">How far along are we?</div>
+    <div id="sliders"></div>
+    <div class="ex note" style="margin-top:auto;border-top:1px solid var(--list-line)"><div class="n">"</div><div class="body"><b>Thanksgiving Break</b> in <b id="r-tg"></b> class days · <b>40°</b> and clear, high 63°</div></div>
+  </aside>
+
+  <main class="paper">
+    <svg id="plot"></svg>
+
+    <div class="card count">
+      <div class="row"><span class="expr math">Studium: 11:25 − <i>t</i></span></div>
+      <div class="big num">44:58</div>
+      <p>Next: <b>Period C</b> at 11:30 (Fr/So), 11:55 (Jr/Sr)</p>
+    </div>
+
+    <div class="card today">
+      <table class="dtable">
+        <tr><th><i class="sw" style="background:var(--red)"></i>block</th><th>start</th><th>end</th><th><i>f</i></th></tr>
+        <tr><td class="d">B</td><td class="d">8:25</td><td class="d">9:30</td><td class="d">1.00</td></tr>
+        <tr><td class="d">Advisory</td><td class="d">9:35</td><td class="d">10:35</td><td class="d">1.00</td></tr>
+        <tr class="live"><td>Studium</td><td>10:35</td><td>11:25</td><td>0.10</td></tr>
+        <tr><td>C (Fr/So · Jr/Sr)</td><td>11:30 · 11:55</td><td>12:30 · 12:55</td><td>0.00</td></tr>
+        <tr><td>D</td><td>1:00</td><td>2:00</td><td>0.00</td></tr>
+        <tr><td>E</td><td>2:05</td><td>3:10</td><td>0.00</td></tr>
+      </table>
+    </div>
+
+    <div class="card rooms">
+      <table class="dtable">
+        <tr><th>teacher</th><th>room (C)</th><th>teacher</th><th>room (C)</th></tr>
+        <tr><td>Kissel</td><td>M205</td><td>Stickley</td><td>M113</td></tr>
+        <tr><td>Becvar</td><td>M209</td><td>Kelly</td><td>M217</td></tr>
+        <tr><td>See</td><td>M21 iLab</td><td>Ehlman</td><td>M219</td></tr>
+        <tr><td>Steingruby</td><td>M109</td><td>Yane</td><td>M207</td></tr>
+        <tr><td>Corley</td><td>M215</td><td></td><td></td></tr>
+      </table>
+    </div>
+  </main>
+</div>
+<a class="mock-tag" href="./">L · Sliders — all designs</a>
+<script src="../../data.js"></script>
+<script src="desmos.js"></script>
+<script>
+  var days = classDays(), TOTAL = days.length;
+  var before = days.filter(function (d) { return d.date < MOCK_DATE; }).length;
+  var todayFrac = Math.max(0, Math.min(1, (MOCK_MIN - 505) / 405));
+  var done = before + todayFrac;
+  function count(a, b) { return days.filter(function (d) { return d.date > a && d.date <= b; }).length; }
+  function until(yyyymmdd) { return count(MOCK_DATE, yyyymmdd); }
+  function floor2(v) { return Math.floor(v * 100) / 100; }           // never round up
+  document.getElementById('r-tg').textContent = until('20261124');
+
+  // ---- the sliders, smallest time scale first ----
+  var q2Total = count('20261013', '20261215'), q2Done = done - count('0', '20261013');
+  var s1Total = count('0', '20261215');
+  var sliders = [
+    ['s', 'Studium', 5 / 50, '10:35', '11:25', '#c74440', '5 of 50 min'],
+    ['d', 'today', todayFrac, '8:25', '3:10', '#000000', '135 of 405 min'],
+    ['w', 'this week', (1 + todayFrac) / 5, 'Mon', 'Fri', '#388c46', 'day 2 of 5'],
+    ['q', 'Q2', q2Done / q2Total, 'Oct. 14', 'Dec. 15', '#6042a6', Math.floor(q2Done) + ' of ' + q2Total + ' days'],
+    ['S', 'Semester 1', done / s1Total, 'Aug. 14', 'Dec. 15', '#2d70b3', Math.floor(done) + ' of ' + s1Total + ' days'],
+    ['y', 'year', done / TOTAL, 'Aug. 14', 'May 24', '#fa7e19', Math.floor(done) + ' of ' + TOTAL + ' days']
+  ];
+  var host = document.getElementById('sliders');
+  sliders.forEach(function (s, i) {
+    var v = floor2(s[2]);
+    host.insertAdjacentHTML('beforeend',
+      '<div class="ex slider' + (i === 0 ? ' live' : '') + '"><div class="n" style="color:' + s[5] + '">' + (i + 1) + '</div><div class="body math">' +
+      '<div class="val"><span><i>' + s[0] + '</i> = ' + v.toFixed(2) + ' &nbsp;<small>' + s[1] + '</small></span><small>' + s[6] + '</small></div>' +
+      '<div class="track"><div class="fill" style="width:' + v * 100 + '%;background:' + s[5] + '"></div><div class="dot" style="left:' + v * 100 + '%;background:' + s[5] + '"></div></div>' +
+      '<div class="ends"><span>' + s[3] + '</span><span>' + s[4] + '</span></div></div></div>');
+  });
+
+  // ---- bar chart: class days per month, done (solid) vs. left (outline) ----
+  var svg = document.getElementById('plot'), INK = '#1e2a3a';
+  var months = ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'];
+  var keys = ['202608', '202609', '202610', '202611', '202612', '202701', '202702', '202703', '202704', '202705'];
+  var X0 = 70, W = 56, GAP = 2, Y0 = 1010, PX = 15;             // 15px per class day; bars sit on y=1010
+  el(svg, 'text', { x: X0, y: 520, 'font-family': 'Inter', 'font-weight': 700, 'font-size': 20, 'letter-spacing': '0.1em', fill: '#6b7280' }, 'CLASS DAYS PER MONTH');
+  keys.forEach(function (k, i) {
+    var inMonth = days.filter(function (d) { return d.date.slice(0, 6) === k; });
+    var gone = inMonth.filter(function (d) { return d.date < MOCK_DATE; }).length + (k === MOCK_DATE.slice(0, 6) ? todayFrac : 0);
+    var bx = X0 + i * (W + GAP), h = inMonth.length * PX, hd = gone * PX;
+    el(svg, 'rect', { x: bx, y: Y0 - h, width: W - 6, height: h, fill: '#ffffff', stroke: '#2d70b3', 'stroke-width': 2.5, rx: 4 });
+    if (hd > 0) el(svg, 'rect', { x: bx, y: Y0 - hd, width: W - 6, height: hd, fill: '#2d70b3', opacity: 0.85, rx: 4 });
+    el(svg, 'text', { x: bx + (W - 6) / 2, y: Y0 - h - 12, 'text-anchor': 'middle', class: 'math', 'font-size': 20, fill: INK }, inMonth.length);
+    el(svg, 'text', { x: bx + (W - 6) / 2, y: Y0 + 28, 'text-anchor': 'middle', class: 'math', 'font-size': 20, fill: k === MOCK_DATE.slice(0, 6) ? '#c74440' : INK, 'font-weight': k === MOCK_DATE.slice(0, 6) ? 600 : 400 }, months[i]);
+  });
+  el(svg, 'line', { x1: X0 - 10, y1: Y0, x2: X0 + 10 * (W + GAP), y2: Y0, stroke: INK, 'stroke-width': 2.5 });
+  // milestone flags above the months they fall in
+  [[2, 'Q1'], [4, 'S1'], [7, 'Q3'], [9, 'end']].forEach(function (m) {
+    var bx = X0 + m[0] * (W + GAP) + (W - 6) / 2;
+    pointLabel(svg, bx, 575, m[1], '#6042a6', 'middle');
+    el(svg, 'line', { x1: bx, y1: 591, x2: bx, y2: 615, stroke: '#6042a6', 'stroke-width': 2 });
+  });
+</script>
+<script src="fit.js?v=2"></script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!-- Landing page for the editor. Run locally with python3 editor/server.py to
+     save; the deployed copy is a read-only preview (see preview-mode.js). -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Editor</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="editor.css">
+<script src="preview-mode.js"></script>
+<style>
+  .ix-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 1rem; }
+  .ix-card {
+    display: block; text-decoration: none; color: var(--text);
+    border: 1px solid var(--border); background: var(--panel); border-radius: 12px; padding: 1.1rem 1.2rem;
+  }
+  .ix-card:hover { border-color: var(--accent); }
+  .ix-card h2 { margin: 0 0 0.4rem; font-size: 1.15rem; color: var(--accent); }
+  .ix-card p { margin: 0; color: var(--text-dim); }
+</style>
+</head>
+<body>
+<header class="ed-bar"><h1>Dashboard Editor</h1></header>
+<main class="ed-main">
+  <p class="ed-intro">Local tools for the dashboards' data. Changes save straight to the
+    files in this project; deploy as usual to send them to the TVs.</p>
+  <div class="ix-cards">
+    <a class="ix-card" href="events.html">
+      <h2>School calendar events</h2>
+      <p>Pick which School Calendar events the dashboards show, by category or one by one.</p>
+    </a>
+    <a class="ix-card" href="teachers.html">
+      <h2>Teacher locations</h2>
+      <p>Where each math teacher is every period and during Studium.</p>
+    </a>
+    <a class="ix-card" href="../math-next/">
+      <h2>Math dashboard preview</h2>
+      <p>The new math-office display (math-next).</p>
+    </a>
+    <a class="ix-card" href="../math-next/designs/">
+      <h2>Design options</h2>
+      <p>Twelve mockups of the math dashboard, side by side.</p>
+    </a>
+  </div>
+</main>
+</body>
+</html>

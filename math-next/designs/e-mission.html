@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<!--
+  Design E -- "Mission control"  (off-brand exploration)
+  Inspiration: NASA mission-control consoles, the Bloomberg terminal, and
+  "T-minus" launch countdowns. Near-black, monospace, amber + green.
+  Idea: everything is a readout. The day has a T+ (since first bell) and a
+  T- (to dismissal); the current block is a big T- countdown; rows are
+  status lines. Very dense but very scannable, and it suits a dark office.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E · Mission control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+  .frame {
+    --bg: #0a0e13;
+    --panel: #10161d;
+    --line: #1f2a35;
+    --ink: #d5e1e8;
+    --dim: #6b7d8a;
+    --amber: #ffb000;
+    --green: #39d98a;
+    --cyan: #5ccfe6;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    padding: 36px 48px 44px;
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    grid-template-rows: auto 1fr auto;
+    gap: 24px 28px;
+  }
+
+  /* --- top status bar spans both columns --- */
+  .bar {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 40px;
+    font-size: 24px; color: var(--dim);
+    padding-bottom: 18px; border-bottom: 2px solid var(--line);
+  }
+  .bar .title { color: var(--ink); font-weight: 800; letter-spacing: 0.06em; }
+  .bar .dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: var(--green); margin-right: 10px; box-shadow: 0 0 12px var(--green); }
+  .bar b { color: var(--ink); font-weight: 600; }
+  .bar .clock { margin-left: auto; font-size: 44px; color: var(--amber); font-weight: 800; }
+
+  /* panels: thin border, label tab on the top edge */
+  .panel { position: relative; border: 2px solid var(--line); border-radius: 6px; background: var(--panel); padding: 30px 28px 22px; min-height: 0; }
+  .panel > .lbl { position: absolute; top: -14px; left: 20px; background: var(--bg); padding: 0 10px; font-size: 18px; letter-spacing: 0.14em; color: var(--dim); }
+
+  /* --- left: the countdown console --- */
+  .left { display: flex; flex-direction: column; gap: 24px; min-height: 0; }
+  .count .blk { font-size: 28px; color: var(--dim); }
+  .count .blk b { color: var(--ink); font-size: 44px; font-weight: 800; letter-spacing: 0.02em; }
+  .count .t { font-size: 160px; line-height: 1; font-weight: 800; color: var(--amber); letter-spacing: -0.04em; margin: 8px 0 14px; text-shadow: 0 0 30px rgba(255, 176, 0, 0.25); }
+  .count .t span { font-size: 76px; color: var(--dim); font-weight: 400; }
+  /* segmented progress, like an LED meter: 40 cells */
+  .meter { display: grid; grid-template-columns: repeat(40, 1fr); gap: 4px; height: 26px; }
+  .meter i { background: var(--line); border-radius: 2px; }
+  .meter i.on { background: var(--amber); }
+  .meter-cap { display: flex; justify-content: space-between; font-size: 18px; color: var(--dim); margin-top: 10px; }
+
+  .log { flex: 1; font-size: 24px; }
+  .log div { display: grid; grid-template-columns: 110px 1fr 220px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+  .log .t { color: var(--dim); }
+  .log .s { text-align: right; letter-spacing: 0.08em; }
+  .log .done { color: var(--dim); }
+  .log .done .s::before { content: "■ "; color: var(--green); }
+  .log .live { color: var(--amber); font-weight: 800; }
+  .log .live .s::before { content: "▶ "; }
+  .log .next .s { color: var(--cyan); }
+
+  /* --- right column --- */
+  .right { display: grid; grid-template-rows: auto 1fr; gap: 24px; min-height: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 24px; }
+  td { padding: 7px 0; border-bottom: 1px dashed var(--line); }
+  td.r { text-align: right; color: var(--cyan); font-weight: 600; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; align-items: start; }
+
+  .feed div { display: grid; grid-template-columns: 110px 90px 1fr; font-size: 24px; padding: 9px 0; border-bottom: 1px dashed var(--line); }
+  .feed .d { color: var(--dim); }
+  .feed .k { font-weight: 800; letter-spacing: 0.06em; }
+  .feed .k.cal { color: var(--cyan); }
+  .feed .k.bd { color: var(--green); }
+  .feed .math { color: var(--amber); }
+
+  /* --- bottom strip: telemetry --- */
+  .tele { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+  .tele .panel { padding: 26px 22px 16px; }
+  .tele .v { font-size: 40px; font-weight: 800; }
+  .tele .u { font-size: 18px; color: var(--dim); margin-top: 2px; }
+  .tele .v.g { color: var(--green); }
+  .tele .v.a { color: var(--amber); }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="bar">
+    <span class="title"><span class="dot"></span>MATH OPS</span>
+    <span>DAY <b>TUE 2026-11-10</b></span>
+    <span>T+ <b class="num">02:15:02</b> since first bell</span>
+    <span>T− <b class="num">04:29:58</b> to dismissal</span>
+    <span class="clock num">10:40:02</span>
+  </div>
+
+  <section class="left">
+    <div class="panel count">
+      <span class="lbl">CURRENT BLOCK</span>
+      <div class="blk"><b>STUDIUM</b> &nbsp;10:35 → 11:25</div>
+      <div class="t num">T−44:58<span>.0</span></div>
+      <div class="meter" id="meter"></div>
+      <div class="meter-cap"><span>ELAPSED 05:02</span><span>10%</span><span>REMAINING 44:58</span></div>
+    </div>
+    <div class="panel log">
+      <span class="lbl">SEQUENCE · TODAY</span>
+      <div class="done"><span class="t">08:25</span><span>PERIOD B</span><span class="s">COMPLETE</span></div>
+      <div class="done"><span class="t">09:35</span><span>ADVISORY</span><span class="s">COMPLETE</span></div>
+      <div class="live"><span class="t">10:35</span><span>STUDIUM</span><span class="s">IN PROGRESS</span></div>
+      <div class="next"><span class="t">11:30</span><span>PERIOD C  FR/SO · JR/SR 11:55</span><span class="s">T−49:58</span></div>
+      <div><span class="t">13:00</span><span>PERIOD D</span><span class="s">QUEUED</span></div>
+      <div><span class="t">14:05</span><span>PERIOD E</span><span class="s">QUEUED</span></div>
+    </div>
+  </section>
+
+  <section class="right">
+    <div class="panel">
+      <span class="lbl">STATION ASSIGNMENTS · PERIOD C</span>
+      <div class="cols">
+        <table>
+          <tr><td>KISSEL</td><td class="r">M205</td></tr>
+          <tr><td>BECVAR</td><td class="r">M209</td></tr>
+          <tr><td>SEE</td><td class="r">M21 ILAB</td></tr>
+          <tr><td>STEINGRUBY</td><td class="r">M109</td></tr>
+          <tr><td>CORLEY</td><td class="r">M215</td></tr>
+        </table>
+        <table>
+          <tr><td>STICKLEY</td><td class="r">M113</td></tr>
+          <tr><td>KELLY</td><td class="r">M217</td></tr>
+          <tr><td>EHLMAN</td><td class="r">M219</td></tr>
+          <tr><td>YANE</td><td class="r">M207</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="panel feed">
+      <span class="lbl">UPCOMING EVENTS</span>
+      <div><span class="d">THU 12</span><span class="k cal">CAL</span><span>LATE START · FACULTY MTG</span></div>
+      <div><span class="d">FRI 13</span><span class="k bd">BDAY</span><span>DONATO, TESHARA</span></div>
+      <div><span class="d">SUN 15</span><span class="k cal">CAL</span><span>GRANDPARENT MASS 09:30</span></div>
+      <div><span class="d">SUN 15</span><span class="k bd">BDAY</span><span>CONLEY, DURON, CALLICO</span></div>
+      <div><span class="d">WED 18</span><span class="k bd">BDAY</span><span><span class="math">HINDERS</span>, KOESTNER</span></div>
+      <div><span class="d">THU 19</span><span class="k cal">CAL</span><span>ASSEMBLY</span></div>
+    </div>
+  </section>
+
+  <section class="tele">
+    <div class="panel"><span class="lbl">DAY</span><div class="v a num">33%</div><div class="u">135 / 405 MIN</div></div>
+    <div class="panel"><span class="lbl">WEEK</span><div class="v num">26%</div><div class="u">DAY 2 OF 5</div></div>
+    <div class="panel"><span class="lbl">TO BREAK</span><div class="v num">10</div><div class="u">SCHOOL DAYS · THANKSGIVING</div></div>
+    <div class="panel"><span class="lbl">OUTSIDE</span><div class="v g num">40°F</div><div class="u">CLR · HI 63 · LO 35</div></div>
+    <div class="panel"><span class="lbl">STATUS</span><div class="v g">NOMINAL</div><div class="u">ALL SYSTEMS GO</div></div>
+  </section>
+</div>
+<a class="mock-tag" href="./">E · Mission control — all designs</a>
+<script>
+  // LED meter: 40 cells, light the elapsed share (floored, never rounded up)
+  var meter = document.getElementById('meter');
+  var lit = Math.floor(0.10 * 40);
+  for (var i = 0; i < 40; i++) {
+    var cell = document.createElement('i');
+    if (i < lit) cell.className = 'on';
+    meter.appendChild(cell);
+  }
+</script>
+<script src="fit.js?v=2"></script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<!--
+  Design A -- "Departures board"
+  Inspiration: Swiss railway / airport departure boards (FIDS) and Vignelli's
+  transit signage. Full-bleed SLUH Navy, white type, Spirit Blue for "now".
+  Idea: the day is a timetable you read top to bottom -- Done / Now / Next /
+  Later -- and everything else ("coming up") is one merged, dated feed.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A · Departures board</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  .frame {
+    background: var(--navy);
+    color: #ffffff;
+    padding: 52px 72px 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    --dim: rgba(255, 255, 255, 0.6);
+    --faint: rgba(255, 255, 255, 0.16);
+  }
+
+  /* --- header: logo + name | weather | clock --- */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  header img { height: 64px; }
+  header h1 { margin: 0; font-size: 40px; font-weight: 700; flex: 1; }
+  .wx {
+    display: flex; align-items: center; gap: 14px;
+    font-size: 30px; color: var(--dim);
+    padding-right: 36px; border-right: 2px solid var(--faint);
+  }
+  .wx .icon { font-size: 40px; color: var(--spirit); }
+  .wx b { color: #ffffff; font-weight: 700; }
+  .clock { text-align: right; line-height: 1; }
+  .clock .time { font-size: 72px; font-weight: 700; }
+  .clock .date { font-size: 24px; color: var(--dim); margin-top: 6px; }
+
+  main {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 80px;
+  }
+
+  /* section labels: small caps, Spirit Blue */
+  .kicker {
+    font-size: 22px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--spirit);
+    margin: 0 0 14px;
+  }
+
+  /* --- left: the big "now" readout --- */
+  .now { display: grid; grid-template-columns: 1fr auto; align-items: end; column-gap: 32px; }
+  .now .name { font-size: 64px; font-weight: 700; line-height: 1.05; }
+  .now .ends { font-size: 30px; color: var(--dim); margin-top: 8px; }
+  .now .count { font-size: 176px; font-weight: 700; line-height: 0.85; letter-spacing: -0.03em; grid-row: 1 / 3; grid-column: 2; }
+  .now .count small { display: block; font-size: 26px; font-weight: 600; letter-spacing: 0; color: var(--dim); text-align: right; margin-top: 14px; }
+  .progress { grid-column: 1 / -1; height: 14px; border-radius: 99px; background: var(--faint); margin-top: 30px; overflow: hidden; }
+  .progress div { height: 100%; border-radius: 99px; }
+
+  /* --- left: the timetable --- */
+  table { width: 100%; border-collapse: collapse; margin-top: 40px; font-size: 36px; }
+  th { text-align: left; font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); font-weight: 600; padding: 0 20px 10px; }
+  td { padding: 19px 20px; border-top: 2px solid var(--faint); }
+  td.t { width: 150px; font-variant-numeric: tabular-nums; }
+  td.s { width: 170px; text-align: right; font-size: 24px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  td .wave { color: var(--dim); font-size: 24px; margin-left: 10px; }
+  tr.done td { color: rgba(255, 255, 255, 0.38); }
+  tr.block td.n { font-style: italic; }
+  tr.live td { background: rgba(136, 204, 236, 0.16); font-weight: 700; }
+  tr.live td:first-child { box-shadow: inset 6px 0 0 var(--spirit); }
+  tr.live td.s, tr.next td.s { color: var(--spirit); }
+  tr.later td.s { color: var(--dim); font-weight: 600; }
+
+  /* --- right: rooms for the next period --- */
+  .rooms ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; }
+  .rooms li { display: flex; justify-content: space-between; font-size: 28px; padding: 12px 0; border-top: 2px solid var(--faint); }
+  .rooms li span:last-child { color: var(--spirit); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* --- right: coming up (calendar + birthdays in one dated feed) --- */
+  .feed { margin-top: 38px; }
+  .day { display: grid; grid-template-columns: 112px 1fr; padding: 12px 0; border-top: 2px solid var(--faint); }
+  .day .d { line-height: 1.05; }
+  .day .d b { display: block; font-size: 34px; }
+  .day .d span { font-size: 18px; letter-spacing: 0.12em; color: var(--dim); font-weight: 700; }
+  .item { font-size: 27px; line-height: 1.3; display: flex; gap: 12px; align-items: baseline; }
+  .item .icon { color: var(--spirit); font-size: 24px; }
+  .item em { font-style: normal; color: var(--dim); font-size: 22px; }
+  .item .math { font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <header>
+    <img src="logomark-white.svg" alt="SLUH">
+    <h1>Math Office</h1>
+    <div class="wx"><svg class="icon"><use href="icons.svg#moon"/></svg><b class="num">40°</b> Clear · high 63°</div>
+    <div class="clock">
+      <div class="time num">10:40</div>
+      <div class="date">Tuesday, Nov. 10</div>
+    </div>
+  </header>
+
+  <main>
+    <!-- LEFT: now + timetable -->
+    <section>
+      <div class="now">
+        <div>
+          <p class="kicker">Now</p>
+          <div class="name">Studium</div>
+          <div class="ends">ends at 11:25 a.m.</div>
+        </div>
+        <div class="count num">44:58<small>minutes left</small></div>
+        <div class="progress"><div class="live-fill" style="width: 10%"></div></div>
+      </div>
+
+      <table>
+        <tr><th>Time</th><th>Today</th><th style="text-align:right">Status</th></tr>
+        <tr class="done"><td class="t">8:25</td><td class="n">Period B</td><td class="s">Done</td></tr>
+        <tr class="done block"><td class="t">9:35</td><td class="n">Advisory</td><td class="s">Done</td></tr>
+        <tr class="live block"><td class="t">10:35</td><td class="n">Studium</td><td class="s">Now</td></tr>
+        <tr class="next"><td class="t">11:30</td><td class="n">Period C <span class="wave">Fr/So · Jr/Sr 11:55</span></td><td class="s">Next</td></tr>
+        <tr class="later"><td class="t">1:00</td><td class="n">Period D</td><td class="s">Later</td></tr>
+        <tr class="later"><td class="t">2:05</td><td class="n">Period E</td><td class="s">Later</td></tr>
+      </table>
+    </section>
+
+    <!-- RIGHT: who's where next + what's coming -->
+    <section>
+      <div class="rooms">
+        <p class="kicker">Period C rooms · starts in 49 min</p>
+        <ul>
+          <li><span>Beth Kissel</span><span>M205</span></li>
+          <li><span>Joe Stickley</span><span>M113</span></li>
+          <li><span>Dan Becvar</span><span>M209</span></li>
+          <li><span>Molly Kelly</span><span>M217</span></li>
+          <li><span>Dan See</span><span>M21 iLab</span></li>
+          <li><span>Nicholas Ehlman</span><span>M219</span></li>
+          <li><span>Don Steingruby</span><span>M109</span></li>
+          <li><span>Walker Yane</span><span>M207</span></li>
+          <li><span>Frank Corley</span><span>M215</span></li>
+        </ul>
+      </div>
+
+      <div class="feed">
+        <p class="kicker">Coming up</p>
+        <div class="day"><div class="d"><span>THU</span><b>12</b></div>
+          <div><div class="item"><svg class="icon"><use href="icons.svg#calendar"/></svg>Late Start · Faculty Meeting</div></div></div>
+        <div class="day"><div class="d"><span>FRI</span><b>13</b></div>
+          <div><div class="item"><svg class="icon"><use href="icons.svg#cake"/></svg>Phil Donato, Edward Teshara</div></div></div>
+        <div class="day"><div class="d"><span>SUN</span><b>15</b></div>
+          <div><div class="item"><svg class="icon"><use href="icons.svg#calendar"/></svg>Grandparent Mass <em>9:30 a.m.</em></div>
+               <div class="item"><svg class="icon"><use href="icons.svg#cake"/></svg>Espen Conley, Mary Duron, Joe Callico</div></div></div>
+        <div class="day"><div class="d"><span>WED</span><b>18</b></div>
+          <div><div class="item"><svg class="icon"><use href="icons.svg#cake"/></svg><span><span class="math">Craig Hinders</span>, Joe Koestner</span></div></div></div>
+        <div class="day"><div class="d"><span>THU</span><b>19</b></div>
+          <div><div class="item"><svg class="icon"><use href="icons.svg#calendar"/></svg>Assembly: Gambling Presentation</div>
+               <div class="item"><svg class="icon"><use href="icons.svg#cake"/></svg>Mike Davis</div></div></div>
+      </div>
+    </section>
+  </main>
+</div>
+<a class="mock-tag" href="./">A · Departures board — all designs</a>
+<script src="fit.js?v=2"></script>
+</body>
+</html>

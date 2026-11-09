@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<!--
+  Design I -- "Sawtooth"  (Desmos iteration 1 of 4)
+  The day as a piecewise function. f(t) = how far through the current block
+  you are (0 -> 1), so every block is a ramp and the day is a sawtooth.
+  g(t) = how far through the whole day you are, one straight line under it.
+  The vertical line is the slider t = now. Below, the next two and a half
+  weeks are a number line with labeled points instead of a list of dates.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I · Sawtooth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="desmos.css">
+<style>
+  .big .body { font-size: 30px; }
+  .big .res { font-size: 30px !important; font-weight: 700; color: var(--red) !important; background: #fbeeee !important; }
+  .ex .body { padding: 12px 20px; }
+  .dtable { font-size: 20px; }
+  .dtable td { padding: 4px 12px; }
+  .tables { padding: 10px 18px; background: #ffffff; border-bottom: 1px solid var(--list-line); }
+  .rooms td:nth-child(even) { color: var(--blue); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <aside class="exprs">
+    <header><h1>Math Office</h1><span class="clock">Tue 10:40</span></header>
+
+    <div class="ex slider"><div class="n" style="color:var(--black)">1</div><div class="body math">
+      <div class="val"><span><i>t</i> = 10:40</span><span style="font-family:Inter;font-size:22px;color:var(--gray)">▶ live</span></div>
+      <div class="track"><div class="fill" style="width:33%;background:var(--black)"></div><div class="dot" style="left:33%;background:var(--black)"></div></div>
+      <div class="ends"><span>8:25</span><span>3:10</span></div>
+    </div></div>
+    <div class="ex"><div class="n" style="color:var(--red)">2<i class="solid"></i></div><div class="body math"><i>f</i>(<i>t</i>) = <span style="font-size:24px">block progress</span><span class="res">0.10</span></div></div>
+    <div class="ex"><div class="n" style="color:var(--black)">3<i class="solid"></i></div><div class="body math"><i>g</i>(<i>t</i>) = (<i>t</i> − 8:25) / 405<span class="res">0.33</span></div></div>
+    <div class="ex big live"><div class="n" style="color:var(--red)">4</div><div class="body math">11:25 − <i>t</i><span class="res">44:58</span></div></div>
+
+    <div class="folder">Today's blocks</div>
+    <div class="tables">
+      <table class="dtable">
+        <tr><th>block</th><th><i>a</i> (start)</th><th><i>b</i> (end)</th></tr>
+        <tr style="color:var(--muted)"><td>B</td><td>8:25</td><td>9:30</td></tr>
+        <tr style="color:var(--muted)"><td>Advisory</td><td>9:35</td><td>10:35</td></tr>
+        <tr style="color:var(--red);font-weight:700"><td>Studium</td><td>10:35</td><td>11:25</td></tr>
+        <tr style="color:var(--blue)"><td>C Fr/So</td><td>11:30</td><td>12:30</td></tr>
+        <tr style="color:var(--green)"><td>C Jr/Sr</td><td>11:55</td><td>12:55</td></tr>
+        <tr style="color:var(--purple)"><td>D</td><td>1:00</td><td>2:00</td></tr>
+        <tr style="color:var(--orange)"><td>E</td><td>2:05</td><td>3:10</td></tr>
+      </table>
+    </div>
+
+    <div class="folder">Period C rooms</div>
+    <div class="tables">
+      <table class="dtable rooms">
+        <tr><td>Kissel</td><td>M205</td><td>Stickley</td><td>M113</td></tr>
+        <tr><td>Becvar</td><td>M209</td><td>Kelly</td><td>M217</td></tr>
+        <tr><td>See</td><td>M21 iLab</td><td>Ehlman</td><td>M219</td></tr>
+        <tr><td>Steingruby</td><td>M109</td><td>Yane</td><td>M207</td></tr>
+        <tr><td>Corley</td><td>M215</td><td></td><td></td></tr>
+      </table>
+    </div>
+    <div class="ex note" style="margin-top:auto;border-top:1px solid var(--list-line)"><div class="n">"</div><div class="body"><b>40° and clear</b> now, high of 63°.</div></div>
+  </aside>
+
+  <main class="paper"><svg id="plot"></svg></main>
+</div>
+<a class="mock-tag" href="./">I · Sawtooth — all designs</a>
+<script src="desmos.js"></script>
+<script>
+  var svg = document.getElementById('plot');
+  var INK = '#1e2a3a', MUTED = '#9aa0a6';
+
+  // ---------- top plot: f(t) and g(t) over the school day ----------
+  var X0 = 110, X1 = 1250, T0 = 480, T1 = 930;      // 8:00 -> 3:30
+  var Y0 = 560, YTOP = 240;                          // y for 0 and 1
+  function x(min) { return X0 + (min - T0) / (T1 - T0) * (X1 - X0); }
+  function y(v) { return Y0 - v * (Y0 - YTOP); }
+
+  // axes
+  el(svg, 'line', { x1: X0, y1: Y0, x2: X1, y2: Y0, stroke: INK, 'stroke-width': 2.5 });
+  el(svg, 'line', { x1: X0, y1: Y0, x2: X0, y2: YTOP - 30, stroke: INK, 'stroke-width': 2.5 });
+  [0, 0.5, 1].forEach(function (v) {
+    el(svg, 'text', { x: X0 - 14, y: y(v), 'text-anchor': 'end', 'dominant-baseline': 'central', class: 'math', 'font-size': 24, fill: INK }, v);
+  });
+  for (var h = 8; h <= 15; h++) {
+    el(svg, 'text', { x: x(h * 60), y: Y0 + 34, 'text-anchor': 'middle', class: 'math', 'font-size': 24, fill: INK }, clock12(h * 60));
+  }
+  el(svg, 'text', { x: X1 + 10, y: Y0 + 8, class: 'math', 'font-style': 'italic', 'font-size': 30, fill: INK }, 't');
+
+  // the ramps: [start, end, color, label]
+  var blocks = [
+    [505, 570, MUTED, 'B'], [575, 635, MUTED, 'Adv'], [635, 685, '#c74440', 'Studium'],
+    [690, 750, '#2d70b3', 'C Fr/So'], [715, 775, '#388c46', 'C Jr/Sr'],
+    [780, 840, '#6042a6', 'D'], [845, 910, '#fa7e19', 'E']
+  ];
+  blocks.forEach(function (b, i) {
+    var future = b[0] > MOCK_MIN, live = b[0] <= MOCK_MIN && MOCK_MIN < b[1];
+    if (live) {
+      // solid up to now, dashed for the rest of the block
+      var vNow = (MOCK_MIN - b[0]) / (b[1] - b[0]);
+      el(svg, 'line', { x1: x(b[0]), y1: y(0), x2: x(MOCK_MIN), y2: y(vNow), stroke: b[2], 'stroke-width': 7, 'stroke-linecap': 'round' });
+      el(svg, 'line', { x1: x(MOCK_MIN), y1: y(vNow), x2: x(b[1]), y2: y(1), stroke: b[2], 'stroke-width': 4, 'stroke-dasharray': '10 9', opacity: 0.7 });
+    } else {
+      el(svg, 'line', { x1: x(b[0]), y1: y(0), x2: x(b[1]), y2: y(1), stroke: b[2], 'stroke-width': 5, opacity: future ? 0.55 : 1 });
+    }
+    el(svg, 'circle', { cx: x(b[0]), cy: y(0), r: 7, fill: b[2] });                                        // closed start
+    el(svg, 'circle', { cx: x(b[1]), cy: y(1), r: 7, fill: '#fff', stroke: b[2], 'stroke-width': 3 });      // open end
+    // labels sit above the open end; the two C waves stagger so they don't collide
+    var ly = b[3] === 'C Jr/Sr' ? y(1) - 52 : y(1) - 22;
+    el(svg, 'text', { x: x(b[1]), y: ly, 'text-anchor': 'middle', 'font-family': 'Inter', 'font-weight': 600, 'font-size': 21, fill: b[2] }, b[3]);
+  });
+
+  // g(t): the whole day, 8:25 -> 3:10
+  el(svg, 'line', { x1: x(505), y1: y(0), x2: x(910), y2: y(1), stroke: INK, 'stroke-width': 2.5, opacity: 0.8 });
+
+  // t = now
+  var nx = x(MOCK_MIN);
+  el(svg, 'line', { x1: nx, y1: YTOP - 40, x2: nx, y2: Y0, stroke: INK, 'stroke-width': 2, 'stroke-dasharray': '6 6' });
+  var fNow = (MOCK_MIN - 635) / 50, gNow = (MOCK_MIN - 505) / 405;
+  el(svg, 'circle', { cx: nx, cy: y(gNow), r: 11, fill: INK });
+  pointLabel(svg, nx + 22, y(gNow) - 4, 'day: 33%', INK);
+  el(svg, 'circle', { cx: nx, cy: y(fNow), r: 12, fill: '#c74440' });
+  pointLabel(svg, nx + 22, y(fNow) - 26, '(10:40, 0.10)', '#c74440');
+
+  // the countdown, handwritten in the empty upper-right of the paper
+  el(svg, 'text', { x: 760, y: 150, 'font-family': 'Caveat', 'font-weight': 700, 'font-size': 170, fill: INK }, '44:58');
+  el(svg, 'text', { x: 1140, y: 150, 'font-family': 'Caveat', 'font-weight': 600, 'font-size': 46, fill: '#6b7280' }, 'left');
+
+  // ---------- bottom plot: the next 18 days as a number line ----------
+  var D0 = 10, D1 = 28, LY = 860;            // Nov 10 -> Nov 28, line at y=860
+  function dx(day) { return X0 + (day - D0) / (D1 - D0) * (X1 - X0); }
+  el(svg, 'text', { x: X0, y: 680, 'font-family': 'Inter', 'font-weight': 700, 'font-size': 20, 'letter-spacing': '0.1em', fill: '#6b7280' }, 'NEXT 18 DAYS');
+  // weekends and Thanksgiving break as shaded intervals (Desmos inequality shading)
+  [[13.5, 15.5, '#9aa0a6', 0.12], [20.5, 22.5, '#9aa0a6', 0.12], [24.5, 28, '#fa7e19', 0.18]].forEach(function (r) {
+    el(svg, 'rect', { x: dx(r[0]), y: LY - 120, width: dx(r[1]) - dx(r[0]), height: 160, fill: r[2], opacity: r[3] });
+  });
+  el(svg, 'text', { x: (dx(24.5) + dx(28)) / 2, y: LY - 95, 'text-anchor': 'middle', 'font-family': 'Inter', 'font-weight': 700, 'font-size': 22, fill: '#c25f0f' }, 'Thanksgiving');
+  el(svg, 'line', { x1: X0, y1: LY, x2: X1, y2: LY, stroke: INK, 'stroke-width': 2.5 });
+  for (var d = D0; d <= D1; d++) {
+    el(svg, 'line', { x1: dx(d), y1: LY - 6, x2: dx(d), y2: LY + 6, stroke: INK, 'stroke-width': 1.5 });
+    el(svg, 'text', { x: dx(d), y: LY + 32, 'text-anchor': 'middle', class: 'math', 'font-size': 21, fill: d === D0 ? '#c74440' : INK, 'font-weight': d === D0 ? 600 : 400 }, d);
+  }
+  el(svg, 'text', { x: dx(D0), y: LY + 58, 'text-anchor': 'middle', 'font-family': 'Inter', 'font-size': 17, 'font-weight': 700, fill: '#c74440' }, 'TODAY');
+  el(svg, 'circle', { cx: dx(D0), cy: LY, r: 10, fill: '#c74440' });
+
+  // events (blue, above the line) and birthdays (purple, below the line)
+  var events = [[12, 'Late Start'], [15, 'Grandparent Mass'], [19, 'Assembly']];
+  var bdays = [[13, 'Donato, Teshara'], [15, 'Conley +2'], [18, '★ Hinders, Koestner'], [19, 'Davis']];
+  events.forEach(function (e) {
+    el(svg, 'line', { x1: dx(e[0]), y1: LY, x2: dx(e[0]), y2: LY - 46, stroke: '#2d70b3', 'stroke-width': 2 });
+    el(svg, 'circle', { cx: dx(e[0]), cy: LY, r: 9, fill: '#2d70b3' });
+    pointLabel(svg, dx(e[0]), LY - 64, e[1], '#2d70b3', 'middle');
+  });
+  bdays.forEach(function (b, i) {
+    var off = i % 2 ? 150 : 100;            // stagger depth so neighbors don't touch
+    el(svg, 'line', { x1: dx(b[0]), y1: LY + 6, x2: dx(b[0]), y2: LY + off - 18, stroke: '#6042a6', 'stroke-width': 2 });
+    el(svg, 'circle', { cx: dx(b[0]), cy: LY, r: 7, fill: '#fff', stroke: '#6042a6', 'stroke-width': 3 });
+    pointLabel(svg, dx(b[0]), LY + off, '🎂 ' + b[1], '#6042a6', 'middle');
+  });
+</script>
+<script src="fit.js?v=2"></script>
+</body>
+</html>

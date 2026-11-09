@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<!--
+  Design F -- "Wall clock"  (off-brand exploration)
+  Inspiration: Dieter Rams / Braun clocks and radios: warm off-white, one
+  signal orange, a real analog dial, everything else quiet gray.
+  Idea: the clock IS the schedule. The school day is drawn as arcs around
+  the rim of an analog clock face, so "where are we in the day" is read the
+  way people already read a clock. The right side stays deliberately calm.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F · Wall clock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+  .frame {
+    --paper: #efebe4;
+    --card: #f8f6f2;
+    --ink: #222222;
+    --gray: #8b8984;
+    --rule: #d9d4ca;
+    --orange: #e8541d;
+    --soft: #c9c3b8;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Inter, -apple-system, sans-serif;
+    padding: 56px 72px;
+    display: grid;
+    grid-template-columns: 900px 1fr;
+    gap: 72px;
+  }
+
+  /* --- left: the dial --- */
+  .dial { position: relative; display: flex; align-items: center; justify-content: center; }
+  .dial svg { width: 900px; height: 900px; }
+  .face { fill: var(--card); filter: drop-shadow(0 18px 30px rgba(0,0,0,0.08)); }
+  .tick { stroke: var(--ink); }
+  .numeral { font: 300 46px Inter, sans-serif; fill: var(--ink); text-anchor: middle; dominant-baseline: central; }
+  .arc { fill: none; stroke-width: 26; stroke-linecap: butt; }
+  .arc.done { stroke: var(--soft); }
+  .arc.todo { stroke: #e3ded5; }
+  .arc.live { stroke: var(--orange); }
+  .arc.lane2 { stroke-width: 12; }
+  .arclbl { font: 600 20px Inter, sans-serif; fill: var(--gray); text-anchor: middle; dominant-baseline: central; letter-spacing: 0.05em; }
+  .hand { stroke: var(--ink); stroke-linecap: round; }
+  .hand.sec { stroke: var(--orange); }
+  .brand { font: 600 22px Inter, sans-serif; fill: var(--gray); text-anchor: middle; letter-spacing: 0.3em; }
+
+  /* --- right column --- */
+  .right { display: flex; flex-direction: column; min-height: 0; padding-top: 10px; }
+  .eyebrow { font-size: 20px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray); }
+  .head { display: flex; justify-content: space-between; align-items: baseline; }
+  .head .date { font-size: 26px; color: var(--gray); display: flex; align-items: center; gap: 12px; }
+  .head .date .icon { font-size: 30px; color: var(--ink); stroke-width: 1.6; }
+  .head .date b { color: var(--ink); font-weight: 600; }
+  h1 { margin: 0; font-size: 40px; font-weight: 700; letter-spacing: -0.01em; }
+
+  .count { margin-top: 34px; }
+  .count .name { font-size: 40px; font-weight: 600; display: flex; align-items: center; gap: 16px; }
+  .count .name i { width: 20px; height: 20px; border-radius: 50%; background: var(--orange); }
+  .count .t { font-size: 172px; font-weight: 300; line-height: 1; letter-spacing: -0.04em; margin: 6px 0 0 -6px; }
+  .count .sub { font-size: 28px; color: var(--gray); }
+
+  .next { margin-top: 28px; padding: 20px 0; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: baseline; font-size: 34px; }
+  .next b { font-weight: 700; }
+  .next span { color: var(--gray); font-size: 26px; }
+
+  .two { margin-top: 26px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; flex: 1; min-height: 0; }
+  .list div { display: flex; justify-content: space-between; gap: 16px; font-size: 23px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+  .list div span:last-child { color: var(--gray); white-space: nowrap; }
+  .list .hi { font-weight: 700; }
+  .list .hi span:last-child { color: var(--orange); }
+  .list .eyebrow { margin-bottom: 8px; }
+
+</style>
+</head>
+<body>
+<div class="frame">
+  <section class="dial">
+    <svg id="dial" viewBox="-450 -450 900 900"></svg>
+  </section>
+
+  <section class="right">
+    <div class="head"><h1>Math Office</h1><span class="date">Tuesday 10 November &nbsp;·&nbsp; <svg class="icon"><use href="icons.svg#moon"/></svg><b class="num">40°</b> clear</span></div>
+
+    <div class="count">
+      <div class="name"><i></i>Studium</div>
+      <div class="t num">44:58</div>
+      <div class="sub">remaining · until 11:25</div>
+    </div>
+
+    <div class="next"><b>Period C</b><span>11:30 Fr/So &nbsp;·&nbsp; 11:55 Jr/Sr</span></div>
+
+    <div class="two">
+      <div class="list">
+        <div class="eyebrow">This week</div>
+        <div><span>Late Start</span><span>Thu 12</span></div>
+        <div><span>Grandparent Mass</span><span>Sun 15</span></div>
+        <div><span>Assembly</span><span>Thu 19</span></div>
+        <div><span>Thanksgiving Break</span><span>Nov 25</span></div>
+        <div class="eyebrow" style="margin-top:22px">Birthdays</div>
+        <div><span>Donato, Teshara</span><span>Fri 13</span></div>
+        <div><span>Conley, Duron, Callico</span><span>Sun 15</span></div>
+        <div class="hi"><span>Craig Hinders</span><span>Wed 18</span></div>
+      </div>
+      <div class="list">
+        <div class="eyebrow">Period C rooms</div>
+        <div><span>Kissel</span><span>M205</span></div>
+        <div><span>Becvar</span><span>M209</span></div>
+        <div><span>See</span><span>M21 iLab</span></div>
+        <div><span>Steingruby</span><span>M109</span></div>
+        <div><span>Corley</span><span>M215</span></div>
+        <div><span>Stickley</span><span>M113</span></div>
+        <div><span>Kelly</span><span>M217</span></div>
+        <div><span>Ehlman</span><span>M219</span></div>
+        <div><span>Yane</span><span>M207</span></div>
+      </div>
+    </div>
+
+  </section>
+</div>
+<a class="mock-tag" href="./">F · Wall clock — all designs</a>
+<script>
+  // Draw the dial: ticks, numerals, the day's blocks as arcs on the rim,
+  // and the hands at the frozen mockup time (10:40:02).
+  var svg = document.getElementById('dial');
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, text) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text) e.textContent = text;
+    svg.appendChild(e);
+    return e;
+  }
+  // minutes since midnight -> angle in radians, 12 o'clock = up
+  function ang(min) { return ((min % 720) / 720) * 2 * Math.PI - Math.PI / 2; }
+  function pt(min, r) { var a = ang(min); return [r * Math.cos(a), r * Math.sin(a)]; }
+  function arc(from, to, r, cls) {
+    var a = pt(from, r), b = pt(to, r);
+    var large = (to - from) > 360 ? 1 : 0;
+    el('path', { d: 'M' + a + ' A' + r + ' ' + r + ' 0 ' + large + ' 1 ' + b, class: 'arc ' + cls });
+  }
+  function hm(h, m) { return h * 60 + m; }
+
+  el('circle', { r: 430, class: 'face' });
+
+  // minute ticks (long every 5)
+  for (var i = 0; i < 60; i++) {
+    var long = i % 5 === 0;
+    var a = (i / 60) * 2 * Math.PI;
+    var r1 = long ? 300 : 315, r2 = 330;
+    el('line', { x1: r1 * Math.sin(a), y1: -r1 * Math.cos(a), x2: r2 * Math.sin(a), y2: -r2 * Math.cos(a),
+                 class: 'tick', 'stroke-width': long ? 6 : 2 });
+  }
+  for (var n = 1; n <= 12; n++) {
+    var a2 = (n / 12) * 2 * Math.PI;
+    el('text', { x: 250 * Math.sin(a2), y: -250 * Math.cos(a2), class: 'numeral' }, n);
+  }
+
+  // the day's blocks on the outer rim (r=380); Period C's second lunch
+  // wave rides on a thinner inner lane (r=355)
+  var blocks = [
+    [hm(8, 25), hm(9, 30), 'done', 'B'],
+    [hm(9, 35), hm(10, 35), 'done', 'ADV'],
+    [hm(10, 35), hm(11, 25), 'todo', 'STU'],
+    [hm(11, 30), hm(12, 30), 'todo', 'C'],
+    [hm(13, 0), hm(14, 0), 'todo', 'D'],
+    [hm(14, 5), hm(15, 10), 'todo', 'E']
+  ];
+  blocks.forEach(function (b) {
+    arc(b[0], b[1], 380, b[2]);
+    var mid = pt((b[0] + b[1]) / 2, 412);
+    el('text', { x: mid[0], y: mid[1], class: 'arclbl' }, b[3]);
+  });
+  arc(hm(11, 55), hm(12, 55), 357, 'todo lane2');
+  // live part of Studium: 10:35 -> now
+  arc(hm(10, 35), hm(10, 40) + 2 / 60, 380, 'live');
+
+  el('text', { x: 0, y: -120, class: 'brand' }, 'MATH');
+
+  // hands at 10:40:02
+  var hr = hm(10, 40) / 720 * 360, mn = (40 + 2 / 60) / 60 * 360, sc = 2 / 60 * 360;
+  function hand(deg, len, w, cls) {
+    var a = deg * Math.PI / 180;
+    el('line', { x1: -0.15 * len * Math.sin(a), y1: 0.15 * len * Math.cos(a), x2: len * Math.sin(a), y2: -len * Math.cos(a),
+                 class: 'hand ' + (cls || ''), 'stroke-width': w });
+  }
+  hand(hr, 190, 18);
+  hand(mn, 290, 12);
+  hand(sc, 310, 4, 'sec');
+  el('circle', { r: 14, fill: '#e8541d' });
+</script>
+<script src="fit.js?v=2"></script>
+</body>
+</html>

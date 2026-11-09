@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<!--
+  Design G -- "Poster"  (off-brand exploration)
+  Inspiration: Spotify Wrapped, Swiss gig posters, and Memphis-era color
+  blocking. Flat saturated color fields, a condensed display face, huge
+  numbers, no borders or shadows at all.
+  Idea: a wall display competes with a busy room, so it should shout one
+  thing (the countdown) and sort everything else by color, not by boxes.
+  Each kind of info always lives on the same color: easy to find later.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G · Poster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+  .frame {
+    --cobalt: #2337ff;
+    --coral: #ff5a3c;
+    --sun: #ffd23f;
+    --mint: #8fe3c2;
+    --pink: #ffb3d1;
+    --black: #111111;
+    --cream: #fff8ec;
+    background: var(--cream);
+    color: var(--black);
+    font-family: Inter, sans-serif;
+    display: grid;
+    grid-template-columns: 1000px 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 210px;
+  }
+  .disp { font-family: Anton, Impact, sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: 0.01em; }
+  .blk { padding: 36px 40px; min-height: 0; overflow: hidden; position: relative; }
+  .tag { font-size: 20px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+
+  /* --- the hero: cobalt field, giant countdown --- */
+  .hero { grid-column: 1; grid-row: 1 / 3; background: var(--cobalt); color: #ffffff; display: flex; flex-direction: column; padding: 48px 60px; }
+  .hero .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .hero .top .disp { font-size: 46px; }
+  .hero .top .clock { font-size: 46px; }
+  .hero .now { margin-top: auto; font-size: 120px; line-height: 0.9; }
+  .hero .t { font-size: 400px; line-height: 0.82; letter-spacing: -0.01em; margin: 10px 0 0 -10px; }
+  .hero .sub { font-size: 30px; font-weight: 600; opacity: 0.85; margin-top: 18px; }
+  /* a decorative circle that is also the progress: 10% filled pie */
+  .hero .pie { position: absolute; right: -90px; top: 120px; width: 420px; height: 420px; border-radius: 50%;
+               background: conic-gradient(var(--sun) 0 10%, rgba(255,255,255,0.12) 10% 100%); }
+
+  /* --- next: sun yellow --- */
+  .next { grid-column: 2 / 5; grid-row: 1; background: var(--sun); display: flex; flex-direction: column; }
+  .next .disp { font-size: 130px; line-height: 0.9; margin-top: 14px; }
+  .next .meta { margin-top: auto; display: flex; gap: 40px; font-size: 30px; font-weight: 600; }
+  .next .meta b { font-weight: 800; }
+  .next .in { position: absolute; right: 40px; top: 36px; font-size: 64px; }
+
+  /* --- birthdays: pink --- */
+  .bday { grid-column: 2; grid-row: 2; background: var(--pink); }
+  .bday .row { margin-top: 14px; }
+  .bday .row .d { font-size: 18px; font-weight: 800; letter-spacing: 0.1em; }
+  .bday .row .n { font-size: 27px; font-weight: 600; line-height: 1.15; }
+  .bday .row .n.math::after { content: " ★"; }
+
+  /* --- calendar: mint --- */
+  .cal { grid-column: 3; grid-row: 2; background: var(--mint); }
+  .cal .row { display: grid; grid-template-columns: 80px 1fr; margin-top: 16px; align-items: baseline; }
+  .cal .row .disp { font-size: 48px; line-height: 1; }
+  .cal .row .n { font-size: 26px; font-weight: 600; line-height: 1.2; }
+  .cal .row .n small { display: block; font-size: 18px; font-weight: 800; letter-spacing: 0.1em; }
+
+  /* --- rooms: coral --- */
+  .rooms { grid-column: 4; grid-row: 2; background: var(--coral); }
+  .rooms ul { list-style: none; margin: 12px 0 0; padding: 0; }
+  .rooms li { display: flex; justify-content: space-between; font-size: 23px; font-weight: 600; padding: 4px 0; }
+  .rooms li b { font-weight: 800; }
+
+  /* --- bottom: the day as chunky blocks on black --- */
+  .day { grid-column: 1 / 4; grid-row: 3; background: var(--black); color: #ffffff; display: flex; gap: 10px; align-items: stretch; padding: 30px 40px; }
+  .seg { flex: 1; border-radius: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 14px 18px; background: #2a2a2a; }
+  .seg .disp { font-size: 52px; line-height: 1; }
+  .seg .tm { font-size: 18px; font-weight: 600; opacity: 0.75; }
+  .seg.done { background: #2a2a2a; color: #666; }
+  .seg.live { background: var(--coral); color: var(--black); flex: 1.5; }
+  .seg.live .tm { opacity: 1; }
+
+  /* --- rooms + weather: coral --- */
+  .side { grid-column: 4; grid-row: 3; background: var(--cream); padding: 26px 34px; display: flex; flex-direction: column; justify-content: space-between; }
+  .side .wx { display: flex; align-items: baseline; gap: 16px; }
+  .side .wx .disp { font-size: 92px; line-height: 1; }
+  .side .wx span { font-size: 20px; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <section class="blk hero">
+    <div class="pie"></div>
+    <div class="top"><span class="disp">Math Office</span><span class="disp clock num">10:40</span></div>
+    <div class="now disp">Studium</div>
+    <div class="t disp num">44:58</div>
+    <div class="sub">left · ends 11:25 · Tuesday, Nov. 10</div>
+  </section>
+
+  <section class="blk next">
+    <span class="tag">Up next</span>
+    <span class="in disp">49 min</span>
+    <div class="disp">Period C</div>
+    <div class="meta"><span><b>11:30</b> Fr/So</span><span><b>11:55</b> Jr/Sr</span></div>
+  </section>
+
+  <section class="blk bday">
+    <span class="tag">Birthdays</span>
+    <div class="row"><div class="d">FRI 13</div><div class="n">Phil Donato<br>Edward Teshara</div></div>
+    <div class="row"><div class="d">SUN 15</div><div class="n">Espen Conley +2</div></div>
+    <div class="row"><div class="d">WED 18</div><div class="n math">Craig Hinders</div></div>
+  </section>
+
+  <section class="blk cal">
+    <span class="tag">Calendar</span>
+    <div class="row"><span class="disp num">12</span><span class="n"><small>THU</small>Late Start</span></div>
+    <div class="row"><span class="disp num">15</span><span class="n"><small>SUN</small>Grandparent Mass</span></div>
+    <div class="row"><span class="disp num">19</span><span class="n"><small>THU</small>Assembly</span></div>
+  </section>
+
+  <section class="blk rooms">
+    <span class="tag">Period C rooms</span>
+    <ul>
+      <li>Kissel<b>M205</b></li><li>Becvar<b>M209</b></li><li>See<b>M21 iLab</b></li>
+      <li>Steingruby<b>M109</b></li><li>Corley<b>M215</b></li><li>Stickley<b>M113</b></li>
+      <li>Kelly<b>M217</b></li><li>Ehlman<b>M219</b></li><li>Yane<b>M207</b></li>
+    </ul>
+  </section>
+
+  <section class="day">
+    <div class="seg done"><span class="disp">B</span><span class="tm">8:25</span></div>
+    <div class="seg done"><span class="disp">Adv</span><span class="tm">9:35</span></div>
+    <div class="seg live"><span class="disp">Studium</span><span class="tm">10:35–11:25 · NOW</span></div>
+    <div class="seg"><span class="disp">C</span><span class="tm">11:30</span></div>
+    <div class="seg"><span class="disp">D</span><span class="tm">1:00</span></div>
+    <div class="seg"><span class="disp">E</span><span class="tm">2:05</span></div>
+  </section>
+
+  <section class="side">
+    <span class="tag">Outside</span>
+    <div class="wx"><span class="disp num">40°</span><span>Clear<br>high 63°</span></div>
+  </section>
+</div>
+<a class="mock-tag" href="./">G · Poster — all designs</a>
+<script src="fit.js?v=2"></script>
+</body>
+</html>

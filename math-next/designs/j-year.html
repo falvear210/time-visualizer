@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<!--
+  Design J -- "The year as a function"  (Desmos iteration 2 of 4)
+  D(x) = class days completed by calendar date x, drawn straight from
+  data.js. It climbs during school weeks and goes flat on weekends and
+  breaks, so every break is a visible plateau. Quarter and semester ends
+  are horizontal lines y = 41, 79, 123, 163; where D(x) crosses one is
+  when that milestone happens. Today is the point on the curve.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J · The year as a function</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="desmos.css">
+<style>
+  .ms .body { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 25px; }
+  .ms .body small { font-family: Inter, sans-serif; font-size: 19px; color: var(--gray); white-space: nowrap; }
+  .ms.done .body small { color: var(--green); font-weight: 700; }
+  .ms.nextup .body small { color: var(--red); font-weight: 700; }
+  .now .res { font-size: 30px !important; font-weight: 700; color: var(--red) !important; background: #fbeeee !important; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <aside class="exprs">
+    <header><h1>Math Office</h1><span class="clock">Tue, Nov. 10</span></header>
+
+    <div class="ex"><div class="n" style="color:var(--blue)">1<i class="solid"></i></div><div class="body math"><i>D</i>(<i>x</i>) = class days done by date <i>x</i></div></div>
+    <div class="ex"><div class="n" style="color:var(--red)">2<i class="solid"></i></div><div class="body math"><i>D</i>(today)<span class="res" id="r-done"></span></div></div>
+    <div class="ex slider"><div class="n" style="color:var(--blue)">3</div><div class="body math">
+      <div class="val"><span><i>D</i> / 163 = <span id="r-yearfrac"></span></span><span style="font-family:Inter;font-size:20px;color:var(--gray)">year</span></div>
+      <div class="track"><div class="fill" id="yr-fill" style="background:var(--blue)"></div><div class="dot" id="yr-dot" style="background:var(--blue)"></div></div>
+      <div class="ends"><span>Aug. 14</span><span>May 24</span></div>
+    </div></div>
+
+    <div class="folder">Milestones · horizontal lines</div>
+    <div class="ex ms done"><div class="n" style="color:var(--green)">4<i class="solid"></i></div><div class="body math"><span><i>y</i> = 41 &nbsp;Q1</span><small>✓ Oct. 13</small></div></div>
+    <div class="ex ms nextup"><div class="n" style="color:var(--red)">5<i></i></div><div class="body math"><span><i>y</i> = 79 &nbsp;Semester 1</span><small id="r-s1"></small></div></div>
+    <div class="ex ms"><div class="n" style="color:var(--purple)">6<i></i></div><div class="body math"><span><i>y</i> = 123 &nbsp;Q3</span><small id="r-q3"></small></div></div>
+    <div class="ex ms"><div class="n" style="color:var(--black)">7<i></i></div><div class="body math"><span><i>y</i> = 163 &nbsp;Last class</span><small id="r-end"></small></div></div>
+
+    <div class="folder">Next plateau</div>
+    <div class="ex note"><div class="n">"</div><div class="body"><b>Thanksgiving Break</b> starts after <b id="r-tg"></b> more class days: no school Nov. 25–27.</div></div>
+
+    <div class="folder">Right now</div>
+    <div class="ex now live"><div class="n" style="color:var(--red)">8</div><div class="body math">Studium: 11:25 − <i>t</i><span class="res">44:58</span></div></div>
+    <div class="ex note"><div class="n">"</div><div class="body">Then <b>Period C</b>: 11:30 Fr/So, 11:55 Jr/Sr.</div></div>
+  </aside>
+
+  <main class="paper"><svg id="plot"></svg></main>
+</div>
+<a class="mock-tag" href="./">J · The year as a function — all designs</a>
+<script src="../../data.js"></script>
+<script src="desmos.js"></script>
+<script>
+  var svg = document.getElementById('plot');
+  var INK = '#1e2a3a';
+  var days = classDays();                     // the 163 real class days
+  var TOTAL = days.length;
+  var DAY_MS = 86400000;
+  var start = new Date(2026, 7, 10), end = new Date(2027, 4, 31);   // x range
+  var today = new Date(2026, 10, 10);
+
+  // class days completed so far: the ones before today, plus how much of
+  // today's 8:25-3:10 school day has gone by
+  var before = days.filter(function (d) { return d.date < MOCK_DATE; }).length;
+  var done = before + Math.max(0, Math.min(1, (MOCK_MIN - 505) / 405));
+  function floor2(v) { return Math.floor(v * 100) / 100; }          // never round up
+
+  // ---- fill in the expression-list results ----
+  function classDaysUntil(yyyymmdd) { return days.filter(function (d) { return d.date > MOCK_DATE && d.date <= yyyymmdd; }).length; }
+  document.getElementById('r-done').textContent = (Math.floor(done * 10) / 10) + ' of ' + TOTAL;
+  var frac = floor2(done / TOTAL);
+  document.getElementById('r-yearfrac').textContent = frac.toFixed(2);
+  document.getElementById('yr-fill').style.width = (frac * 100) + '%';
+  document.getElementById('yr-dot').style.left = (frac * 100) + '%';
+  document.getElementById('r-s1').textContent = 'in ' + classDaysUntil('20261215') + ' days · Dec. 15';
+  document.getElementById('r-q3').textContent = 'in ' + classDaysUntil('20270311') + ' days · Mar. 11';
+  document.getElementById('r-end').textContent = 'in ' + classDaysUntil('20270524') + ' days · May 24';
+  document.getElementById('r-tg').textContent = classDaysUntil('20261124');
+
+  // ---- coordinate system ----
+  var X0 = 120, X1 = 1250, Y0 = 900, YTOP = 130;
+  function x(date) { return X0 + (date - start) / (end - start) * (X1 - X0); }
+  function y(v) { return Y0 - v / TOTAL * (Y0 - YTOP); }
+
+  // axes, month ticks, y ticks
+  el(svg, 'line', { x1: X0, y1: Y0, x2: X1, y2: Y0, stroke: INK, 'stroke-width': 2.5 });
+  el(svg, 'line', { x1: X0, y1: Y0, x2: X0, y2: YTOP - 30, stroke: INK, 'stroke-width': 2.5 });
+  ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'].forEach(function (m, i) {
+    var d = new Date(2026, 8 + i, 1), xx = x(d);
+    el(svg, 'line', { x1: xx, y1: Y0 - 6, x2: xx, y2: Y0 + 6, stroke: INK, 'stroke-width': 2 });
+    el(svg, 'text', { x: xx, y: Y0 + 36, 'text-anchor': 'middle', class: 'math', 'font-size': 24, fill: INK }, m);
+  });
+  [0, 40, 80, 120, 160].forEach(function (v) {
+    el(svg, 'text', { x: X0 - 14, y: y(v), 'text-anchor': 'end', 'dominant-baseline': 'central', class: 'math', 'font-size': 22, fill: INK }, v);
+  });
+  el(svg, 'text', { x: X1 + 10, y: Y0 + 8, class: 'math', 'font-style': 'italic', 'font-size': 30, fill: INK }, 'x');
+  el(svg, 'text', { x: X0 + 12, y: YTOP - 30, class: 'math', 'font-style': 'italic', 'font-size': 30, fill: INK }, 'y');
+
+  // ---- milestone lines y = 41, 79, 123, 163 ----
+  [[41, 'Q1', '#388c46'], [79, 'Semester 1', '#c74440'], [123, 'Q3', '#6042a6'], [163, 'Last class', '#000000']].forEach(function (m) {
+    el(svg, 'line', { x1: X0, y1: y(m[0]), x2: X1, y2: y(m[0]), stroke: m[2], 'stroke-width': 2, 'stroke-dasharray': '12 8', opacity: 0.75 });
+    el(svg, 'text', { x: X1 - 6, y: y(m[0]) - 12, 'text-anchor': 'end', 'font-family': 'Inter', 'font-weight': 700, 'font-size': 20, fill: m[2] }, 'y = ' + m[0] + ' · ' + m[1]);
+  });
+
+  // ---- D(x): one point per calendar day ----
+  var pts = [], count = 0, i = 0;
+  for (var t = start.getTime(); t <= end.getTime(); t += DAY_MS) {
+    var d = new Date(t);
+    while (i < days.length && days[i].day <= d) { count++; i++; }
+    pts.push([d, count]);
+  }
+  var past = pts.filter(function (p) { return p[0] <= today; });
+  var future = pts.filter(function (p) { return p[0] >= today; });
+  function poly(list) { return list.map(function (p) { return x(p[0]).toFixed(1) + ',' + y(p[1]).toFixed(1); }).join(' '); }
+
+  // shade the region under the finished part (Desmos inequality shading)
+  el(svg, 'polygon', { points: x(start) + ',' + Y0 + ' ' + poly(past) + ' ' + x(today) + ',' + Y0, fill: '#2d70b3', opacity: 0.12 });
+  el(svg, 'polyline', { points: poly(future), fill: 'none', stroke: '#2d70b3', 'stroke-width': 3.5, 'stroke-dasharray': '8 7', opacity: 0.6 });
+  el(svg, 'polyline', { points: poly(past), fill: 'none', stroke: '#2d70b3', 'stroke-width': 5, 'stroke-linejoin': 'round' });
+
+  // ---- label the big plateaus (breaks) ----
+  [[new Date(2026, 9, 14), new Date(2026, 9, 19), 'Fall Break', -1],
+   [new Date(2026, 10, 24), new Date(2026, 10, 30), 'Thanksgiving', 1],
+   [new Date(2026, 11, 15), new Date(2027, 0, 5), 'Exams + Christmas', -1],
+   [new Date(2027, 2, 11), new Date(2027, 2, 22), 'Spring Break', -1],
+   [new Date(2027, 2, 24), new Date(2027, 2, 30), 'Easter', 1]].forEach(function (b) {
+    var lvl = days.filter(function (d) { return d.day <= b[0]; }).length;
+    var mx = (x(b[0]) + x(b[1])) / 2, my = y(lvl);
+    el(svg, 'line', { x1: x(b[0]), y1: my, x2: x(b[1]), y2: my, stroke: '#fa7e19', 'stroke-width': 7, 'stroke-linecap': 'round' });
+    el(svg, 'text', { x: mx, y: my + (b[3] < 0 ? -18 : 34), 'text-anchor': 'middle', 'font-family': 'Inter', 'font-weight': 600, 'font-size': 20, fill: '#c25f0f' }, b[2]);
+  });
+
+  // ---- today ----
+  var tx = x(today), ty = y(done);
+  el(svg, 'line', { x1: tx, y1: YTOP - 20, x2: tx, y2: Y0, stroke: '#c74440', 'stroke-width': 2.5, 'stroke-dasharray': '6 6' });
+  el(svg, 'circle', { cx: tx, cy: ty, r: 13, fill: '#c74440' });
+  pointLabel(svg, tx - 24, ty - 34, '(Nov 10, ' + (Math.floor(done * 10) / 10) + ')', '#c74440', 'end');
+
+  // handwritten headline, upper-left (the curve hasn't climbed there yet... it's empty sky)
+  el(svg, 'text', { x: 170, y: 250, 'font-family': 'Caveat', 'font-weight': 700, 'font-size': 120, fill: INK }, Math.floor(frac * 100) + '% of the year');
+  el(svg, 'text', { x: 180, y: 310, 'font-family': 'Caveat', 'font-weight': 600, 'font-size': 46, fill: '#6b7280' }, classDaysUntil('20270524') + ' class days to go');
+</script>
+<script src="fit.js?v=2"></script>
+</body>
+</html>

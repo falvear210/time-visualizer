@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<!--
+  math-next: the work-in-progress redesign of the math-office wall display,
+  in the "Desmos" style (design I from math-next/designs/). The live TV still
+  runs /math/ -- deploy.sh skips this folder.
+
+  Left: an expression list (a slider for t = now, the block/day progress
+  values, the countdown, today's blocks, who's where). Right: graph paper
+  with today's blocks plotted as ramps (the "sawtooth"), the whole day as one
+  navy line, and the next 18 days as a number line of school events and math
+  birthdays.
+
+  The whole page is one fixed 1920x1080 stage that math-office.js scales to
+  fit the screen. Every element with an id="mo-..." is filled in at runtime.
+  The previous three-column version is kept in designs/v1-columns/.
+  Bump the ?v= cache-busters when CSS/JS change.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Office Dashboard (preview)</title>
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="math-office.css?v=7">
+</head>
+<body>
+<div class="mo-stage" id="mo-stage">
+
+  <!-- LEFT: the expression list -->
+  <aside class="mo-exprs">
+    <header class="mo-head">
+      <h1>Math Office</h1>
+      <div class="mo-head-time">
+        <span id="mo-clock" class="mo-clock"></span>
+        <span id="mo-date" class="mo-date"></span>
+      </div>
+    </header>
+
+    <!-- 1: the t slider -->
+    <div class="mo-ex mo-slider" id="mo-slider-row">
+      <div class="mo-gutter">1</div>
+      <div class="mo-body mo-math">
+        <div class="mo-slider-val"><span><i>t</i> = <span id="mo-t"></span></span><span class="mo-live-tag">▶ live</span></div>
+        <div class="mo-track"><div class="mo-track-fill" id="mo-t-fill"></div><div class="mo-track-dot" id="mo-t-dot"></div></div>
+        <div class="mo-track-ends"><span id="mo-t-min"></span><span id="mo-t-max"></span></div>
+      </div>
+    </div>
+
+    <!-- 2-4: the values the graph shows -->
+    <div class="mo-ex" id="mo-f-row">
+      <div class="mo-gutter"><span>2</span><i class="mo-swatch" id="mo-f-swatch"></i></div>
+      <div class="mo-body mo-math"><i>f</i>(<i>t</i>) = <span class="mo-words" id="mo-f-label">block progress</span><span class="mo-res" id="mo-f"></span></div>
+    </div>
+    <div class="mo-ex" id="mo-g-row">
+      <div class="mo-gutter"><span>3</span><i class="mo-swatch mo-swatch-navy"></i></div>
+      <div class="mo-body mo-math"><i>g</i>(<i>t</i>) = <span id="mo-g-expr"></span><span class="mo-res" id="mo-g"></span></div>
+    </div>
+    <div class="mo-ex mo-ex-count" id="mo-count-row">
+      <div class="mo-gutter">4</div>
+      <div class="mo-body mo-math"><span id="mo-count-expr"></span><span class="mo-res mo-res-big" id="mo-count-res"></span></div>
+    </div>
+
+    <div class="mo-folder">Today's blocks</div>
+    <div class="mo-tables"><table class="mo-table" id="mo-blocks"></table></div>
+
+    <div class="mo-folder" id="mo-rooms-title">Rooms</div>
+    <div class="mo-tables"><table class="mo-table mo-rooms" id="mo-rooms"></table></div>
+
+    <div class="mo-ex mo-note mo-weather-note">
+      <div class="mo-gutter">"</div>
+      <div class="mo-body" id="mo-weather"></div>
+    </div>
+  </aside>
+
+  <!-- RIGHT: graph paper. The SVG is drawn in its own 1320x1080 units. -->
+  <main class="mo-paper">
+    <svg id="mo-plot" viewBox="0 0 1320 1080" aria-label="Today's schedule and the next 18 days"></svg>
+    <div class="mo-countdown" id="mo-countdown">
+      <div class="mo-countdown-label" id="mo-countdown-label"></div>
+      <div class="mo-countdown-clock" id="mo-countdown-clock"></div>
+    </div>
+  </main>
+</div>
+
+<script src="../data.js"></script>
+<script src="math-office.js?v=6"></script>
+</body>
+</html>

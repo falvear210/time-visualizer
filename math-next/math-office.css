@@ -1,0 +1,242 @@
+/*
+  Styles for math-next/ -- the "Desmos" redesign of the math-office wall
+  display (design I in math-next/designs/).
+
+  The page is ONE fixed 1920x1080 stage, sized in plain px, that
+  math-office.js scales to fit the screen (so it looks identical on a 1080p
+  or 4K TV, or a laptop). Light only: it's a TV in a lit room.
+
+  Colors: the navy day line and accents are SLUH Navy/Blue; each period
+  letter gets its own Desmos-style color (see PERIOD_COLORS in the JS) so no
+  block is ever drawn in gray.
+*/
+
+:root {
+  --navy: #003366;          /* SLUH Navy: the day line, headings */
+  --blue: #005588;          /* SLUH Blue: rooms, links */
+  --spirit: #88ccec;        /* Spirit Blue: the shimmer on the day line */
+  --ink: #1e2a3a;
+  --text-dim: #6b7280;
+  --muted: #9aa0a6;
+  --list-bg: #f7f7f7;
+  --list-line: #e3e3e3;
+  --gutter: #efefef;
+  --grid: #dfe9f4;
+  --grid-major: #bcd1e7;
+  --font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --math: "STIX Two Text", "Times New Roman", serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;           /* kiosk display, never scrolls */
+  background: #ffffff;
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* the 1920x1080 stage; math-office.js sets the transform that fits it */
+.mo-stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: 0 0;
+  display: grid;
+  grid-template-columns: 600px 1fr;
+  background: #ffffff;
+}
+
+.mo-math { font-family: var(--math); }
+
+/* ================= left: the expression list ================= */
+
+.mo-exprs {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--list-bg);
+  border-right: 2px solid #d4d4d4;
+}
+
+.mo-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 26px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--list-line);
+}
+.mo-head h1 { margin: 0; font-size: 30px; color: var(--navy); }
+.mo-head-time { text-align: right; line-height: 1.1; }
+.mo-clock { display: block; font-size: 34px; font-weight: 700; color: var(--navy); font-variant-numeric: tabular-nums; }
+.mo-date { display: block; font-size: 18px; color: var(--text-dim); }
+
+/* one numbered expression row */
+.mo-ex {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  background: #ffffff;
+  border-bottom: 1px solid var(--list-line);
+}
+.mo-gutter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--gutter);
+  font-size: 14px;
+  color: var(--text-dim);
+}
+.mo-swatch { width: 24px; height: 24px; border-radius: 50%; background: var(--muted); }
+.mo-swatch-navy { background: var(--navy); }
+.mo-body { padding: 12px 20px; font-size: 26px; min-width: 0; }
+.mo-words { font-size: 22px; }
+.mo-res {
+  float: right;
+  margin-top: 2px;
+  padding: 2px 10px;
+  border-radius: 6px;
+  background: #f1f1f1;
+  font-family: var(--font);
+  font-size: 22px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.mo-res-big { font-size: 28px; font-weight: 700; color: var(--navy); background: #e8eef5; }
+.mo-ex-count { box-shadow: inset 5px 0 0 var(--navy); }
+
+/* the slider row */
+.mo-slider .mo-body { padding: 14px 22px 10px; }
+.mo-slider-val { display: flex; justify-content: space-between; align-items: baseline; }
+.mo-live-tag { font-family: var(--font); font-size: 18px; color: var(--text-dim); }
+.mo-track { position: relative; height: 6px; margin: 16px 6px 6px; border-radius: 3px; background: #d9d9d9; }
+.mo-track-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--navy); }
+.mo-track-dot {
+  position: absolute; top: 50%;
+  width: 26px; height: 26px; margin: -13px 0 0 -13px;
+  border-radius: 50%; background: var(--navy);
+  box-shadow: 0 0 0 6px rgba(0, 51, 102, 0.12);
+}
+.mo-track-ends { display: flex; justify-content: space-between; font-family: var(--font); font-size: 15px; color: var(--muted); }
+
+/* folder headers + tables */
+.mo-folder {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 20px;
+  background: #fafafa;
+  border-bottom: 1px solid var(--list-line);
+  font-size: 17px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-dim);
+}
+.mo-folder::before { content: "▾"; font-size: 14px; }
+.mo-tables { padding: 10px 18px; background: #ffffff; border-bottom: 1px solid var(--list-line); }
+.mo-table { width: 100%; border-collapse: collapse; font-size: 20px; }
+.mo-table th {
+  text-align: left; font-family: var(--math); font-weight: 400; font-size: 21px;
+  background: var(--gutter); border: 1px solid #d4d4d4; padding: 4px 12px;
+}
+.mo-table td { border: 1px solid var(--list-line); padding: 4px 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mo-table tr.is-done td { opacity: 0.55; }
+.mo-table tr.is-live td { font-weight: 700; background: #f3f6fa; }
+.mo-rooms td:nth-child(even) { color: var(--blue); font-weight: 600; }
+.mo-rooms td.mo-empty { color: var(--text-dim); font-weight: 400; white-space: normal; }
+
+/* a Desmos "note" row: plain text with a quote mark in the gutter */
+.mo-note .mo-gutter { font-family: var(--math); font-size: 34px; color: var(--muted); }
+.mo-note .mo-body { font-size: 22px; line-height: 1.35; color: #3c4450; }
+.mo-note .mo-body b { color: var(--ink); }
+.mo-weather-note { margin-top: auto; border-top: 1px solid var(--list-line); }
+
+/* ================= right: graph paper ================= */
+
+.mo-paper {
+  position: relative;
+  min-width: 0;
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(var(--grid-major) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, var(--grid-major) 1.5px, transparent 1.5px),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  background-position: -1px -1px;
+}
+#mo-plot { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+/* text inside the SVG */
+.mo-axis-label { font-family: var(--math); font-size: 24px; fill: var(--ink); }
+.mo-seg-label { font-family: var(--font); font-weight: 700; font-size: 21px; }
+.mo-section-label { font-family: var(--font); font-weight: 700; font-size: 19px; letter-spacing: 0.1em; fill: var(--text-dim); }
+.mo-plabel { font-family: var(--font); font-weight: 600; font-size: 21px; }
+.mo-plabel-box { fill: #ffffff; stroke: #d4d4d4; stroke-width: 1.5; }
+.mo-big-message { font-family: var(--font); font-weight: 700; font-size: 44px; fill: var(--navy); }
+
+/* --- the animated day line g(t) ---
+   Done part: solid navy with a Spirit Blue "comet" that runs from the first
+   bell to now, over and over. Rest of the day: navy dashes that march
+   forward slowly. The point at "now" pulses. */
+.mo-gline-done { stroke: var(--navy); stroke-width: 7; stroke-linecap: round; fill: none; }
+.mo-gline-comet {
+  stroke: var(--spirit); stroke-width: 7; stroke-linecap: round; fill: none;
+  stroke-dasharray: 0.08 1;              /* path is normalized with pathLength="1" */
+  animation: mo-comet 3.2s linear infinite;
+}
+@keyframes mo-comet {
+  from { stroke-dashoffset: 0.08; }
+  to { stroke-dashoffset: -1; }
+}
+.mo-gline-rest {
+  stroke: var(--navy); stroke-width: 4; fill: none; opacity: 0.55;
+  stroke-dasharray: 12 10;
+  animation: mo-march 1.6s linear infinite;
+}
+@keyframes mo-march { to { stroke-dashoffset: -22; } }
+.mo-now-pulse { fill: var(--navy); transform-box: fill-box; transform-origin: center; animation: mo-pulse 2s ease-out infinite; }
+@keyframes mo-pulse {
+  0% { transform: scale(1); opacity: 0.45; }
+  100% { transform: scale(3.2); opacity: 0; }
+}
+
+/* the big countdown: plain large sans serif, top-right of the paper */
+.mo-countdown {
+  position: absolute;
+  right: 56px;
+  top: 30px;
+  text-align: right;
+  color: var(--navy);
+  pointer-events: none;
+}
+.mo-countdown-label { font-size: 32px; font-weight: 600; color: var(--text-dim); }
+.mo-countdown-label strong { color: var(--navy); font-weight: 700; }
+.mo-countdown-clock {
+  font-size: 168px;
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  /* a white halo so the grid lines don't run through the digits */
+  text-shadow: 0 0 18px #ffffff, 0 0 18px #ffffff;
+}
+
+/* --- confetti (a block just finished) --- */
+.mo-confetti-burst { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 200; }
+.mo-confetti-piece {
+  position: absolute; top: -12px; width: 8px; height: 14px; opacity: 0.9;
+  animation-name: mo-confetti-fall; animation-timing-function: linear; animation-fill-mode: forwards;
+}
+@keyframes mo-confetti-fall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--drift), 105vh) rotate(var(--rot)); opacity: 0.7; }
+}
+
+/* `hidden` must win over the display rules above */
+[hidden] { display: none !important; }

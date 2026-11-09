@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<!--
+  Teacher locations: where every math teacher is, period by period, plus
+  Studium (where teachers have their own assigned rooms). Edit any cell and
+  Save. Local tool -- run `python3 editor/server.py` and open
+  http://localhost:8421/editor/teachers.html (Save needs that server).
+
+  Reads/writes ../math-next/math-teachers.csv  (name,period,room -- one row
+  per teacher per period; an empty cell = no row = not teaching/no location).
+  The live /math/ display keeps its own copy and is not touched.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Locations</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="editor.css">
+<script src="preview-mode.js"></script>
+<style>
+  .ed-main { max-width: 1500px; } /* room for eight columns of rooms */
+  .tl-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 0.8rem; margin-bottom: 1rem; }
+  .tl-pick-label { font-weight: 600; }
+
+  /* "where is everyone" card for the picked period */
+  .tl-where {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.4rem;
+  }
+  .tl-where h2 { margin: 0 0 0.6rem; font-size: 1.05rem; }
+  .tl-where ul {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.25rem 1.5rem;
+  }
+  .tl-where li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.3rem 0; border-bottom: 1px solid var(--border); }
+  .tl-where .tl-room { font-weight: 600; }
+  .tl-where .tl-free { color: var(--text-dim); }
+
+  .tl-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+  th, td { border-bottom: 1px solid var(--track); padding: 0.3rem 0.4rem; text-align: left; }
+  thead th {
+    position: sticky; top: 0;
+    background: var(--panel);
+    font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim);
+    padding: 0.55rem 0.4rem;
+  }
+  tbody th { font-weight: 600; white-space: nowrap; padding-left: 0.9rem; }
+  td input {
+    width: 100%; min-width: 8rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid transparent; border-radius: 6px;
+    background: transparent;
+    font-size: 0.95rem;
+  }
+  td input:hover { border-color: var(--border); }
+  td input:focus { border-color: var(--accent); background: var(--bg); }
+  td input.is-changed { background: rgba(0, 85, 136, 0.08); }
+  /* the picked period's column */
+  .is-picked { background: rgba(0, 85, 136, 0.06); }
+  thead th.is-picked { color: var(--accent); }
+  .tl-col-studium { border-left: 2px solid var(--border); }
+  .tl-del { border: none; background: none; color: var(--text-dim); padding: 0.2rem 0.5rem; }
+  .tl-del:hover { color: var(--danger); }
+  .tl-add { display: flex; gap: 0.6rem; margin-top: 1rem; }
+</style>
+</head>
+<body>
+<header class="ed-bar">
+  <h1>Teacher Locations</h1>
+  <nav class="ed-nav">
+    <a href="events.html">School calendar events</a>
+    <a href="teachers.html" aria-current="page">Teacher locations</a>
+  </nav>
+  <span class="ed-spacer"></span>
+  <span class="ed-status" id="status">Loading…</span>
+  <button id="save" class="is-primary" disabled>Save</button>
+</header>
+
+<main class="ed-main">
+  <p class="ed-intro">
+    Where each math teacher is, by period, for the new math dashboard. Type a
+    room in any cell; leave it empty if the teacher isn't teaching then. The
+    <strong>Studium</strong> column is each teacher's Studium location, which
+    the dashboard shows during Studium.
+  </p>
+  <div id="notes"></div>
+
+  <div class="tl-pick">
+    <span class="tl-pick-label">Where is everyone during</span>
+    <div class="ed-chips" id="period-chips" role="group" aria-label="Pick a period"></div>
+  </div>
+  <section class="tl-where" id="where"></section>
+
+  <div class="tl-table-wrap">
+    <table>
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="tl-add">
+    <input type="text" id="new-name" placeholder="New teacher's name" aria-label="New teacher's name">
+    <button id="add">Add teacher</button>
+  </div>
+
+  <datalist id="rooms"></datalist>
+</main>
+
+<script src="../data.js"></script>
+<script>
+// Columns: the seven class letters, then the whole-school blocks that have
+// their own locations. To track another block (e.g. Advisory), add it here
+// AND to TEACHER_PERIODS in editor/server.py.
+const PERIODS = ["A", "B", "C", "D", "E", "F", "G", "Studium"];
+const CSV_URL = "../math-next/math-teachers.csv";
+
+// teachers: [{ name, rooms: { A: "M205", Studium: "Library", ... } }]
+let teachers = [];
+let saved = "";       // JSON of the last saved state, to tell if anything changed
+let picked = null;    // the period the "where is everyone" card shows
+
+const statusEl = document.getElementById("status");
+const saveBtn = document.getElementById("save");
+const notesEl = document.getElementById("notes");
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+function periodName(p) { return p.length === 1 ? `Period ${p}` : p; }
+
+// ---- which period is it now? (preselects the card) ----
+// Today's live or next class/Studium from data.js, Chicago time.
+function currentPeriod() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Chicago", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
+  }).formatToParts(new Date());
+  const get = (t) => parts.find((p) => p.type === t).value;
+  const today = SCHOOL_YEAR_DATA.find((d) => d.date === `${get("year")}${get("month")}${get("day")}`);
+  if (!today) return "A";
+  const mins = (+get("hour") % 24) * 60 + +get("minute");
+  const slots = today.periods.map((p) => ({ key: p.label, end: p.jrsrEndMinutes || p.endMinutes }))
+    .concat((today.blocks || []).filter((b) => PERIODS.includes(b.name)).map((b) => ({ key: b.name, end: b.endMinutes })))
+    .sort((a, b) => a.end - b.end);
+  const slot = slots.find((s) => s.end > mins);
+  return slot ? slot.key : "A";
+}
+
+// ---- reading the CSV (same simple format the dashboard reads) ----
+function parseCsv(text) {
+  const byName = new Map();
+  text.split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#")).slice(1).forEach((line) => {
+    const [name, period, room] = line.split(",").map((s) => (s || "").trim());
+    if (!name || !period) return;
+    if (!byName.has(name)) byName.set(name, { name, rooms: {} });
+    byName.get(name).rooms[period] = room;
+  });
+  return [...byName.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function snapshot() { return JSON.stringify(teachers); }
+function isDirty() { return snapshot() !== saved; }
+
+function updateStatus() {
+  const dirty = isDirty();
+  statusEl.textContent = dirty ? "Unsaved changes" : `${teachers.length} teachers`;
+  statusEl.className = "ed-status" + (dirty ? " is-dirty" : "");
+  saveBtn.disabled = !dirty;
+}
+
+// ---- rendering ----
+function renderChips() {
+  document.getElementById("period-chips").innerHTML = PERIODS.map((p) =>
+    `<button class="ed-chip" data-pick="${p}" aria-pressed="${p === picked}">${p}</button>`).join("");
+}
+
+function renderWhere() {
+  const rows = teachers.map((t) => ({ name: t.name, room: (t.rooms[picked] || "").trim() }));
+  const busy = rows.filter((r) => r.room);
+  const free = rows.filter((r) => !r.room);
+  // no room in a class period means a free period; for Studium it means no
+  // location has been entered yet
+  const freeWord = picked.length === 1 ? "free" : "not set";
+  document.getElementById("where").innerHTML = `
+    <h2>${escapeHtml(periodName(picked))}: ${busy.length} with a location${free.length ? `, ${free.length} ${freeWord}` : ""}</h2>
+    <ul>
+      ${busy.map((r) => `<li><span>${escapeHtml(r.name)}</span><span class="tl-room">${escapeHtml(r.room)}</span></li>`).join("")}
+      ${free.map((r) => `<li><span class="tl-free">${escapeHtml(r.name)}</span><span class="tl-free">${freeWord}</span></li>`).join("")}
+    </ul>`;
+}
+
+function renderTable() {
+  const colClass = (p) => [p === picked ? "is-picked" : "", p === "Studium" ? "tl-col-studium" : ""].join(" ").trim();
+  document.getElementById("thead").innerHTML = `<tr><th>Teacher</th>${PERIODS.map((p) =>
+    `<th class="${colClass(p)}">${p}</th>`).join("")}<th></th></tr>`;
+  document.getElementById("tbody").innerHTML = teachers.map((t, i) => `
+    <tr>
+      <th scope="row">${escapeHtml(t.name)}</th>
+      ${PERIODS.map((p) => `
+        <td class="${colClass(p)}">
+          <input type="text" list="rooms" value="${escapeHtml(t.rooms[p] || "")}"
+                 data-i="${i}" data-p="${p}" aria-label="${escapeHtml(t.name)}, ${p}">
+        </td>`).join("")}
+      <td><button class="tl-del" data-del="${i}" title="Remove ${escapeHtml(t.name)}" aria-label="Remove ${escapeHtml(t.name)}">✕</button></td>
+    </tr>`).join("");
+  // room suggestions: every room already in use
+  const rooms = [...new Set(teachers.flatMap((t) => Object.values(t.rooms)).filter(Boolean))].sort();
+  document.getElementById("rooms").innerHTML = rooms.map((r) => `<option value="${escapeHtml(r)}">`).join("");
+}
+
+function renderAll() {
+  renderChips();
+  renderWhere();
+  renderTable();
+  updateStatus();
+}
+
+// ---- interactions ----
+document.getElementById("period-chips").addEventListener("click", (e) => {
+  const chip = e.target.closest("[data-pick]");
+  if (!chip) return;
+  picked = chip.dataset.pick;
+  renderAll();
+});
+
+const tbody = document.getElementById("tbody");
+// typing updates the data and the card, but doesn't rebuild the table (that
+// would steal focus from the cell being typed in)
+tbody.addEventListener("input", (e) => {
+  const { i, p } = e.target.dataset;
+  if (i == null) return;
+  const value = e.target.value.replace(/,/g, ""); // the CSV can't hold commas
+  if (value !== e.target.value) e.target.value = value;
+  if (value.trim()) teachers[i].rooms[p] = value; else delete teachers[i].rooms[p];
+  e.target.classList.add("is-changed");
+  renderWhere();
+  updateStatus();
+});
+tbody.addEventListener("click", (e) => {
+  const del = e.target.closest("[data-del]");
+  if (!del) return;
+  const t = teachers[+del.dataset.del];
+  if (!confirm(`Remove ${t.name} and all their locations?`)) return;
+  teachers.splice(+del.dataset.del, 1);
+  renderAll();
+});
+
+document.getElementById("add").addEventListener("click", () => {
+  const input = document.getElementById("new-name");
+  const name = input.value.replace(/,/g, "").trim();
+  if (!name) return;
+  if (teachers.some((t) => t.name.toLowerCase() === name.toLowerCase())) {
+    alert(`${name} is already on the list.`);
+    return;
+  }
+  teachers.push({ name, rooms: {} });
+  teachers.sort((a, b) => a.name.localeCompare(b.name));
+  input.value = "";
+  renderAll();
+});
+document.getElementById("new-name").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") document.getElementById("add").click();
+});
+
+// ---- loading and saving ----
+async function load() {
+  const text = await fetch(`${CSV_URL}?t=${Date.now()}`, { cache: "no-store" }).then((r) => r.text());
+  teachers = parseCsv(text);
+  saved = snapshot();
+  renderAll();
+}
+
+saveBtn.addEventListener("click", async () => {
+  // a teacher with no locations at all would vanish from the CSV -- say so
+  const empty = teachers.filter((t) => !Object.values(t.rooms).some((r) => r.trim()));
+  if (empty.length && !confirm(`${empty.map((t) => t.name).join(", ")} ha${empty.length === 1 ? "s" : "ve"} no locations and will be dropped from the list. Save anyway?`)) return;
+
+  const rows = teachers.flatMap((t) => PERIODS.filter((p) => (t.rooms[p] || "").trim())
+    .map((p) => ({ name: t.name, period: p, room: t.rooms[p].trim() })));
+  saveBtn.disabled = true;
+  statusEl.textContent = "Saving…";
+  try {
+    const res = await fetch("/api/teachers", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rows }),
+    });
+    let data = null;
+    try { data = await res.json(); } catch (e) { /* not the editor server */ }
+    if (!data) throw new Error("Saving needs the editor server: run  python3 editor/server.py  and open this page from it.");
+    if (!data.ok) throw new Error(data.error);
+    notesEl.innerHTML = "";
+    await load();
+    statusEl.textContent = `Saved · ${data.rows} locations`;
+  } catch (err) {
+    notesEl.innerHTML = `<div class="ed-note is-error">${escapeHtml(err.message)}</div>`;
+    statusEl.textContent = "Not saved";
+    statusEl.className = "ed-status is-error";
+    saveBtn.disabled = false;
+  }
+});
+
+window.addEventListener("beforeunload", (e) => { if (isDirty()) e.preventDefault(); });
+
+picked = currentPeriod();
+load().catch((err) => {
+  notesEl.innerHTML = `<div class="ed-note is-error">Couldn't load ${CSV_URL}: ${escapeHtml(err.message)}</div>`;
+});
+</script>
+</body>
+</html>

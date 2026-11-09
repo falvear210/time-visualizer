@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<!--
+  Event filter: choose which School Calendar events the dashboards show.
+  Local tool -- run `python3 editor/server.py` and open
+  http://localhost:8421/editor/events.html (Save needs that server).
+
+  Reads:  ../data/event-filter.json                  (the choices; shared)
+          ../data/source/school-events-catalog.json  (every title this year)
+  Saves:  POST /api/event-filter -> rewrites data/event-filter.json and
+          regenerates data/school-events.csv
+
+  Two levels of choice:
+    1. each category has an on/off switch (Masses, Days off, Arts, ...)
+    2. any single title can be forced to Show or Hide regardless of its
+       category ("Auto" = follow the category)
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Filter</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="editor.css">
+<script src="preview-mode.js"></script>
+<style>
+  .ev-tools { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; margin-bottom: 1.2rem; }
+  .ev-tools input[type="search"] { flex: 1 1 16rem; max-width: 26rem; }
+
+  .ev-cat {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 0.9rem;
+    background: var(--panel);
+    overflow: hidden;
+  }
+  .ev-cat-head {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.75rem 1rem;
+  }
+  .ev-cat-label { font-weight: 600; font-size: 1.05rem; }
+  .ev-cat-count { color: var(--text-dim); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+  .ev-cat-toggle-list {
+    margin-left: auto;
+    border: none;
+    background: none;
+    color: var(--accent);
+    padding: 0.2rem 0.4rem;
+  }
+  .ev-cat.is-off .ev-cat-label { color: var(--text-dim); }
+
+  .ev-list { list-style: none; margin: 0; padding: 0; background: var(--bg); border-top: 1px solid var(--border); }
+  .ev-cat.is-collapsed .ev-list { display: none; }
+
+  .ev-row {
+    display: grid;
+    grid-template-columns: 1.4rem 1fr auto;
+    gap: 0.8rem;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--track);
+  }
+  .ev-row:last-child { border-bottom: none; }
+  .ev-mark { font-weight: 700; text-align: center; }
+  .ev-row.is-shown .ev-mark { color: var(--accent); }
+  .ev-row.is-hidden .ev-mark { color: var(--done); }
+  .ev-row.is-hidden .ev-title { color: var(--text-dim); }
+  .ev-title { font-size: 0.98rem; }
+  .ev-dates { font-size: 0.82rem; color: var(--text-dim); }
+  .ev-override-tag { font-size: 0.75rem; color: var(--accent); font-weight: 600; margin-left: 0.4rem; }
+
+  /* Auto / Show / Hide */
+  .ev-seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .ev-seg button { border: none; border-radius: 0; padding: 0.3rem 0.65rem; font-size: 0.85rem; }
+  .ev-seg button + button { border-left: 1px solid var(--border); }
+  .ev-seg button[aria-pressed="true"] { background: var(--navy); color: #ffffff; }
+
+  @media (max-width: 640px) {
+    .ev-row { grid-template-columns: 1.2rem 1fr; }
+    .ev-seg { grid-column: 2; justify-self: start; }
+  }
+</style>
+</head>
+<body>
+<header class="ed-bar">
+  <h1>Event Filter</h1>
+  <nav class="ed-nav">
+    <a href="events.html" aria-current="page">School calendar events</a>
+    <a href="teachers.html">Teacher locations</a>
+  </nav>
+  <span class="ed-spacer"></span>
+  <span class="ed-status" id="status">Loading…</span>
+  <button id="refresh" title="Download the latest School Calendar from Google and re-filter">Get latest calendar</button>
+  <button id="save" class="is-primary" disabled>Save</button>
+</header>
+
+<main class="ed-main">
+  <p class="ed-intro">
+    Choose which School Calendar events show on the dashboards. Switch a whole
+    category on or off, or set any single event to <strong>Show</strong> or
+    <strong>Hide</strong> no matter its category (<strong>Auto</strong> follows the
+    category). These choices are shared, so other dashboards can use them too.
+  </p>
+  <div id="notes"></div>
+
+  <div class="ev-tools">
+    <input type="search" id="search" placeholder="Search events…" aria-label="Search events">
+    <div class="ed-chips" id="view-chips" role="group" aria-label="Which events to list">
+      <button class="ed-chip" data-view="all" aria-pressed="true">All</button>
+      <button class="ed-chip" data-view="shown" aria-pressed="false">Shown</button>
+      <button class="ed-chip" data-view="hidden" aria-pressed="false">Hidden</button>
+      <button class="ed-chip" data-view="override" aria-pressed="false">Set by hand</button>
+    </div>
+    <button id="expand-all">Expand all</button>
+    <button id="collapse-all">Collapse all</button>
+  </div>
+
+  <div id="categories"></div>
+</main>
+
+<script>
+// ---------------------------------------------------------------------------
+// State: `filter` is data/event-filter.json as loaded (and edited in place);
+// `titles` is the catalog (every distinct title this school year, with the
+// category the filter put it in and its dates). Nothing touches the disk
+// until Save.
+// ---------------------------------------------------------------------------
+let filter = null;
+let titles = [];
+let dirty = false;
+let view = "all";      // all | shown | hidden | override
+let query = "";
+const collapsed = new Set(); // category ids folded shut
+
+const statusEl = document.getElementById("status");
+const saveBtn = document.getElementById("save");
+const notesEl = document.getElementById("notes");
+const catsEl = document.getElementById("categories");
+
+// an event title's final state: its own override wins, else its category
+function isShown(t) {
+  const o = filter.overrides[t.title];
+  if (o === "show") return true;
+  if (o === "hide") return false;
+  const cat = filter.categories.find((c) => c.id === t.category);
+  return !!(cat && cat.show);
+}
+
+// "Nov 12" from "20261112"
+function shortDate(ymd) {
+  const d = new Date(Date.UTC(+ymd.slice(0, 4), +ymd.slice(4, 6) - 1, +ymd.slice(6, 8)));
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+}
+function datesText(dates) {
+  if (dates.length === 1) return shortDate(dates[0]);
+  if (dates.length <= 4) return dates.map(shortDate).join(", ");
+  return `${dates.length} dates · ${shortDate(dates[0])} – ${shortDate(dates[dates.length - 1])}`;
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function setStatus(text, kind) {
+  statusEl.textContent = text;
+  statusEl.className = "ed-status" + (kind ? ` is-${kind}` : "");
+}
+
+function updateStatus() {
+  const shown = titles.filter(isShown).length;
+  if (dirty) setStatus(`${shown} of ${titles.length} events shown · unsaved changes`, "dirty");
+  else setStatus(`${shown} of ${titles.length} events shown`);
+  saveBtn.disabled = !dirty;
+}
+
+function markDirty() {
+  dirty = true;
+  updateStatus();
+}
+
+// does this title pass the search box and the All/Shown/Hidden/Set-by-hand chips?
+function isListed(t) {
+  if (query && !t.title.toLowerCase().includes(query)) return false;
+  if (view === "shown") return isShown(t);
+  if (view === "hidden") return !isShown(t);
+  if (view === "override") return t.title in filter.overrides;
+  return true;
+}
+
+function render() {
+  catsEl.innerHTML = filter.categories.map((cat) => {
+    const all = titles.filter((t) => t.category === cat.id);
+    const listed = all.filter(isListed);
+    if (!listed.length && (query || view !== "all")) return ""; // nothing to see here under this filter
+    const shownCount = all.filter(isShown).length;
+    // while searching, open every category with a match
+    const isCollapsed = collapsed.has(cat.id) && !query;
+    return `
+      <section class="ev-cat${cat.show ? "" : " is-off"}${isCollapsed ? " is-collapsed" : ""}" data-cat="${cat.id}">
+        <div class="ev-cat-head">
+          <label class="ed-switch" title="Show this whole category">
+            <input type="checkbox" data-cat-toggle="${cat.id}" ${cat.show ? "checked" : ""} aria-label="Show ${escapeHtml(cat.label)}">
+            <span></span>
+          </label>
+          <span class="ev-cat-label">${escapeHtml(cat.label)}</span>
+          <span class="ev-cat-count">${shownCount} of ${all.length} shown</span>
+          <button class="ev-cat-toggle-list" data-collapse="${cat.id}" aria-expanded="${!isCollapsed}">
+            ${isCollapsed ? "Show list" : "Hide list"}
+          </button>
+        </div>
+        <ul class="ev-list">
+          ${listed.map(rowHtml).join("") || `<li class="ev-row"><span></span><span class="ev-dates">No events</span></li>`}
+        </ul>
+      </section>`;
+  }).join("") || `<div class="ed-note">No events match.</div>`;
+  updateStatus();
+}
+
+function rowHtml(t) {
+  const shown = isShown(t);
+  const o = filter.overrides[t.title] || "auto";
+  const seg = ["auto", "show", "hide"].map((v) => `
+    <button data-title="${escapeHtml(t.title)}" data-set="${v}" aria-pressed="${o === v}">
+      ${v === "auto" ? "Auto" : v === "show" ? "Show" : "Hide"}
+    </button>`).join("");
+  return `
+    <li class="ev-row ${shown ? "is-shown" : "is-hidden"}">
+      <span class="ev-mark" aria-label="${shown ? "shown" : "hidden"}">${shown ? "✓" : "–"}</span>
+      <div>
+        <div class="ev-title">${escapeHtml(t.title)}${o !== "auto" ? `<span class="ev-override-tag">set by hand</span>` : ""}</div>
+        <div class="ev-dates">${datesText(t.dates)}</div>
+      </div>
+      <div class="ev-seg" role="group" aria-label="Show or hide ${escapeHtml(t.title)}">${seg}</div>
+    </li>`;
+}
+
+// ---- interactions (one delegated listener for the whole list) ----
+catsEl.addEventListener("click", (e) => {
+  const setBtn = e.target.closest("[data-set]");
+  if (setBtn) {
+    const title = setBtn.dataset.title;
+    if (setBtn.dataset.set === "auto") delete filter.overrides[title];
+    else filter.overrides[title] = setBtn.dataset.set;
+    markDirty();
+    render();
+    return;
+  }
+  const collapseBtn = e.target.closest("[data-collapse]");
+  if (collapseBtn) {
+    const id = collapseBtn.dataset.collapse;
+    collapsed.has(id) ? collapsed.delete(id) : collapsed.add(id);
+    render();
+  }
+});
+catsEl.addEventListener("change", (e) => {
+  const id = e.target.dataset.catToggle;
+  if (!id) return;
+  filter.categories.find((c) => c.id === id).show = e.target.checked;
+  markDirty();
+  render();
+});
+
+document.getElementById("search").addEventListener("input", (e) => {
+  query = e.target.value.trim().toLowerCase();
+  render();
+});
+document.getElementById("view-chips").addEventListener("click", (e) => {
+  const chip = e.target.closest("[data-view]");
+  if (!chip) return;
+  view = chip.dataset.view;
+  document.querySelectorAll("#view-chips [data-view]").forEach((b) => b.setAttribute("aria-pressed", b === chip));
+  render();
+});
+document.getElementById("expand-all").addEventListener("click", () => { collapsed.clear(); render(); });
+document.getElementById("collapse-all").addEventListener("click", () => {
+  filter.categories.forEach((c) => collapsed.add(c.id));
+  render();
+});
+
+// ---- loading and saving ----
+async function load() {
+  const [f, c] = await Promise.all([
+    fetch(`../data/event-filter.json?t=${Date.now()}`).then((r) => r.json()),
+    fetch(`../data/source/school-events-catalog.json?t=${Date.now()}`).then((r) => r.json()),
+  ]);
+  filter = f;
+  filter.overrides = filter.overrides || {};
+  // first load: start with every list folded, so the page opens on the
+  // category switches; "Show list" or a search opens them up
+  if (titles.length === 0) filter.categories.forEach((cat) => collapsed.add(cat.id));
+  titles = c.titles;
+  dirty = false;
+  render();
+}
+
+async function post(url, body) {
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body });
+  let data = null;
+  try { data = await res.json(); } catch (e) { /* not our server -- see below */ }
+  if (!data) throw new Error("Saving needs the editor server: run  python3 editor/server.py  and open this page from it.");
+  if (!data.ok) throw new Error(data.error);
+  return data;
+}
+
+saveBtn.addEventListener("click", async () => {
+  saveBtn.disabled = true;
+  setStatus("Saving…");
+  try {
+    const result = await post("/api/event-filter", JSON.stringify(filter));
+    notesEl.innerHTML = "";
+    await load(); // re-read: categories may have been re-assigned
+    setStatus(`Saved · ${result.shown} dates on the dashboards`);
+  } catch (err) {
+    notesEl.innerHTML = `<div class="ed-note is-error">${escapeHtml(err.message)}</div>`;
+    setStatus("Not saved", "error");
+    saveBtn.disabled = false;
+  }
+});
+
+document.getElementById("refresh").addEventListener("click", async (e) => {
+  if (dirty && !confirm("You have unsaved changes. Save them first, or they'll be lost. Continue anyway?")) return;
+  e.target.disabled = true;
+  setStatus("Downloading the School Calendar…");
+  try {
+    const result = await post("/api/refresh-calendar", "");
+    await load();
+    setStatus(`Updated · ${result.titles} different events this year`);
+  } catch (err) {
+    notesEl.innerHTML = `<div class="ed-note is-error">${escapeHtml(err.message)}</div>`;
+    setStatus("Couldn't update", "error");
+  }
+  e.target.disabled = false;
+});
+
+window.addEventListener("beforeunload", (e) => { if (dirty) e.preventDefault(); });
+
+load().catch((err) => {
+  notesEl.innerHTML = `<div class="ed-note is-error">Couldn't load the event list: ${escapeHtml(err.message)}.
+    Run <code>python3 scripts/school_events.py</code> once to create it.</div>`;
+  setStatus("Not loaded", "error");
+});
+</script>
+</body>
+</html>

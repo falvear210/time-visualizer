@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<!--
+  Design B -- "The day as a line"
+  Inspiration: Google Calendar's day view turned sideways, Gantt charts, and
+  the Apple Watch "Modular" face. Light, airy, white.
+  Idea: the whole school day is ONE proportional track across the screen
+  with a "now" line, so you see at a glance how much of the day is gone and
+  how long each piece is (including the two lunch waves). The countdown and
+  "up next" sit above it; three quiet tiles sit below.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B · The day as a line</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  .frame {
+    background: #ffffff;
+    color: var(--navy);
+    padding: 44px 72px 56px;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr;
+    row-gap: 36px;
+  }
+
+  /* --- header --- */
+  header { display: flex; align-items: center; gap: 22px; padding-bottom: 22px; border-bottom: 1px solid var(--hairline); }
+  header img { height: 52px; }
+  header h1 { margin: 0; font-size: 34px; flex: 1; }
+  header .date { font-size: 28px; color: var(--dark-gray); }
+  header .time { font-size: 48px; font-weight: 700; margin-left: 24px; }
+  header .wx { display: flex; align-items: center; gap: 10px; font-size: 28px; margin-left: 36px; padding: 8px 20px; border-radius: 99px; background: var(--light-gray); }
+  header .wx .icon { color: var(--blue); }
+
+  /* --- hero: countdown | up next --- */
+  .hero { display: grid; grid-template-columns: 1fr 640px; gap: 56px; align-items: center; }
+  .label { font-size: 22px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dark-gray); }
+  .now .name { font-size: 54px; font-weight: 700; margin-top: 4px; }
+  .now .name span { color: var(--dark-gray); font-weight: 400; font-size: 36px; }
+  .now .count { font-size: 210px; font-weight: 700; line-height: 0.9; color: var(--blue); letter-spacing: -0.035em; margin-top: 4px; }
+  .now .count small { font-size: 40px; font-weight: 600; color: var(--dark-gray); letter-spacing: 0; margin-left: 18px; }
+
+  .next { background: var(--panel); border: 1px solid var(--hairline); border-radius: 24px; padding: 30px 36px; }
+  .next .name { font-size: 56px; font-weight: 700; margin: 6px 0 12px; display: flex; align-items: baseline; justify-content: space-between; }
+  .next .name span { font-size: 30px; font-weight: 600; color: var(--blue); }
+  .waves { display: grid; grid-template-columns: auto 1fr; column-gap: 20px; row-gap: 6px; font-size: 28px; }
+  .waves b { font-variant-numeric: tabular-nums; }
+  .waves span { color: var(--dark-gray); }
+  .after { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 24px; color: var(--dark-gray); }
+  .after b { color: var(--navy); font-weight: 600; }
+
+  /* --- the day track: positions are minutes since 8:25 / 405-minute day --- */
+  .track { position: relative; height: 150px; }
+  .lane { position: absolute; left: 0; right: 0; }
+  .lane.main { top: 0; height: 72px; }
+  .lane.top { top: 0; height: 34px; }
+  .lane.bottom { top: 38px; height: 34px; }
+  .seg {
+    position: absolute; top: 0; bottom: 0;
+    border-radius: 10px;
+    background: var(--light-gray);
+    overflow: hidden;
+    display: flex; align-items: center;
+    padding: 0 16px;
+    font-size: 24px; font-weight: 600; white-space: nowrap;
+  }
+  .lane.top .seg, .lane.bottom .seg { font-size: 20px; border-radius: 8px; }
+  .seg .fill { position: absolute; left: 0; top: 0; bottom: 0; }
+  .seg .txt { position: relative; }
+  .seg.done { background: var(--warm-gray); color: var(--navy); }
+  .seg.block { background: rgba(var(--blue-rgb), 0.12); font-style: italic; }
+  .seg.block.done { background: var(--warm-gray); }
+  .seg.live { padding-left: 34px; /* clear of the now line */ background: rgba(var(--blue-rgb), 0.12); box-shadow: inset 0 0 0 3px var(--blue); color: var(--navy); }
+  .ticks { position: absolute; top: 88px; left: 0; right: 0; font-size: 20px; color: var(--dark-gray); }
+  .ticks span { position: absolute; transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+  /* first and last labels hang inward so they don't run off the edge */
+  .ticks span:first-child { transform: none; }
+  .ticks span:last-child { transform: translateX(-100%); }
+  .ticks span::before { content: ""; position: absolute; left: 50%; top: -12px; height: 8px; border-left: 1px solid var(--hairline); }
+  .nowline { position: absolute; top: -16px; height: 104px; border-left: 4px solid var(--navy); }
+  .nowline span { position: absolute; top: 112px; left: -2px; transform: translateX(-50%); background: var(--navy); color: #fff; font-size: 20px; font-weight: 700; padding: 2px 10px; border-radius: 6px; }
+
+  /* --- three tiles --- */
+  .tiles { display: grid; grid-template-columns: 1fr 1fr 1.25fr; gap: 28px; min-height: 0; }
+  .tile { border: 1px solid var(--hairline); border-radius: 24px; padding: 24px 30px; min-height: 0; overflow: hidden; }
+  .tile h2 { margin: 0 0 10px; font-size: 22px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dark-gray); display: flex; align-items: center; gap: 10px; }
+  .tile h2 .icon { color: var(--blue); font-size: 26px; }
+  .row { display: flex; gap: 16px; align-items: baseline; padding: 13px 0; border-top: 1px solid var(--light-gray); font-size: 25px; line-height: 1.25; }
+  .row:first-of-type { border-top: 0; }
+  .row .when { width: 110px; flex: none; color: var(--dark-gray); font-size: 21px; font-variant-numeric: tabular-nums; }
+  .row .math { font-weight: 700; }
+  .rooms { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; }
+  .rooms div { display: flex; justify-content: space-between; font-size: 24px; padding: 10px 0; border-top: 1px solid var(--light-gray); }
+  .rooms div span:last-child { color: var(--blue); font-weight: 700; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <header>
+    <img src="logomark-navy.svg" alt="SLUH">
+    <h1>Math Office</h1>
+    <span class="date">Tuesday, Nov. 10</span>
+    <span class="time num">10:40</span>
+    <span class="wx"><svg class="icon"><use href="icons.svg#moon"/></svg><b class="num">40°</b>&nbsp;Clear</span>
+  </header>
+
+  <section class="hero">
+    <div class="now">
+      <div class="label">Now</div>
+      <div class="name">Studium <span>· until 11:25</span></div>
+      <div class="count num">44:58<small>left</small></div>
+    </div>
+    <div class="next">
+      <div class="label">Up next</div>
+      <div class="name">Period C <span>in 49 min</span></div>
+      <div class="waves">
+        <b>11:30</b><span>Freshmen &amp; sophomores</span>
+        <b>11:55</b><span>Juniors &amp; seniors</span>
+      </div>
+      <div class="after">Then <b>D</b> at 1:00 · <b>E</b> at 2:05 · out at 3:10</div>
+    </div>
+  </section>
+
+  <!-- 8:25 -> 3:10 is 405 minutes; left/width are % of that -->
+  <section class="track">
+    <div class="lane main">
+      <div class="seg done" style="left:0%;width:16.05%"><span class="txt">B</span></div>
+      <div class="seg block done" style="left:17.28%;width:14.81%"><span class="txt">Advisory</span></div>
+      <div class="seg block live" style="left:32.10%;width:12.35%"><div class="fill live-fill" style="width:10%"></div><span class="txt">Studium</span></div>
+      <div class="seg" style="left:67.90%;width:14.81%"><span class="txt">D</span></div>
+      <div class="seg" style="left:83.95%;width:16.05%"><span class="txt">E</span></div>
+    </div>
+    <!-- Period C runs in two overlapping lunch waves, so it gets two lanes -->
+    <div class="lane top"><div class="seg" style="left:45.68%;width:14.81%">C · Fr/So</div></div>
+    <div class="lane bottom"><div class="seg" style="left:51.85%;width:14.81%">C · Jr/Sr</div></div>
+
+    <div class="ticks">
+      <span style="left:0%">8:25</span><span style="left:8.64%">9</span><span style="left:23.46%">10</span>
+      <span style="left:38.27%">11</span><span style="left:53.09%">12</span><span style="left:67.90%">1</span>
+      <span style="left:82.72%">2</span><span style="left:100%">3:10</span>
+    </div>
+    <div class="nowline" style="left:33.33%"><span>10:40</span></div>
+  </section>
+
+  <section class="tiles">
+    <div class="tile">
+      <h2><svg class="icon"><use href="icons.svg#calendar"/></svg>School calendar</h2>
+      <div class="row"><span class="when">Thu 12</span>Late Start · Faculty Meeting</div>
+      <div class="row"><span class="when">Sun 15</span>Grandparent Mass, 9:30 a.m.</div>
+      <div class="row"><span class="when">Thu 19</span>Assembly: Gambling Presentation</div>
+      <div class="row"><span class="when">Nov 25–27</span>Thanksgiving Break</div>
+    </div>
+    <div class="tile">
+      <h2><svg class="icon"><use href="icons.svg#cake"/></svg>Birthdays this week</h2>
+      <div class="row"><span class="when">Fri 13</span>Phil Donato, Edward Teshara</div>
+      <div class="row"><span class="when">Sun 15</span>Espen Conley, Mary Duron, Joe Callico</div>
+      <div class="row"><span class="when">Wed 18</span><span><span class="math">Craig Hinders</span>, Joe Koestner</span></div>
+      <div class="row"><span class="when">Thu 19</span>Mike Davis</div>
+    </div>
+    <div class="tile">
+      <h2><svg class="icon"><use href="icons.svg#pin"/></svg>Where everyone is, Period C</h2>
+      <div class="rooms">
+        <div><span>Beth Kissel</span><span>M205</span></div>
+        <div><span>Joe Stickley</span><span>M113</span></div>
+        <div><span>Dan Becvar</span><span>M209</span></div>
+        <div><span>Molly Kelly</span><span>M217</span></div>
+        <div><span>Dan See</span><span>M21 iLab</span></div>
+        <div><span>Nicholas Ehlman</span><span>M219</span></div>
+        <div><span>Don Steingruby</span><span>M109</span></div>
+        <div><span>Walker Yane</span><span>M207</span></div>
+        <div><span>Frank Corley</span><span>M215</span></div>
+      </div>
+    </div>
+  </section>
+</div>
+<a class="mock-tag" href="./">B · The day as a line — all designs</a>
+<script src="fit.js?v=2"></script>
+</body>
+</html>

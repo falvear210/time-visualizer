@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<!--
+  Design K -- "Polar"  (Desmos iteration 3 of 4)
+  Nested polar rings, one per time scale, all read clockwise from 12
+  o'clock: the outer ring is the whole year (one tick per real class day
+  from data.js, so breaks show up as gaps), then the quarter, the week, and
+  today's blocks. The countdown sits at the origin.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K · Polar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="desmos.css">
+<style>
+  /* polar paper: plain white, the SVG draws the polar grid */
+  .paper { background-image: none; }
+  .ex .body { padding: 14px 20px; }
+  .ring .body { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .ring .body small { font-family: Inter, sans-serif; font-size: 19px; color: var(--gray); }
+  .now .res { font-size: 30px !important; font-weight: 700; color: var(--red) !important; background: #fbeeee !important; }
+  .tables { padding: 10px 18px; background: #ffffff; border-bottom: 1px solid var(--list-line); }
+  .dtable { font-size: 20px; }
+  .dtable td { padding: 4px 12px; }
+  .dtable td:nth-child(even) { color: var(--blue); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <aside class="exprs">
+    <header><h1>Math Office</h1><span class="clock">Tue 10:40</span></header>
+
+    <div class="ex ring"><div class="n" style="color:var(--blue)">1<i class="solid"></i></div><div class="body math"><span><i>r</i> = 4 &nbsp;year</span><small id="r-year"></small></div></div>
+    <div class="ex ring"><div class="n" style="color:var(--purple)">2<i class="solid"></i></div><div class="body math"><span><i>r</i> = 3 &nbsp;Q2</span><small id="r-q2"></small></div></div>
+    <div class="ex ring"><div class="n" style="color:var(--green)">3<i class="solid"></i></div><div class="body math"><span><i>r</i> = 2.3 &nbsp;week</span><small>26% · day 2 of 5</small></div></div>
+    <div class="ex ring"><div class="n" style="color:var(--red)">4<i class="solid"></i></div><div class="body math"><span><i>r</i> = 1.6 &nbsp;today</span><small>33% · out at 3:10</small></div></div>
+    <div class="ex now live"><div class="n" style="color:var(--red)">5</div><div class="body math">Studium: 11:25 − <i>t</i><span class="res">44:58</span></div></div>
+    <div class="ex note"><div class="n">"</div><div class="body">Next: <b>Period C</b> at 11:30 (Fr/So) and 11:55 (Jr/Sr).</div></div>
+
+    <div class="folder">Coming up</div>
+    <div class="ex note"><div class="n">"</div><div class="body"><b>Thanksgiving Break</b> in <b id="r-tg"></b> class days. <b>Semester 1</b> ends in <b id="r-s1"></b>.</div></div>
+    <div class="ex note"><div class="n">"</div><div class="body">Birthdays: <b>Donato</b> &amp; <b>Teshara</b> Fri., <b>Hinders</b> (math) Wed. 18.</div></div>
+
+    <div class="folder">Period C rooms</div>
+    <div class="tables">
+      <table class="dtable">
+        <tr><td>Kissel</td><td>M205</td><td>Stickley</td><td>M113</td></tr>
+        <tr><td>Becvar</td><td>M209</td><td>Kelly</td><td>M217</td></tr>
+        <tr><td>See</td><td>M21 iLab</td><td>Ehlman</td><td>M219</td></tr>
+        <tr><td>Steingruby</td><td>M109</td><td>Yane</td><td>M207</td></tr>
+        <tr><td>Corley</td><td>M215</td><td></td><td></td></tr>
+      </table>
+    </div>
+  </aside>
+
+  <main class="paper"><svg id="plot"></svg></main>
+</div>
+<a class="mock-tag" href="./">K · Polar — all designs</a>
+<script src="../../data.js"></script>
+<script src="desmos.js"></script>
+<script>
+  var svg = document.getElementById('plot');
+  var INK = '#1e2a3a', CX = 660, CY = 540;
+  var days = classDays(), TOTAL = days.length;
+  var before = days.filter(function (d) { return d.date < MOCK_DATE; }).length;
+  var todayFrac = Math.max(0, Math.min(1, (MOCK_MIN - 505) / 405));
+  var done = before + todayFrac;
+  function pct(v) { return Math.floor(v * 100); }                    // floor, never round up
+  function until(yyyymmdd) { return days.filter(function (d) { return d.date > MOCK_DATE && d.date <= yyyymmdd; }).length; }
+
+  // Q2 = class days after Oct. 13 through Dec. 15
+  var q2Total = days.filter(function (d) { return d.date > '20261013' && d.date <= '20261215'; }).length;
+  var q2Done = done - days.filter(function (d) { return d.date <= '20261013'; }).length;
+  document.getElementById('r-year').textContent = pct(done / TOTAL) + '% · day ' + (before + 1) + ' of ' + TOTAL;
+  document.getElementById('r-q2').textContent = pct(q2Done / q2Total) + '% · ' + Math.floor(q2Done) + ' of ' + q2Total + ' days';
+  document.getElementById('r-tg').textContent = until('20261124');
+  document.getElementById('r-s1').textContent = until('20261215');
+
+  // polar helpers: fraction 0..1 -> angle, clockwise from 12 o'clock
+  function P(r, f) { var a = f * 2 * Math.PI - Math.PI / 2; return [CX + r * Math.cos(a), CY + r * Math.sin(a)]; }
+  function arc(r, f0, f1, color, width, extra) {
+    if (f1 - f0 >= 0.9999) f1 = f0 + 0.9999;
+    var a = P(r, f0), b = P(r, f1), large = (f1 - f0) > 0.5 ? 1 : 0;
+    var attrs = { d: 'M' + a + ' A' + r + ' ' + r + ' 0 ' + large + ' 1 ' + b, fill: 'none', stroke: color, 'stroke-width': width };
+    for (var k in extra || {}) attrs[k] = extra[k];
+    return el(svg, 'path', attrs);
+  }
+
+  // ---- polar grid: circles every 60px, radial lines every 30 degrees ----
+  for (var r = 60; r <= 540; r += 60) el(svg, 'circle', { cx: CX, cy: CY, r: r, fill: 'none', stroke: r % 120 ? '#e6eef7' : '#c9daec', 'stroke-width': 1.5 });
+  for (var k = 0; k < 12; k++) { var p = P(540, k / 12); el(svg, 'line', { x1: CX, y1: CY, x2: p[0], y2: p[1], stroke: '#e6eef7', 'stroke-width': 1.5 }); }
+
+  // ---- r = 4: the year, one tick per class day ----
+  var y0 = new Date(2026, 7, 14).getTime(), y1 = new Date(2027, 4, 28).getTime();
+  function yf(date) { return (date.getTime() - y0) / (y1 - y0); }
+  days.forEach(function (d) {
+    var f = yf(d.day), isToday = d.date === MOCK_DATE;
+    var a = P(isToday ? 395 : 420, f), b = P(isToday ? 505 : 480, f);
+    el(svg, 'line', { x1: a[0], y1: a[1], x2: b[0], y2: b[1], 'stroke-width': isToday ? 6 : 4,
+                      stroke: isToday ? '#c74440' : (d.date < MOCK_DATE ? '#2d70b3' : '#cfd8e3') });
+  });
+  // quarter boundaries on the year ring
+  [['Q1', '20261013'], ['Q2', '20261215'], ['Q3', '20270311'], ['Q4', '20270524']].forEach(function (q) {
+    var dd = new Date(+q[1].slice(0, 4), +q[1].slice(4, 6) - 1, +q[1].slice(6)), f = yf(dd);
+    var a = P(395, f), b = P(510, f), t = P(528, f);
+    el(svg, 'line', { x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: INK, 'stroke-width': 2.5 });
+    el(svg, 'text', { x: t[0], y: t[1], 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-family': 'Inter', 'font-weight': 700, 'font-size': 20, fill: INK }, q[0] + ' end');
+  });
+  // name the breaks that show as gaps
+  [['Thanksgiving', new Date(2026, 10, 26)], ['Christmas', new Date(2026, 11, 28)], ['Spring Break', new Date(2027, 2, 16)]].forEach(function (b) {
+    var t = P(372, yf(b[1]));
+    el(svg, 'text', { x: t[0], y: t[1], 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-family': 'Inter', 'font-weight': 600, 'font-size': 18, fill: '#c25f0f' }, b[0]);
+  });
+
+  // ---- r = 3: this quarter ----
+  arc(300, 0, 1, '#e7e2f3', 30);
+  arc(300, 0, q2Done / q2Total, '#6042a6', 30);
+  // ---- r = 2.3: this week, five sectors with gaps ----
+  for (var w = 0; w < 5; w++) {
+    var f0 = w / 5 + 0.006, f1 = (w + 1) / 5 - 0.006;
+    arc(230, f0, f1, '#dcefe0', 30);
+    if (w === 0) arc(230, f0, f1, '#388c46', 30);
+    if (w === 1) arc(230, f0, f0 + (f1 - f0) * todayFrac, '#388c46', 30);
+    var lp = P(230, (w + 0.5) / 5);
+    el(svg, 'text', { x: lp[0], y: lp[1], 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-family': 'Inter', 'font-weight': 700, 'font-size': 16, fill: w === 0 ? '#fff' : '#1e2a3a' }, 'MTWTF'[w]);
+  }
+  // ---- r = 1.6: today's blocks, 8:25 -> 3:10 around the full circle ----
+  function df(min) { return (min - 505) / 405; }
+  [[505, 570, '#9aa0a6', 'B'], [575, 635, '#9aa0a6', 'Adv'], [635, 685, '#f3d2d1', 'Stu'],
+   [690, 775, '#2d70b3', 'C'], [780, 840, '#6042a6', 'D'], [845, 910, '#fa7e19', 'E']].forEach(function (b) {
+    arc(160, df(b[0]), df(b[1]), b[2], 34, b[0] > MOCK_MIN ? { opacity: 0.45 } : {});
+    var lp = P(160, df((b[0] + b[1]) / 2));
+    el(svg, 'text', { x: lp[0], y: lp[1], 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-family': 'Inter', 'font-weight': 700, 'font-size': 16, fill: '#1e2a3a' }, b[3]);
+  });
+  arc(160, df(635), df(MOCK_MIN), '#c74440', 34);    // the live part of Studium
+
+  // today's angle, as a ray from the origin (θ = now) through all inner rings
+  var ray = P(340, todayFrac);
+  el(svg, 'line', { x1: CX, y1: CY, x2: ray[0], y2: ray[1], stroke: '#c74440', 'stroke-width': 2.5, 'stroke-dasharray': '6 6' });
+
+  // ring names at 12 o'clock
+  [[450, 'year'], [300, 'quarter'], [230, 'week'], [160, 'today']].forEach(function (n) {
+    pointLabel(svg, CX, CY - n[0], n[1], '#1e2a3a', 'middle');
+  });
+
+  // the origin: countdown
+  el(svg, 'circle', { cx: CX, cy: CY, r: 128, fill: '#ffffff' });
+  el(svg, 'text', { x: CX, y: CY - 50, 'text-anchor': 'middle', 'font-family': 'Inter', 'font-weight': 700, 'font-size': 24, fill: '#c74440' }, 'Studium');
+  el(svg, 'text', { x: CX, y: CY + 36, 'text-anchor': 'middle', 'font-family': 'Caveat', 'font-weight': 700, 'font-size': 112, fill: INK }, '44:58');
+  el(svg, 'text', { x: CX, y: CY + 76, 'text-anchor': 'middle', 'font-family': 'Inter', 'font-size': 20, fill: '#6b7280' }, 'left');
+</script>
+<script src="fit.js?v=2"></script>
+</body>
+</html>

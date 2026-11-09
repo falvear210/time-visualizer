@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<!--
+  Design H -- "Graph paper"  (off-brand exploration, made for a MATH office)
+  Inspiration: Desmos (expression list on the left, graph on the right),
+  engineering graph paper, and margin notes in a teacher's handwriting.
+  Idea: the day is literally plotted. Each block is a segment on a
+  coordinate plane, the vertical line t = now cuts through it, and the
+  countdown is a handwritten annotation. Temperature gets a real little
+  plot, and birthdays/events are written as sets.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H · Graph paper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+  .frame {
+    /* Desmos-style series colors */
+    --red: #c74440; --blue: #2d70b3; --green: #388c46; --purple: #6042a6; --orange: #fa7e19; --black: #000000;
+    --ink: #1e2a3a;
+    --gray: #6b7280;
+    --grid: #dbe7f3;
+    --grid-major: #b9cfe6;
+    background: #ffffff;
+    color: var(--ink);
+    font-family: Inter, sans-serif;
+    display: grid;
+    grid-template-columns: 560px 1fr;
+  }
+  .math { font-family: "STIX Two Text", "Times New Roman", serif; }
+  .hand { font-family: Caveat, cursive; }
+
+  /* --- left: the Desmos-style expression list --- */
+  .exprs { border-right: 2px solid #d4d4d4; background: #fafafa; display: flex; flex-direction: column; }
+  .exprs header { display: flex; align-items: center; justify-content: space-between; padding: 22px 26px; border-bottom: 1px solid #e3e3e3; background: #ffffff; }
+  .exprs header h1 { margin: 0; font-size: 30px; }
+  .exprs header .clock { font-size: 34px; font-weight: 700; }
+  .ex { display: grid; grid-template-columns: 58px 1fr; border-bottom: 1px solid #e3e3e3; background: #ffffff; }
+  .ex .n { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: #f2f2f2; font-size: 14px; color: var(--gray); }
+  .ex .n i { width: 26px; height: 26px; border-radius: 50%; border: 3px solid currentColor; }
+  .ex .n i.solid { background: currentColor; }
+  .ex .body { padding: 20px 20px; font-size: 28px; }
+  .ex .body small { display: block; font-family: Inter, sans-serif; font-size: 18px; color: var(--gray); margin-top: 2px; }
+  .ex.live { box-shadow: inset 4px 0 0 var(--red); }
+  .ex.live .body { font-weight: 600; }
+  .ex.done .body { color: #9aa0a6; }
+  .sets { margin-top: auto; padding: 18px 24px 22px; background: #ffffff; border-top: 1px solid #e3e3e3; font-size: 25px; line-height: 1.45; }
+  .sets b { font-weight: 600; }
+  .sets .lbl { font-family: Inter, sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray); margin-top: 10px; }
+  .sets .lbl:first-child { margin-top: 0; }
+
+  /* --- right: graph paper --- */
+  .paper {
+    position: relative;
+    background-color: #ffffff;
+    background-image:
+      linear-gradient(var(--grid-major) 1.5px, transparent 1.5px),
+      linear-gradient(90deg, var(--grid-major) 1.5px, transparent 1.5px),
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+    background-position: -1px -1px;
+  }
+  .paper svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+  /* floating cards on the paper */
+  .card { position: absolute; background: rgba(255,255,255,0.94); border: 1px solid #d4d4d4; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); padding: 16px 20px; }
+  .rooms { left: 40px; bottom: 36px; width: 760px; }
+  .rooms h3, .wx h3 { margin: 0 0 8px; font-size: 18px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray); }
+  .rooms table { width: 100%; border-collapse: collapse; font-size: 22px; }
+  .rooms td { padding: 4px 10px; border: 1px solid #e3e3e3; }
+  .rooms td.r { color: var(--blue); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .wx { right: 40px; bottom: 36px; width: 520px; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <aside class="exprs">
+    <header><h1>Math Office</h1><span class="clock num">10:40</span></header>
+    <div class="ex done"><div class="n" style="color:#9aa0a6">1<i class="solid"></i></div><div class="body math">B: 8:25 ≤ <i>t</i> ≤ 9:30</div></div>
+    <div class="ex done"><div class="n" style="color:#9aa0a6">2<i class="solid"></i></div><div class="body math">Advisory: 9:35 ≤ <i>t</i> ≤ 10:35</div></div>
+    <div class="ex live"><div class="n" style="color:var(--red)">3<i class="solid"></i></div><div class="body math">Studium: 10:35 ≤ <i>t</i> ≤ 11:25<small>remaining = 44:58</small></div></div>
+    <div class="ex"><div class="n" style="color:var(--blue)">4<i></i></div><div class="body math">C<sub>Fr/So</sub>: 11:30 ≤ <i>t</i> ≤ 12:30</div></div>
+    <div class="ex"><div class="n" style="color:var(--green)">5<i></i></div><div class="body math">C<sub>Jr/Sr</sub>: 11:55 ≤ <i>t</i> ≤ 12:55</div></div>
+    <div class="ex"><div class="n" style="color:var(--purple)">6<i></i></div><div class="body math">D: 1:00 ≤ <i>t</i> ≤ 2:00</div></div>
+    <div class="ex"><div class="n" style="color:var(--orange)">7<i></i></div><div class="body math">E: 2:05 ≤ <i>t</i> ≤ 3:10</div></div>
+    <div class="sets math">
+      <div class="lbl">Birthdays</div>
+      <div><b>B</b> = { Donato<sub>13</sub>, Teshara<sub>13</sub>, Conley<sub>15</sub>, Duron<sub>15</sub>, Callico<sub>15</sub>, <b>Hinders</b><sub>18</sub>, Koestner<sub>18</sub> }</div>
+      <div class="lbl">Calendar</div>
+      <div><b>E</b> = { Late Start<sub>Thu</sub>, Grandparent Mass<sub>Sun</sub>, Assembly<sub>Thu 19</sub> }</div>
+    </div>
+  </aside>
+
+  <main class="paper">
+    <svg id="plot"></svg>
+
+    <div class="card rooms">
+      <h3>room(teacher), Period C</h3>
+      <table>
+        <tr><td>Kissel</td><td class="r">M205</td><td>Steingruby</td><td class="r">M109</td><td>Kelly</td><td class="r">M217</td></tr>
+        <tr><td>Becvar</td><td class="r">M209</td><td>Corley</td><td class="r">M215</td><td>Ehlman</td><td class="r">M219</td></tr>
+        <tr><td>See</td><td class="r">M21 iLab</td><td>Stickley</td><td class="r">M113</td><td>Yane</td><td class="r">M207</td></tr>
+      </table>
+    </div>
+
+    <div class="card wx">
+      <h3>Temperature, °F</h3>
+      <svg id="temp" viewBox="0 0 480 150" style="position:static;width:480px;height:150px"></svg>
+    </div>
+  </main>
+</div>
+<a class="mock-tag" href="./">H · Graph paper — all designs</a>
+<script>
+  // Plot the day on the graph paper. The paper is 1360x1080; x runs from
+  // 8:00 to 3:30 (450 min), one block per row like a staircase.
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(svg, tag, attrs, text) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    svg.appendChild(e);
+    return e;
+  }
+  var plot = document.getElementById('plot');
+  var X0 = 120, X1 = 1320, T0 = 8 * 60, T1 = 15 * 60 + 30;   // pixel and minute ranges
+  function x(min) { return X0 + (min - T0) / (T1 - T0) * (X1 - X0); }
+  function hm(h, m) { return h * 60 + m; }
+
+  // axis + hour labels
+  var AXIS_Y = 600;
+  el(plot, 'line', { x1: X0, y1: AXIS_Y, x2: X1, y2: AXIS_Y, stroke: '#1e2a3a', 'stroke-width': 2.5 });
+  for (var h = 8; h <= 15; h++) {
+    var lbl = (h > 12 ? h - 12 : h) + ':00';
+    el(plot, 'line', { x1: x(h * 60), y1: AXIS_Y - 8, x2: x(h * 60), y2: AXIS_Y + 8, stroke: '#1e2a3a', 'stroke-width': 2 });
+    el(plot, 'text', { x: x(h * 60), y: AXIS_Y + 38, 'text-anchor': 'middle', 'font-family': 'STIX Two Text, serif', 'font-size': 26, fill: '#1e2a3a' }, lbl);
+  }
+  el(plot, 'text', { x: X1 + 8, y: AXIS_Y - 14, 'font-family': 'STIX Two Text, serif', 'font-style': 'italic', 'font-size': 32, fill: '#1e2a3a' }, 't');
+
+  // blocks: [start, end, color, label, row]
+  var blocks = [
+    [hm(8, 25), hm(9, 30), '#9aa0a6', 'B', 0],
+    [hm(9, 35), hm(10, 35), '#9aa0a6', 'Advisory', 1],
+    [hm(10, 35), hm(11, 25), '#c74440', 'Studium', 2],
+    [hm(11, 30), hm(12, 30), '#2d70b3', 'C Fr/So', 3],
+    [hm(11, 55), hm(12, 55), '#388c46', 'C Jr/Sr', 4],
+    [hm(13, 0), hm(14, 0), '#6042a6', 'D', 5],
+    [hm(14, 5), hm(15, 10), '#fa7e19', 'E', 6]
+  ];
+  blocks.forEach(function (b) {
+    var y = 110 + b[4] * 64;
+    el(plot, 'line', { x1: x(b[0]), y1: y, x2: x(b[1]), y2: y, stroke: b[2], 'stroke-width': 8, 'stroke-linecap': 'round' });
+    el(plot, 'circle', { cx: x(b[0]), cy: y, r: 9, fill: b[2] });                         // closed endpoint
+    el(plot, 'circle', { cx: x(b[1]), cy: y, r: 9, fill: '#fff', stroke: b[2], 'stroke-width': 4 }); // open endpoint
+    el(plot, 'text', { x: x(b[0]), y: y - 18, 'font-family': 'Inter, sans-serif', 'font-weight': 600, 'font-size': 22, fill: b[2] }, b[3]);
+  });
+
+  // the line t = now, and the point where it meets Studium
+  var NOW = hm(10, 40) + 2 / 60, nx = x(NOW), sy = 110 + 2 * 64;
+  el(plot, 'line', { x1: nx, y1: 50, x2: nx, y2: AXIS_Y, stroke: '#c74440', 'stroke-width': 3, 'stroke-dasharray': '10 8' });
+  el(plot, 'text', { x: nx + 10, y: 44, 'font-family': 'STIX Two Text, serif', 'font-style': 'italic', 'font-size': 28, fill: '#c74440' }, 't = 10:40');
+  el(plot, 'circle', { cx: nx, cy: sy, r: 13, fill: '#c74440' });
+
+  // handwritten annotation in the empty top-right of the paper, with an
+  // arrow curving back to the point
+  var ax = 880, ay = 210;
+  el(plot, 'path', { d: 'M' + (ax - 10) + ' ' + (ay - 70) + ' C ' + (ax - 160) + ' ' + (ay - 110) + ', ' + (nx + 120) + ' ' + (sy - 40) + ', ' + (nx + 22) + ' ' + (sy - 4),
+                     fill: 'none', stroke: '#1e2a3a', 'stroke-width': 3 });
+  el(plot, 'path', { d: 'M' + (nx + 30) + ' ' + (sy - 22) + ' L ' + (nx + 20) + ' ' + (sy - 3) + ' L ' + (nx + 42) + ' ' + (sy + 2), fill: 'none', stroke: '#1e2a3a', 'stroke-width': 3 });
+  el(plot, 'text', { x: ax, y: ay, 'font-family': 'Caveat, cursive', 'font-weight': 700, 'font-size': 200, fill: '#1e2a3a' }, '44:58');
+  el(plot, 'text', { x: ax + 20, y: ay + 52, 'font-family': 'Caveat, cursive', 'font-weight': 600, 'font-size': 46, fill: '#6b7280' }, 'left in Studium, then C!');
+
+  // little temperature plot: hours 11 a.m. -> tomorrow 6 a.m. (made-up forecast)
+  var temp = document.getElementById('temp');
+  var pts = [[0, 40], [1.33, 48], [4.33, 55], [6, 54], [9, 46], [13, 39], [19, 35]];
+  function tx(hh) { return 20 + hh / 19 * 440; }
+  function ty(f) { return 130 - (f - 30) / 30 * 110; }
+  el(temp, 'line', { x1: 20, y1: 130, x2: 460, y2: 130, stroke: '#1e2a3a', 'stroke-width': 1.5 });
+  el(temp, 'polyline', { points: pts.map(function (p) { return tx(p[0]) + ',' + ty(p[1]); }).join(' '), fill: 'none', stroke: '#2d70b3', 'stroke-width': 4, 'stroke-linejoin': 'round' });
+  [[0, 40, 'now 40°'], [4.33, 55, '3 p.m. 55°'], [19, 35, '35°']].forEach(function (p) {
+    el(temp, 'circle', { cx: tx(p[0]), cy: ty(p[1]), r: 6, fill: '#2d70b3' });
+    el(temp, 'text', { x: tx(p[0]) + (p[0] > 15 ? -10 : 8), y: ty(p[1]) - 12, 'text-anchor': p[0] > 15 ? 'end' : 'start', 'font-family': 'Inter, sans-serif', 'font-size': 20, 'font-weight': 600, fill: '#1e2a3a' }, p[2]);
+  });
+</script>
+<script src="fit.js?v=2"></script>
+</body>
+</html>

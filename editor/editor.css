@@ -1,0 +1,131 @@
+/*
+  Shared look for the local editor pages (editor/*.html). Same SLUH palette
+  and system font stack as the rest of the site; light only -- these are
+  desk tools, not wall displays. Prefix: ed-.
+*/
+
+:root {
+  --accent: #005588;   /* SLUH Blue */
+  --navy: #003366;     /* SLUH Navy */
+  --bg: #ffffff;
+  --panel: #f7f7f5;
+  --border: #dcdcd6;
+  --track: #eeeeee;
+  --text: #003366;
+  --text-dim: #777777;
+  --done: #ccccbb;     /* Warm Gray */
+  --danger: #8a2a2a;   /* errors only */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+a { color: var(--accent); }
+
+/* sticky top bar: title, nav, status, save */
+.ed-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.2rem;
+  padding: 0.8rem 1.5rem;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.ed-bar h1 { margin: 0; font-size: 1.35rem; }
+.ed-nav { display: flex; gap: 1rem; font-size: 0.95rem; }
+.ed-nav a { text-decoration: none; color: var(--text-dim); }
+.ed-nav a[aria-current="page"] { color: var(--text); font-weight: 600; }
+.ed-spacer { flex: 1; }
+.ed-status { font-size: 0.95rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.ed-status.is-dirty { color: var(--accent); font-weight: 600; }
+.ed-status.is-error { color: var(--danger); font-weight: 600; }
+
+.ed-main { padding: 1.2rem 1.5rem 4rem; max-width: 1200px; margin: 0 auto; }
+
+.ed-intro { color: var(--text-dim); margin: 0 0 1.2rem; max-width: 60rem; }
+
+button, .ed-btn {
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+button:hover { border-color: var(--accent); }
+button.is-primary { background: var(--accent); border-color: var(--accent); color: #ffffff; font-weight: 600; }
+button.is-primary:disabled { background: var(--done); border-color: var(--done); cursor: default; }
+button:disabled { opacity: 0.6; cursor: default; }
+
+input[type="search"], input[type="text"] {
+  font: inherit;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--bg);
+}
+input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* a row of filter chips / segmented choices */
+.ed-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.ed-chip {
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+.ed-chip[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #ffffff; }
+
+/* on/off switch (a styled checkbox) */
+.ed-switch { position: relative; display: inline-block; width: 2.6rem; height: 1.5rem; flex: 0 0 auto; }
+.ed-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.ed-switch span {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--done);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.ed-switch span::after {
+  content: "";
+  position: absolute;
+  top: 0.18rem;
+  left: 0.2rem;
+  width: 1.14rem;
+  height: 1.14rem;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.15s;
+}
+.ed-switch input:checked + span { background: var(--accent); }
+.ed-switch input:checked + span::after { transform: translateX(1.06rem); }
+.ed-switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.ed-note {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+}
+.ed-note.is-error { border-color: var(--danger); color: var(--danger); }
+
+/* preview mode: the deployed copy can't save (see preview-mode.js) */
+.ed-preview #save,
+.ed-preview #refresh { display: none; }
+.ed-preview-note { border-color: var(--accent); background: rgba(0, 85, 136, 0.06); margin-bottom: 1rem; }

@@ -4,8 +4,20 @@
     {
       "name": "time-visualizer",
       "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "exec python3 -m http.server \"$PORT\""],
+      "runtimeArgs": [
+        "-c",
+        "exec python3 -m http.server \"$PORT\""
+      ],
       "port": 8420,
+      "autoPort": true
+    },
+    {
+      "name": "editor",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "editor/server.py"
+      ],
+      "port": 8421,
       "autoPort": true
     }
   ]

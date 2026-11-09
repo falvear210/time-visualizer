@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+  Side-by-side picker for the twelve math-office design mockups (A-D on brand, E-H off brand, I-L Desmos iterations).
+  Each card is a live iframe of the full 1920x1080 mockup (fit.js scales it
+  down to the card). Click a card to open that design full-screen.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Office · twelve designs</title>
+<style>
+  :root { --navy: #003366; --blue: #005588; --gray: #777777; --hairline: #dcdcd6; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 40px 48px;
+    background: #f7f7f5;
+    color: var(--navy);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  h1 { margin: 0 0 4px; font-size: 26px; }
+  .lede { margin: 0 0 28px; color: var(--gray); font-size: 15px; max-width: 70ch; line-height: 1.5; }
+  .lede a { color: var(--blue); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(520px, 1fr)); gap: 32px; }
+  .card { display: block; color: inherit; text-decoration: none; }
+  .shot { position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid var(--hairline); background: #222; }
+  .shot iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
+  .card:hover .shot { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .card h2 { margin: 14px 0 4px; font-size: 19px; }
+  .card h2 span { color: var(--gray); font-weight: 400; }
+  .card p { margin: 0; font-size: 14.5px; line-height: 1.5; color: #444; }
+  .card p b { color: var(--navy); }
+  h3.section { margin: 48px 0 6px; font-size: 20px; }
+  h3.section + .lede { margin-bottom: 22px; }
+</style>
+</head>
+<body>
+  <h1>Math Office dashboard: twelve directions</h1>
+  <p class="lede">All twelve show the same moment (Tuesday, Nov. 10, 10:40 a.m., Studium) and the same data, so you're comparing layout and feel, not content. Click any one to open it full-screen. The current design is at <a href="../?at=20261110T1040&amp;screen=1080p">/math-next/</a>.</p>
+
+  <h3 class="section" style="margin-top:0">On brand · SLUH colors, system fonts</h3>
+  <div class="grid">
+    <a class="card" href="a-departures.html">
+      <div class="shot"><iframe src="a-departures.html" tabindex="-1" loading="lazy"></iframe></div>
+      <h2>A · Departures board <span>· railway and airport signage</span></h2>
+      <p>Full navy, white type. The day reads as a timetable with a <b>Done / Now / Next / Later</b> column. Birthdays and school events merge into one dated "Coming up" feed. Highest contrast from across the room.</p>
+    </a>
+    <a class="card" href="b-timeline.html">
+      <div class="shot"><iframe src="b-timeline.html" tabindex="-1" loading="lazy"></iframe></div>
+      <h2>B · The day as a line <span>· calendar day view, Gantt</span></h2>
+      <p>One <b>proportional</b> track for the whole day with a "now" line, so you see how long each piece is and how much of the day is gone. Period C's two lunch waves get their own lanes. Three quiet tiles below.</p>
+    </a>
+    <a class="card" href="c-editorial.html">
+      <div class="shot"><iframe src="c-editorial.html" tabindex="-1" loading="lazy"></iframe></div>
+      <h2>C · Front page <span>· Swiss grid, newspaper</span></h2>
+      <p>No cards at all: hierarchy comes from type size and hairline rules. The countdown is the headline. Events and birthdays share <b>one week strip</b>, so you see when things happen relative to each other.</p>
+    </a>
+    <a class="card" href="d-bento.html">
+      <div class="shot"><iframe src="d-bento.html" tabindex="-1" loading="lazy"></iframe></div>
+      <h2>D · Bento <span>· Apple bento grids, Activity rings</span></h2>
+      <p>One tile per question people walking in ask. <b>Tile size sets importance</b>: the ring countdown is biggest. Weather is the one navy tile. Friendliest look; slightly less dense.</p>
+    </a>
+  </div>
+  <h3 class="section">Off brand · open exploration</h3>
+  <p class="lede">These four ignore the SLUH palette and font rules on purpose to show other possibilities. They load web fonts from Google Fonts, so the TV would need internet access or local copies of the fonts.</p>
+  <div class="grid">
+    <a class="card" href="e-mission.html">
+      <div class="shot"><iframe src="e-mission.html" tabindex="-1" loading="lazy"></iframe></div>
+      <h2>E · Mission control <span>· NASA consoles, Bloomberg terminal</span></h2>
+      <p>Near-black, monospace, amber and green. Everything is a readout: <b>T+ since first bell, T− to dismissal</b>, an LED meter for the current block, and a telemetry strip (day %, week %, school days to break). Dense but very scannable.</p>
+    </a>
+    <a class="card" href="f-braun.html">
+      <div class="shot"><iframe src="f-braun.html" tabindex="-1" loading="lazy"></iframe></div>
+      <h2>F · Wall clock <span>· Dieter Rams, Braun clocks</span></h2>
+      <p>Warm paper, one signal orange. <b>The clock is the schedule</b>: the day's blocks are arcs around the rim of a real analog dial, so you read your place in the day the way you'd read any clock. The calmest of the eight.</p>
+    </a>
+    <a class="card" href="g-poster.html">
+      <div class="shot"><iframe src="g-poster.html" tabindex="-1" loading="lazy"></iframe></div>
+      <h2>G · Poster <span>· Spotify Wrapped, Swiss gig posters</span></h2>
+      <p>Flat color fields, a condensed display face and a 400px countdown. No boxes at all: <b>each kind of info always lives on the same color</b> (yellow = next, pink = birthdays, mint = calendar, coral = rooms). Loudest and most fun.</p>
+    </a>
+    <a class="card" href="h-graph.html">
+      <div class="shot"><iframe src="h-graph.html" tabindex="-1" loading="lazy"></iframe></div>
+      <h2>H · Graph paper <span>· Desmos, engineering paper</span></h2>
+      <p>Made for a math office: the day is <b>plotted</b> as intervals with closed and open endpoints, cut by the line <i>t</i> = now, with a handwritten countdown. Periods sit in a Desmos-style expression list, birthdays are written as a set, and temperature gets a real line plot.</p>
+    </a>
+  </div>
+  <h3 class="section">Desmos iterations · building on H</h3>
+  <p class="lede">Four ways to graph schedule data in the Desmos style, from today out to the whole year. Birthdays and events are no longer written as sets: they're labeled points on a number line (I) or plain Desmos notes (J, K, L). J, K and L compute their year numbers live from <code>data.js</code>, so the 163 class days, breaks and milestones are real.</p>
+  <div class="grid">
+    <a class="card" href="i-sawtooth.html">
+      <div class="shot"><iframe src="i-sawtooth.html" tabindex="-1" loading="lazy"></iframe></div>
+      <h2>I · Sawtooth <span>· the day as a piecewise function</span></h2>
+      <p><i>f</i>(<i>t</i>) is how far into the current block you are, so each block is a ramp and the day is a <b>sawtooth</b>. <i>g</i>(<i>t</i>) is the whole day as one line. Below it, the next 18 days form a <b>number line</b>: events above, birthdays below, weekends and Thanksgiving shaded.</p>
+    </a>
+    <a class="card" href="j-year.html">
+      <div class="shot"><iframe src="j-year.html" tabindex="-1" loading="lazy"></iframe></div>
+      <h2>J · The year as a function <span>· cumulative class days</span></h2>
+      <p><i>D</i>(<i>x</i>) is class days done by date <i>x</i>. It climbs during school weeks and goes <b>flat on breaks</b>, so every break is a visible plateau. Quarter and semester ends are lines <i>y</i> = 41, 79, 123, 163, and today is a point on the curve.</p>
+    </a>
+    <a class="card" href="k-polar.html">
+      <div class="shot"><iframe src="k-polar.html" tabindex="-1" loading="lazy"></iframe></div>
+      <h2>K · Polar <span>· nested rings, year → today</span></h2>
+      <p>Polar graph paper with <b>one ring per time scale</b>, read clockwise from 12. The outer ring has one tick per real class day, so breaks show as gaps; quarter ends are marked. Inside are the quarter, the week, and today's blocks, with the countdown at the origin.</p>
+    </a>
+    <a class="card" href="l-sliders.html">
+      <div class="shot"><iframe src="l-sliders.html" tabindex="-1" loading="lazy"></iframe></div>
+      <h2>L · Sliders <span>· every progress bar is a slider</span></h2>
+      <p>Six <b>Desmos sliders</b>: block, day, week, Q2, semester, year, each with its range and a "15 of 38 days" readout. The graph side holds a bar chart of class days per month (done vs. left) with milestones flagged, today as a Desmos table, and the rooms.</p>
+    </a>
+  </div>
+</body>
+</html>

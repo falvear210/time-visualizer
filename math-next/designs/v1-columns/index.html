@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!--
+  math-next: the work-in-progress redesign of the math-office wall display.
+  The live display is still /math/ -- this folder is a local preview only
+  (deploy.sh skips it). Layout: birthdays | timers | school calendar, with
+  teachers + weather in one row across the bottom.
+  Structure only: every element with an id="mo-..." is filled in by
+  math-office.js at runtime. Bump the ?v= cache-busters when CSS/JS change.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Office Dashboard (preview)</title>
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="math-office.css?v=6">
+</head>
+<body>
+<div class="mo-dashboard">
+  <header class="mo-header">
+    <h1>Math Office</h1>
+    <div class="mo-header-time">
+      <span id="mo-clock"></span>
+      <span id="mo-date"></span>
+    </div>
+  </header>
+
+  <div class="mo-columns">
+    <!-- left: birthdays -->
+    <section class="mo-col">
+      <h2>Birthdays</h2>
+      <div class="mo-col-body">
+        <div id="mo-birthdays" class="mo-list"></div>
+      </div>
+    </section>
+
+    <!-- center: the timers -->
+    <section class="mo-col mo-col-center">
+      <div id="mo-daily-status"></div>
+      <div id="mo-daily-bars"></div>
+    </section>
+
+    <!-- right: important school-wide dates -->
+    <section class="mo-col">
+      <h2>School Calendar</h2>
+      <div class="mo-col-body">
+        <div id="mo-events" class="mo-list"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- bottom row, spanning all three columns: who's where + weather -->
+  <div class="mo-bottom">
+    <section class="mo-col mo-teachers">
+      <div class="mo-col-header-row">
+        <h2>Teachers Teaching</h2>
+        <span class="mo-teachers-period" id="mo-teachers-period"></span>
+      </div>
+      <ul class="mo-people-list" id="mo-people-list"></ul>
+    </section>
+    <section class="mo-col">
+      <h2>Weather</h2>
+      <div class="mo-weather" id="mo-weather"></div>
+    </section>
+  </div>
+</div>
+
+<script src="../../../data.js"></script>
+<script src="math-office.js?v=5"></script>
+</body>
+</html>

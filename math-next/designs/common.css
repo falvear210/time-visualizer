@@ -1,0 +1,88 @@
+/*
+  Shared bits for the four design mockups in math-next/designs/.
+  These are STATIC mockups -- every page shows the same frozen moment
+  (Tuesday, Nov. 10, 10:40 a.m., during Studium) with the same data, so the
+  designs can be compared side by side. Nothing here is wired to data.js.
+
+  Every page is laid out at exactly 1920x1080 (a 1080p TV) in plain px, and
+  fit.js shrinks it to fit whatever window it's opened in.
+*/
+
+:root {
+  /* SLUH palette only (see ~/code/sluh-brand/BRAND-GUIDELINES.md) */
+  --navy: #003366;
+  --blue: #005588;
+  --blue-rgb: 0, 85, 136;
+  --spirit: #88ccec;     /* only on navy */
+  --dark-gray: #777777;
+  --light-gray: #eeeeee;
+  --warm-gray: #ccccbb;
+  --hairline: #dcdcd6;
+  --panel: #f7f7f5;
+
+  /* the "live" shimmer, same as the current site */
+  --live-gradient: linear-gradient(90deg, #2e8bc0, #63b3e0, #8ecae6, #63b3e0, #2e8bc0);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #222222; /* letterbox around the 16:9 frame */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* the 1080p "TV" */
+.frame {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  transform-origin: 0 0;
+}
+
+.num { font-variant-numeric: tabular-nums; }
+
+/* icons come from icons.svg as <svg class="icon"><use href="icons.svg#sun"/></svg> */
+.icon {
+  width: 1em;
+  height: 1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -0.12em;
+  flex: none;
+}
+
+/* the one animated thing on every design: the live fill shimmers */
+.live-fill {
+  background: var(--live-gradient);
+  background-size: 300% 100%;
+  animation: live-shift 4s ease infinite;
+}
+@keyframes live-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* small "which design is this" tag, bottom-right, fades out */
+.mock-tag {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: 10;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  font-size: 12px;
+  text-decoration: none;
+}

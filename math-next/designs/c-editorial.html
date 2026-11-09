@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<!--
+  Design C -- "Front page"
+  Inspiration: the Swiss International Typographic Style (Müller-Brockmann
+  grids) and newspaper front pages / Monocle. No cards, no shadows: hierarchy
+  comes only from type size, weight, and hairline rules on a strict grid.
+  Idea: birthdays and school events stop being two separate lists and become
+  one "this week" calendar strip, so you see WHEN things happen relative to
+  each other. The countdown is the headline.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C · Front page</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  .frame {
+    background: #ffffff;
+    color: var(--navy);
+    padding: 48px 72px 52px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* --- masthead with a heavy rule underneath, like a newspaper --- */
+  .masthead { display: flex; align-items: flex-end; gap: 24px; padding-bottom: 18px; border-bottom: 8px solid var(--navy); }
+  .masthead img { height: 70px; }
+  .masthead h1 { margin: 0; font-size: 66px; font-weight: 700; letter-spacing: -0.02em; line-height: 0.95; flex: 1; }
+  .masthead .meta { text-align: right; font-size: 24px; color: var(--dark-gray); line-height: 1.3; }
+  .masthead .time { font-size: 66px; font-weight: 700; line-height: 0.95; margin-left: 36px; padding-left: 36px; border-left: 1px solid var(--hairline); }
+  .subrule { display: flex; justify-content: space-between; font-size: 20px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dark-gray); padding: 10px 0; border-bottom: 1px solid var(--navy); }
+
+  /* --- 12-column body --- */
+  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(12, 1fr); column-gap: 40px; padding-top: 34px; }
+  .left { grid-column: 1 / 6; display: flex; flex-direction: column; padding-right: 40px; border-right: 1px solid var(--hairline); }
+  .right { grid-column: 6 / 13; display: flex; flex-direction: column; gap: 34px; min-height: 0; }
+
+  .kicker { font-size: 20px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); margin: 0 0 8px; }
+
+  .headline { font-size: 60px; font-weight: 700; line-height: 1; }
+  .count { font-size: 236px; font-weight: 700; line-height: 0.82; letter-spacing: -0.05em; margin: 18px 0 10px -8px; }
+  .dek { font-size: 28px; color: var(--dark-gray); line-height: 1.35; }
+  .dek b { color: var(--navy); }
+
+  /* the day, as a typeset list */
+  .sched { margin-top: auto; border-top: 1px solid var(--navy); }
+  .sched div { display: grid; grid-template-columns: 110px 1fr auto; align-items: baseline; padding: 11px 0; border-bottom: 1px solid var(--hairline); font-size: 28px; }
+  .sched .st { padding-right: 6px; } /* room for the letter-spacing */
+  .sched .t { font-variant-numeric: tabular-nums; color: var(--dark-gray); font-size: 24px; }
+  .sched .st { font-size: 20px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dark-gray); display: flex; align-items: center; gap: 6px; }
+  .sched .done { color: var(--dark-gray); }
+  .sched .block .n { font-style: italic; }
+  .sched .live { font-weight: 700; position: relative; }
+  .sched .live .st { color: var(--blue); font-weight: 700; }
+  /* the live row gets a thin progress rule along its bottom edge */
+  .sched .live::after { content: ""; position: absolute; left: 0; bottom: -1px; height: 5px; width: 10%; background: var(--live-gradient); background-size: 300% 100%; animation: live-shift 4s ease infinite; }
+
+  /* --- this week strip --- */
+  .week { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--navy); }
+  .col { padding: 12px 20px 0; border-left: 1px solid var(--hairline); min-height: 400px; }
+  .col:first-child { border-left: 0; padding-left: 0; }
+  .col .dow { font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dark-gray); font-weight: 700; }
+  .col .dn { font-size: 46px; font-weight: 700; line-height: 1.1; margin-bottom: 10px; }
+  .col.today .dow, .col.today .dn { color: var(--blue); }
+  .ev { font-size: 26px; line-height: 1.25; margin-bottom: 14px; }
+  .ev small { display: block; font-size: 21px; color: var(--dark-gray); }
+  .bd { font-size: 24px; line-height: 1.3; margin-bottom: 12px; color: var(--navy); }
+  /* small label above the names, so the names get the full column width */
+  .bdl { font-size: 16px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); margin-bottom: 2px; }
+  .bd b { color: var(--navy); }
+  .quiet { font-size: 22px; color: var(--warm-gray); }
+
+  /* --- bottom of right column: rooms | weather --- */
+  .split { display: grid; grid-template-columns: 1fr 300px; gap: 40px; flex: 1; min-height: 0; }
+  .rooms { border-top: 1px solid var(--navy); padding-top: 12px; }
+  .rooms ul { list-style: none; margin: 0; padding: 0; columns: 3; column-gap: 32px; }
+  .rooms li { display: flex; justify-content: space-between; font-size: 25px; padding: 11px 0; border-bottom: 1px solid var(--hairline); break-inside: avoid; }
+  .rooms li span:last-child { font-weight: 700; color: var(--blue); font-variant-numeric: tabular-nums; }
+  .wx { border-top: 1px solid var(--navy); padding-top: 12px; }
+  .wx .big { display: flex; align-items: center; gap: 12px; font-size: 92px; font-weight: 700; line-height: 1; }
+  .wx .big .icon { font-size: 60px; color: var(--blue); }
+  .wx p { margin: 8px 0 0; font-size: 24px; color: var(--dark-gray); line-height: 1.4; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="masthead">
+    <img src="logomark-navy.svg" alt="SLUH">
+    <h1>Math Office</h1>
+    <div class="meta">Tuesday<br>Nov. 10, 2026</div>
+    <div class="time num">10:40</div>
+  </div>
+  <div class="subrule"><span>St. Louis University High · Mathematics</span><span>Thanksgiving Break starts Wed., Nov. 25</span></div>
+
+  <div class="body">
+    <!-- LEFT: the headline is the countdown -->
+    <section class="left">
+      <p class="kicker">Now · Studium</p>
+      <div class="headline">Studium ends at 11:25</div>
+      <div class="count num">44:58</div>
+      <div class="dek">minutes left. <b>Period C</b> starts at 11:30 for freshmen and sophomores, 11:55 for juniors and seniors.</div>
+
+      <div class="sched">
+        <div class="done"><span class="t">8:25</span><span class="n">Period B</span><span class="st"><svg class="icon"><use href="icons.svg#check"/></svg>done</span></div>
+        <div class="done block"><span class="t">9:35</span><span class="n">Advisory</span><span class="st"><svg class="icon"><use href="icons.svg#check"/></svg>done</span></div>
+        <div class="live block"><span class="t">10:35</span><span class="n">Studium</span><span class="st">now</span></div>
+        <div><span class="t">11:30</span><span class="n">Period C</span><span class="st">next</span></div>
+        <div><span class="t">1:00</span><span class="n">Period D</span><span class="st"></span></div>
+        <div><span class="t">2:05</span><span class="n">Period E</span><span class="st"></span></div>
+      </div>
+    </section>
+
+    <!-- RIGHT: one calendar for events AND birthdays, then rooms + weather -->
+    <section class="right">
+      <div>
+        <p class="kicker">Coming up · only days with something on them</p>
+        <div class="week">
+          <div class="col"><div class="dow">Thursday</div><div class="dn">12</div>
+            <div class="ev">Late Start<small>Faculty Meeting</small></div></div>
+          <div class="col"><div class="dow">Friday</div><div class="dn">13</div>
+            <div class="bd"><div class="bdl"><svg class="icon"><use href="icons.svg#cake"/></svg> Birthdays</div><span>Phil Donato<br>Edward Teshara</span></div></div>
+          <div class="col"><div class="dow">Sunday</div><div class="dn">15</div>
+            <div class="ev">Grandparent Mass<small>9:30 a.m.</small></div>
+            <div class="bd"><div class="bdl"><svg class="icon"><use href="icons.svg#cake"/></svg> Birthdays</div><span>Espen Conley<br>Mary Duron<br>Joe Callico</span></div></div>
+          <div class="col"><div class="dow">Wednesday</div><div class="dn">18</div>
+            <div class="bd"><div class="bdl"><svg class="icon"><use href="icons.svg#cake"/></svg> Birthdays</div><span><b>Craig Hinders</b><br>Joe Koestner</span></div></div>
+          <div class="col"><div class="dow">Thursday</div><div class="dn">19</div>
+            <div class="ev">Assembly<small>Gambling Presentation</small></div>
+            <div class="bd"><div class="bdl"><svg class="icon"><use href="icons.svg#cake"/></svg> Birthdays</div><span>Mike Davis</span></div></div>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="rooms">
+          <p class="kicker">Period C rooms</p>
+          <ul>
+            <li><span>Kissel</span><span>M205</span></li>
+            <li><span>Becvar</span><span>M209</span></li>
+            <li><span>See</span><span>M21 iLab</span></li>
+            <li><span>Steingruby</span><span>M109</span></li>
+            <li><span>Corley</span><span>M215</span></li>
+            <li><span>Stickley</span><span>M113</span></li>
+            <li><span>Kelly</span><span>M217</span></li>
+            <li><span>Ehlman</span><span>M219</span></li>
+            <li><span>Yane</span><span>M207</span></li>
+          </ul>
+        </div>
+        <div class="wx">
+          <p class="kicker">Weather</p>
+          <div class="big num"><svg class="icon"><use href="icons.svg#moon"/></svg>40°</div>
+          <p>Clear. 48° at noon,<br>55° at 3 p.m.<br>Tomorrow 63° / 35°</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+<a class="mock-tag" href="./">C · Front page — all designs</a>
+<script src="fit.js?v=2"></script>
+</body>
+</html>
