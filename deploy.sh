@@ -7,7 +7,14 @@
 # it holds the CSVs the dashboards fetch at runtime (birthdays, breaks),
 # shared by /math/ and /mcl/. Only data/source/ -- the bulky build inputs
 # (.ics, .geojson, .xlsx) that csv_to_data.py and build_world_map.py read
-# -- stays local. Put new build inputs in data/source/, not data/.
+# -- stays local. Put new build inputs in data/source/, not data/. The one
+# exception is school-events-catalog.json, which the editor's event page
+# lists from.
+#
+# math-next/ (the dashboard redesign + its design mockups) and editor/ ARE
+# shipped, so coworkers can look at them. The editor's deployed copy is a
+# read-only preview (editor/preview-mode.js): only editor/server.py, run
+# locally, can save. server.py itself stays local.
 #
 # The site lives on its own subdomain (rather than a subfolder of
 # static.alvear.cl) so the host can run PHP for it -- see server/README.md.
@@ -34,10 +41,14 @@ rsync -avz --delete \
   --exclude ".claude/" \
   --exclude ".DS_Store" \
   --exclude "README.md" \
-  --exclude "data/source/" \
+  --include "data/source/" \
+  --include "data/source/school-events-catalog.json" \
+  --exclude "data/source/*" \
   --exclude "scripts/" \
   --exclude "api/build-scriptable.py" \
   --exclude "pi-kiosk/" \
+  --exclude "editor/server.py" \
+  --exclude "__pycache__/" \
   --exclude "server/" \
   --exclude "deploy.sh" \
   --exclude "build-icons.py" \
