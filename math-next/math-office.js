@@ -604,6 +604,7 @@ function main() {
   // Layers, back to front: static (rebuilt on change), the animated day
   // line (built once per day, updated in place), dynamic (every tick).
   const staticLayer = svgEl(svg, "g", {});
+  const barLayer = svgEl(svg, "g", {});    // the day bar left of the y-axis
   const lineLayer = svgEl(svg, "g", {});
   const dynLayer = svgEl(svg, "g", {});
   let line = null;                       // { done, comet, rest, pulse, dot } for the day line
@@ -693,9 +694,40 @@ function main() {
     for (const c of [line.pulse, line.dot]) { c.setAttribute("cx", nx); c.setAttribute("cy", ny); }
   }
 
+  // The day as a progress bar, left of the y-axis on the same 0-1 scale, so
+  // its top lines up with the day point g(t) and the dashed line to it. Full
+  // after the last bell, empty before the first. The fill is a barber-pole
+  // stripe (navy and very light blue) that keeps sliding upward. Built once,
+  // then only resized, so the animation never restarts.
+  const BAR_X = 26, BAR_W = 26, STRIPE = 28;    // STRIPE = one navy + one light band
+  let bar = null;
+  function drawDayBar(g) {
+    if (!bar) {
+      const defs = svgEl(barLayer, "defs", {});
+      const pat = svgEl(defs, "pattern", { id: "mo-barber", width: STRIPE, height: STRIPE, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" });
+      svgEl(pat, "rect", { width: STRIPE, height: STRIPE, fill: "#d7ebf8" });        // very light blue
+      svgEl(pat, "rect", { width: STRIPE, height: STRIPE / 2, fill: NAVY });
+      // slide the stripes one full band per cycle, forever (SVG's own
+      // animation, so it runs without any JS)
+      svgEl(pat, "animateTransform", { attributeName: "patternTransform", type: "translate", additive: "sum",
+        from: "0 0", to: `0 ${-STRIPE}`, dur: "1.6s", repeatCount: "indefinite" });
+      bar = {
+        track: svgEl(barLayer, "rect", { x: BAR_X, width: BAR_W, rx: 6, fill: "#ffffff", stroke: "#c9d3de", "stroke-width": 2 }),
+        fill: svgEl(barLayer, "rect", { x: BAR_X, width: BAR_W, rx: 6, fill: "url(#mo-barber)", stroke: NAVY, "stroke-width": 2 }),
+      };
+    }
+    barLayer.style.display = g == null ? "none" : "";
+    if (g == null) return;
+    bar.track.setAttribute("y", yOf(1));
+    bar.track.setAttribute("height", yOf(0) - yOf(1));
+    bar.fill.setAttribute("y", yOf(g));
+    bar.fill.setAttribute("height", Math.max(0, yOf(0) - yOf(g)));
+    bar.fill.style.display = g > 0 ? "" : "none";
+  }
+
   function drawDynamic(segments, now) {
     dynLayer.innerHTML = "";
-    if (!segments.length || !xOf) return;
+    if (!segments.length || !xOf) { drawDayBar(null); return; }
     const tNow = now.minutes + now.seconds / 60;
     const dayStart = segments[0].start, dayEnd = Math.max(...segments.map((s) => s.end));
     const inDay = tNow >= dayStart && tNow <= dayEnd;
@@ -707,13 +739,9 @@ function main() {
       svgEl(dynLayer, "line", { x1: xOf(s.start), y1: yOf(0), x2: xOf(tNow), y2: yOf(f), stroke: color, "stroke-width": 8, "stroke-linecap": "round" });
     });
 
-    // The day as a progress bar, left of the y-axis on the same 0-1 scale,
-    // so its top lines up with the day point g(t) (and the dashed line
-    // below). Full after the last bell, empty before the first.
+    // the day bar left of the y-axis (its top lines up with g(t))
     const gBar = Math.max(0, Math.min(1, (tNow - dayStart) / (dayEnd - dayStart)));
-    const BAR_X = 26, BAR_W = 26;
-    svgEl(dynLayer, "rect", { x: BAR_X, y: yOf(1), width: BAR_W, height: yOf(0) - yOf(1), rx: 6, fill: "#ffffff", stroke: "#c9d3de", "stroke-width": 2 });
-    if (gBar > 0) svgEl(dynLayer, "rect", { x: BAR_X, y: yOf(gBar), width: BAR_W, height: yOf(0) - yOf(gBar), rx: 6, fill: NAVY });
+    drawDayBar(gBar);
 
     if (!inDay) return;
     // t = now, as a vertical dashed line
