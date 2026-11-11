@@ -52,6 +52,7 @@ EDITABLE_FILES=(
   "data/school-events.csv"
   "data/source/school-events-catalog.json"
   "data/source/school_calendar_raw.ics"
+  "data/source/math-teachers.json"
 )
 # one SSH call prints "<mtime> <file>" for each (0 when it's not there yet)
 remote_times=$(ssh "${SSH_OPTS[@]}" "$REMOTE_USER@$REMOTE_HOST" "
@@ -76,6 +77,7 @@ rsync -avz --delete \
   --include "data/source/" \
   --include "data/source/school-events-catalog.json" \
   --include "data/source/school_calendar_raw.ics" \
+  --include "data/source/math-teachers.json" \
   --exclude "data/source/*" \
   --exclude "scripts/" \
   --exclude "api/build-scriptable.py" \

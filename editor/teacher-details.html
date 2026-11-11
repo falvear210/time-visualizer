@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<!--
+  Math Teachers: the teacher database, one tab per teacher. For every period
+  (A-G, Advisory, Studium, Activity Period) and both semesters: what the
+  teacher is doing there (a class, prefecting, or just a location), the
+  course, the room, and the Jr/Sr switch. A Rooms tab holds other names for
+  a room ("Computer Lab" = M220).
+
+  Saving writes data/source/math-teachers.json and rewrites the TV's
+  math-next/math-teachers-s1.csv and -s2.csv from it (editor/server.py), so
+  this is the one place to edit teachers: prefecting always gets its * and
+  room nicknames always become the real room.
+
+  The database came from support.sluh.org (scripts/build_teacher_db.py) and
+  holds class sizes and duties, so it is private: it's not in git, nginx
+  won't serve the file, and this page reads it through the editor's api/,
+  which only works in the local editor or behind the /edit/ password. The
+  public /editor/ preview shows a note instead.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Teachers</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="editor.css">
+<script src="preview-mode.js?v=2"></script>
+<style>
+  .ed-main { max-width: 1400px; }
+  .td-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0 1.2rem; }
+  .td-tabs .td-rooms-tab { margin-left: 0.6rem; }
+
+  /* the teacher's own details above the table */
+  .td-head { display: grid; grid-template-columns: 16rem 14rem 1fr auto; gap: 0.8rem 1rem; align-items: end; margin-bottom: 1rem; }
+  .td-head label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; font-weight: 600; color: var(--text-dim); }
+  .td-head input, .td-head textarea, .td-rooms input {
+    font: inherit; font-size: 0.95rem; color: var(--text);
+    padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);
+  }
+  .td-head textarea { resize: vertical; min-height: 2.3rem; }
+  .td-head a { font-size: 0.85rem; font-weight: 400; }
+  @media (max-width: 900px) { .td-head { grid-template-columns: 1fr; } }
+
+  .td-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+  th, td { border-bottom: 1px solid var(--track); padding: 0.3rem 0.35rem; text-align: left; vertical-align: top; }
+  thead th {
+    background: var(--panel); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim);
+  }
+  thead tr:first-child th { font-size: 0.9rem; color: var(--text); text-transform: none; letter-spacing: 0; }
+  tbody th { font-weight: 600; white-space: nowrap; padding: 0.55rem 0.6rem; }
+  .td-sem2 { border-left: 2px solid var(--border); }
+  td input, td select {
+    width: 100%; font: inherit; font-size: 0.92rem; color: var(--text);
+    padding: 0.3rem 0.45rem; border: 1px solid transparent; border-radius: 6px; background: transparent;
+  }
+  td select { border-color: var(--border); background: var(--bg); min-width: 7.5rem; }
+  td input { min-width: 7rem; }
+  td input:hover:not(:disabled) { border-color: var(--border); }
+  td input:focus { border-color: var(--accent); background: var(--bg); outline: none; }
+  td input:disabled { color: transparent; }
+  /* small grey line under a cell: course code and size, or what the TV shows */
+  .td-hint { display: block; font-size: 0.75rem; color: var(--text-dim); padding: 0 0.45rem; min-height: 1em; }
+  .td-hint b { color: var(--accent); font-weight: 600; }
+  tr.is-free td:not(.td-copy-cell) { background: var(--panel); }
+  .kind-prefecting select { color: var(--accent); font-style: italic; }
+
+  .td-wave {
+    padding: 0.15rem 0.45rem; margin-top: 0.15rem; border: 1px solid var(--border); border-radius: 999px;
+    background: none; font-size: 0.72rem; font-weight: 600; color: var(--text-dim); opacity: 0.45;
+  }
+  .td-wave:hover { opacity: 1; }
+  .td-wave[aria-pressed="true"] { opacity: 1; background: var(--accent); border-color: var(--accent); color: #fff; }
+  .td-copy {
+    border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text-dim);
+    padding: 0.25rem 0.45rem; margin-top: 0.1rem; font-size: 0.8rem;
+  }
+  .td-copy:hover { color: var(--accent); border-color: var(--accent); }
+  .td-copy-cell { text-align: center; }
+  .td-remove { border: 1px solid var(--border); background: var(--bg); color: var(--danger); border-radius: 6px; padding: 0.4rem 0.7rem; }
+
+  .td-rooms { max-width: 46rem; }
+  .td-rooms td input { border-color: var(--border); background: var(--bg); }
+  .td-add { display: flex; gap: 0.6rem; margin-top: 1rem; }
+  .td-add input { font: inherit; padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: 6px; }
+</style>
+</head>
+<body>
+<header class="ed-bar">
+  <h1>Math Teachers</h1>
+  <nav class="ed-nav">
+    <a href="events.html">School calendar events</a>
+    <a href="teachers.html">Teacher locations</a>
+    <a href="teacher-details.html" aria-current="page">Math teachers</a>
+  </nav>
+  <span class="ed-spacer"></span>
+  <span class="ed-status" id="status">Loading…</span>
+  <button id="save" class="is-primary" disabled>Save</button>
+</header>
+
+<main class="ed-main">
+  <p class="ed-intro">
+    Everything about each math teacher, both semesters side by side. It started
+    from the support site; fix anything it got wrong and fill in what it
+    doesn't know. Pick <strong>Prefecting</strong> and the TV shows the room
+    with a <strong>*</strong> automatically. <strong>Location</strong> is for a
+    place that's neither a class nor a duty, like a Studium room. Saving also
+    updates the Teacher Locations grid and the TV.
+  </p>
+  <div id="notes"></div>
+  <div class="td-tabs" id="tabs" role="tablist" aria-label="Teachers"></div>
+  <section id="panel"></section>
+  <datalist id="room-list"></datalist>
+</main>
+
+<script>
+// ---- what the page edits ----
+// db = { rooms: [{ room, aliases: [...] }],
+//        teachers: [{ name, slug, notes, slots: [{ sem, period, kind, course, code, room, jrsr, size }] }] }
+// A missing slot means free that period. Same shape as scripts/build_teacher_db.py.
+const PERIODS = ["A", "B", "C", "D", "E", "F", "G", "AD", "Studium", "Activity Period"];
+const PERIOD_LABEL = { AD: "Advisory", "Activity Period": "Activity Period" };
+const TV_PERIODS = ["A", "B", "C", "D", "E", "F", "G", "Studium", "Activity Period"]; // AD isn't on the TV
+const KINDS = [["", "Free"], ["class", "Class"], ["prefecting", "Prefecting"], ["location", "Location"]];
+const SUPPORT_URL = "https://support.sluh.org/sww/teacher/";
+const ROOMS_TAB = "__rooms";
+
+let db = null;
+let saved = "";        // JSON of the last saved database, to tell if anything changed
+let current = null;    // the open tab: a teacher's name, or ROOMS_TAB
+
+const statusEl = document.getElementById("status");
+const saveBtn = document.getElementById("save");
+const notesEl = document.getElementById("notes");
+const tabsEl = document.getElementById("tabs");
+const panelEl = document.getElementById("panel");
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+const isDirty = () => db && JSON.stringify(db) !== saved;
+const teacher = () => db.teachers.find((t) => t.name === current);
+const slotOf = (t, sem, period) => t.slots.find((s) => s.sem === sem && s.period === period);
+
+// What the TV will show for a slot -- mirrors write_location_csvs in
+// editor/server.py: nicknames become the room, prefecting gets a *.
+function tvText(slot) {
+  if (!slot || !TV_PERIODS.includes(slot.period)) return "";
+  const raw = (slot.room || "").trim();
+  if (!raw) return "";
+  const alias = db.rooms.find((r) => (r.aliases || []).some((a) => a.trim().toLowerCase() === raw.toLowerCase()));
+  const room = alias ? alias.room : raw;
+  return (slot.kind === "prefecting" ? "*" : "") + room;
+}
+
+function updateStatus() {
+  const dirty = isDirty();
+  statusEl.textContent = dirty ? "Unsaved changes" : `${db.teachers.length} teachers`;
+  statusEl.className = "ed-status" + (dirty ? " is-dirty" : "");
+  saveBtn.disabled = !dirty;
+}
+
+// ---- rendering ----
+function renderTabs() {
+  tabsEl.innerHTML = db.teachers.map((t) =>
+    `<button class="ed-chip" role="tab" data-tab="${escapeHtml(t.name)}" aria-pressed="${t.name === current}">${escapeHtml(t.name)}</button>`).join("")
+    + `<button class="ed-chip td-rooms-tab" role="tab" data-tab="${ROOMS_TAB}" aria-pressed="${current === ROOMS_TAB}">Rooms</button>`
+    + `<button class="ed-chip" id="add-teacher">+ Add teacher</button>`;
+}
+
+// one semester's four cells for a period: what / course / room / Jr/Sr
+function semCells(t, sem, period) {
+  const s = slotOf(t, sem, period);
+  const kind = s ? s.kind : "";
+  const at = `data-sem="${sem}" data-period="${escapeHtml(period)}"`;
+  const first = sem === 2 ? " td-sem2" : "";
+  const info = s && (s.code || s.size) ? [s.code, s.size && `${s.size} students`].filter(Boolean).join(" · ") : "";
+  const tv = tvText(s);
+  const tvHint = TV_PERIODS.includes(period) ? (tv ? `TV: <b>${escapeHtml(tv)}</b>` : "") : (s ? "not on the TV" : "");
+  return `
+    <td class="kind-${kind}${first}">
+      <select ${at} data-field="kind" aria-label="Semester ${sem}, ${escapeHtml(period)}: what">
+        ${KINDS.map(([v, l]) => `<option value="${v}"${v === kind ? " selected" : ""}>${l}</option>`).join("")}
+      </select></td>
+    <td><input ${at} data-field="course" value="${escapeHtml(s?.course)}" ${s ? "" : "disabled"} aria-label="Semester ${sem}, ${escapeHtml(period)}: course">
+      <span class="td-hint">${escapeHtml(info)}</span></td>
+    <td><input ${at} data-field="room" list="room-list" value="${escapeHtml(s?.room)}" ${s ? "" : "disabled"} aria-label="Semester ${sem}, ${escapeHtml(period)}: room">
+      <span class="td-hint" data-tv="${sem}|${escapeHtml(period)}">${tvHint}</span></td>
+    <td>${period.length === 1 && kind === "class"
+      ? `<button type="button" class="td-wave" ${at} data-field="jrsr" aria-pressed="${!!s.jrsr}" title="Jr/Sr class: meets in the later lunch wave">Jr/Sr</button>` : ""}</td>`;
+}
+
+function renderTeacher() {
+  const t = teacher();
+  const rows = PERIODS.map((p) => {
+    const free = !slotOf(t, 1, p) && !slotOf(t, 2, p);
+    return `<tr class="${free ? "is-free" : ""}">
+      <th scope="row">${escapeHtml(PERIOD_LABEL[p] || p)}</th>
+      ${semCells(t, 1, p)}
+      <td class="td-copy-cell"><button class="td-copy" data-copy="${escapeHtml(p)}" title="Copy semester 1 to semester 2">→</button></td>
+      ${semCells(t, 2, p)}
+    </tr>`;
+  }).join("");
+  panelEl.innerHTML = `
+    <div class="td-head">
+      <label>Name <input id="t-name" value="${escapeHtml(t.name)}"></label>
+      <label>Support site page
+        <input id="t-slug" value="${escapeHtml(t.slug)}" placeholder="e.g. channick">
+        ${t.slug ? `<a href="${SUPPORT_URL}${encodeURIComponent(t.slug)}" target="_blank" rel="noopener">Open on support.sluh.org ↗</a>` : ""}</label>
+      <label>Notes <textarea id="t-notes" rows="1">${escapeHtml(t.notes)}</textarea></label>
+      <button class="td-remove" id="t-remove">Remove teacher</button>
+    </div>
+    <div class="td-wrap"><table>
+      <thead>
+        <tr><th></th><th colspan="4">Semester 1</th><th></th><th colspan="4" class="td-sem2">Semester 2</th></tr>
+        <tr><th>Period</th><th>What</th><th>Course</th><th>Room</th><th></th><th></th>
+            <th class="td-sem2">What</th><th>Course</th><th>Room</th><th></th></tr>
+      </thead>
+      <tbody id="slots">${rows}</tbody>
+    </table></div>`;
+}
+
+function renderRooms() {
+  panelEl.innerHTML = `
+    <p class="ed-intro">Other names people use for a room. Type any of them on a
+      teacher's tab (or in the Teacher Locations grid) and the TV shows the room
+      itself, so the same place isn't listed two ways.</p>
+    <div class="td-wrap td-rooms"><table>
+      <thead><tr><th>Room</th><th>Also called (separate with commas)</th><th></th></tr></thead>
+      <tbody>${db.rooms.map((r, i) => `<tr>
+        <td><input data-room="${i}" data-field="room" value="${escapeHtml(r.room)}" aria-label="Room"></td>
+        <td><input data-room="${i}" data-field="aliases" value="${escapeHtml((r.aliases || []).join(", "))}" aria-label="Also called"></td>
+        <td><button class="td-copy" data-del-room="${i}" title="Remove">✕</button></td></tr>`).join("")}
+      </tbody></table></div>
+    <div class="td-add"><button id="add-room">Add a room</button></div>`;
+}
+
+function renderRoomList() {
+  // suggestions while typing a room: every room in use, plus the nicknames
+  const names = new Set(db.teachers.flatMap((t) => t.slots.map((s) => s.room)).filter(Boolean));
+  db.rooms.forEach((r) => { names.add(r.room); (r.aliases || []).forEach((a) => names.add(a)); });
+  document.getElementById("room-list").innerHTML = [...names].sort().map((n) => `<option value="${escapeHtml(n)}">`).join("");
+}
+
+function renderAll() {
+  if (current !== ROOMS_TAB && !teacher()) current = db.teachers[0]?.name ?? ROOMS_TAB;
+  history.replaceState(null, "", "#" + encodeURIComponent(current));
+  renderTabs();
+  current === ROOMS_TAB ? renderRooms() : renderTeacher();
+  renderRoomList();
+  updateStatus();
+}
+
+// ---- editing a teacher ----
+function setKind(t, sem, period, kind) {
+  const s = slotOf(t, sem, period);
+  if (!kind) {
+    t.slots = t.slots.filter((x) => x !== s);   // Free: forget the slot
+  } else if (s) {
+    s.kind = kind;
+    if (kind !== "class") s.jrsr = false;         // only classes have lunch waves
+  } else {
+    t.slots.push({ sem, period, kind, course: "", code: "", room: "", jrsr: false, size: "" });
+  }
+}
+
+panelEl.addEventListener("change", (e) => {
+  const el = e.target;
+  if (el.dataset.field === "kind") {
+    setKind(teacher(), +el.dataset.sem, el.dataset.period, el.value);
+    renderAll();
+    const again = panelEl.querySelector(`select[data-sem="${el.dataset.sem}"][data-period="${el.dataset.period}"]`);
+    if (again) again.focus();
+  } else if (el.id === "t-name") {
+    const name = el.value.replace(/,/g, "").trim();
+    if (!name || db.teachers.some((t) => t !== teacher() && t.name.toLowerCase() === name.toLowerCase())) {
+      alert(name ? `${name} is already on the list.` : "A teacher needs a name.");
+      el.value = current;
+      return;
+    }
+    teacher().name = name;
+    current = name;
+    db.teachers.sort((a, b) => a.name.localeCompare(b.name));
+    renderAll();
+  }
+});
+
+// typing: update the data and the little hints, without redrawing (keeps focus)
+panelEl.addEventListener("input", (e) => {
+  const el = e.target;
+  if (el.dataset.room != null) {                  // Rooms tab
+    const r = db.rooms[+el.dataset.room];
+    if (el.dataset.field === "room") r.room = el.value.replace(/,/g, "").trim();
+    else r.aliases = el.value.split(",").map((a) => a.trim()).filter(Boolean);
+    updateStatus();
+    return;
+  }
+  const t = teacher();
+  if (el.id === "t-slug") { t.slug = el.value.trim(); updateStatus(); return; }
+  if (el.id === "t-notes") { t.notes = el.value; updateStatus(); return; }
+  const s = slotOf(t, +el.dataset.sem, el.dataset.period);
+  if (!s || !["course", "room"].includes(el.dataset.field)) return;
+  if (el.dataset.field === "room") {
+    const value = el.value.replace(/,/g, ""); // the TV's file can't hold commas
+    if (value !== el.value) el.value = value;
+    s.room = value;
+    const hint = panelEl.querySelector(`[data-tv="${s.sem}|${CSS.escape(s.period)}"]`);
+    if (hint && TV_PERIODS.includes(s.period)) hint.innerHTML = tvText(s) ? `TV: <b>${escapeHtml(tvText(s))}</b>` : "";
+  } else {
+    s.course = el.value;
+  }
+  updateStatus();
+});
+
+panelEl.addEventListener("click", (e) => {
+  const t = current === ROOMS_TAB ? null : teacher();
+  const wave = e.target.closest('[data-field="jrsr"]');
+  if (wave) {
+    const s = slotOf(t, +wave.dataset.sem, wave.dataset.period);
+    s.jrsr = !s.jrsr;
+    wave.setAttribute("aria-pressed", s.jrsr);
+    updateStatus();
+    return;
+  }
+  const copy = e.target.closest("[data-copy]");
+  if (copy) {
+    // semester 2 becomes a copy of semester 1 for this period (or free)
+    const p = copy.dataset.copy;
+    const s1 = slotOf(t, 1, p);
+    t.slots = t.slots.filter((s) => !(s.sem === 2 && s.period === p));
+    if (s1) t.slots.push({ ...s1, sem: 2 });
+    renderAll();
+    return;
+  }
+  if (e.target.id === "t-remove") {
+    if (!confirm(`Remove ${t.name} and everything about them? (Nothing changes until you Save.)`)) return;
+    db.teachers = db.teachers.filter((x) => x !== t);
+    current = null;
+    renderAll();
+    return;
+  }
+  if (e.target.id === "add-room") {
+    db.rooms.push({ room: "", aliases: [] });
+    renderAll();
+    panelEl.querySelector(`[data-room="${db.rooms.length - 1}"]`).focus();
+    return;
+  }
+  const delRoom = e.target.closest("[data-del-room]");
+  if (delRoom) {
+    db.rooms.splice(+delRoom.dataset.delRoom, 1);
+    renderAll();
+  }
+});
+
+// ---- tabs ----
+tabsEl.addEventListener("click", (e) => {
+  if (e.target.id === "add-teacher") {
+    const name = (prompt("New teacher's name:") || "").replace(/,/g, "").trim();
+    if (!name) return;
+    if (db.teachers.some((t) => t.name.toLowerCase() === name.toLowerCase())) { alert(`${name} is already on the list.`); return; }
+    db.teachers.push({ name, slug: "", notes: "", slots: [] });
+    db.teachers.sort((a, b) => a.name.localeCompare(b.name));
+    current = name;
+    renderAll();
+    return;
+  }
+  const tab = e.target.closest("[data-tab]");
+  if (!tab) return;
+  current = tab.dataset.tab;
+  renderAll();
+});
+
+// ---- loading and saving (through the editor's api/, never a plain file) ----
+async function api(route, body) {
+  const res = await fetch(route, { method: "POST", headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : "" });
+  let data = null;
+  try { data = await res.json(); } catch (e) { /* not the editor server */ }
+  if (!data) throw new Error("This page only works in the live editor (/edit/) or the local editor (python3 editor/server.py): the teacher details are private, so the public preview can't show them.");
+  if (!data.ok) throw new Error(data.error);
+  return data;
+}
+
+async function load() {
+  const data = await api("api/teacher-db/load");
+  db = data.db;
+  saved = JSON.stringify(db);
+  current = decodeURIComponent(location.hash.slice(1)) || current;
+  renderAll();
+}
+
+saveBtn.addEventListener("click", async () => {
+  // drop rooms rows left empty on the Rooms tab
+  db.rooms = db.rooms.filter((r) => r.room.trim());
+  const empty = db.teachers.filter((t) => !t.slots.length);
+  if (empty.length && !confirm(`${empty.map((t) => t.name).join(", ")} ha${empty.length === 1 ? "s" : "ve"} nothing filled in yet, so won't show on the TV. Save anyway?`)) return;
+  saveBtn.disabled = true;
+  statusEl.textContent = "Saving…";
+  try {
+    const data = await api("api/teacher-db", db);
+    notesEl.innerHTML = "";
+    await load();
+    statusEl.textContent = `Saved · TV: ${data.rows.s1} locations in semester 1, ${data.rows.s2} in semester 2`;
+  } catch (err) {
+    notesEl.innerHTML = `<div class="ed-note is-error">${escapeHtml(err.message)}</div>`;
+    statusEl.textContent = "Not saved";
+    statusEl.className = "ed-status is-error";
+    saveBtn.disabled = false;
+  }
+});
+
+window.addEventListener("beforeunload", (e) => { if (isDirty()) e.preventDefault(); });
+// a link or bookmark to another tab (#Dan%20See, #__rooms) on this same page
+window.addEventListener("hashchange", () => {
+  const want = decodeURIComponent(location.hash.slice(1));
+  if (db && want && want !== current) { current = want; renderAll(); }
+});
+
+load().catch((err) => {
+  statusEl.textContent = "";
+  notesEl.innerHTML = `<div class="ed-note">${escapeHtml(err.message)}</div>`;
+});
+</script>
+</body>
+</html>

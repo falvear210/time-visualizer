@@ -7,3 +7,5 @@ __pycache__/
 
 # scraped from support.sluh.org (staff login) -- class sizes, duties; local only
 data/source/math-teacher-schedule.csv
+# the teacher database: support-site data (class sizes, duties) -- local + server only
+data/source/math-teachers.json
