@@ -581,18 +581,25 @@ function main() {
     const here = teachersData.filter((t) => t.periods.includes(slot.key))
       .map((t) => ({ t, ...parseRoom(t.rooms[slot.key]), lunch: lunchUntil(slot, t, now) }))
       .sort((a, b) => !!a.lunch - !!b.lunch);   // anyone at lunch goes last (stable: names stay in order)
-    // Title: "Teachers teaching", or "Teachers prefecting" when everyone listed
-    // is prefecting (usually Activity Period). Studium keeps its own name.
+    // Title: "Teachers teaching · Period A · now". Studium and Activity
+    // Period aren't classes: Studium lists assigned rooms, and during AP
+    // teachers may or may not be where they usually are (some prefect), so
+    // it reads "Activity Period · usual locations".
+    const isAP = slot.key === "Activity Period";
     const allPrefect = here.length > 0 && here.every((h) => h.prefect);
-    const who = slot.key === "Studium" ? "Studium locations" : allPrefect ? "Teachers prefecting" : "Teachers teaching";
-    title.textContent = `${who} · ${slot.title} · ${when}`;
+    title.textContent =
+      slot.key === "Studium" ? `Studium locations · ${when}`
+      : isAP ? `Activity Period · usual locations · ${when}`
+      : allPrefect ? `Teachers prefecting · ${slot.title} · ${when}`
+      : `Teachers teaching · ${slot.title} · ${when}`;
     if (!here.length) {
       table.innerHTML = `<tr><td class="mo-empty">No one scheduled</td></tr>`;
       return;
     }
     // When some are teaching and some prefecting, mark the prefects with *
     // (in italics) and add a key row at the bottom.
-    const mark = !allPrefect && here.some((h) => h.prefect);
+    // (During AP always mark them: the title no longer says "prefecting".)
+    const mark = (isAP || !allPrefect) && here.some((h) => h.prefect);
     const names = shortNames(here.map((h) => h.t));
     const cell = (j) => {
       const h = here[j];
@@ -605,7 +612,7 @@ function main() {
     };
     let rows = "";
     for (let i = 0; i < here.length; i += 2) rows += `<tr>${cell(i)}${cell(i + 1)}</tr>`;
-    if (mark) rows += `<tr><td class="mo-prefect-key" colspan="4">* prefecting, not teaching</td></tr>`;
+    if (mark) rows += `<tr><td class="mo-prefect-key" colspan="4">${isAP ? "* prefecting" : "* prefecting, not teaching"}</td></tr>`;
     table.innerHTML = rows;
   }
 
