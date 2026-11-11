@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <!--
-  math-next: the work-in-progress redesign of the math-office wall display,
-  in the "Desmos" style (design I from math-next/designs/). The live TV still
-  runs /math/ -- deploy.sh skips this folder.
+  math-next: the "Desmos" redesign of the math-office wall display (design I
+  from math-next/designs/). The TV opens /math/, which forwards here (see the
+  script at the top of math/index.html; /math/?stay shows the older page).
 
   Left: an expression list (a slider for t = now, the block/day progress
   values, the countdown, today's blocks, who's where). Right: graph paper
   with today's blocks plotted as ramps (the "sawtooth"), the whole day as one
-  navy line, and the next 18 days as a number line of school events and math
+  navy line, and the next 21 days as a number line of school events and math
   birthdays.
 
   The whole page is one fixed 1920x1080 stage that math-office.js scales to
@@ -18,14 +18,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- iPad/iPhone: "Add to Home Screen" opens it full screen, no Safari bars -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1e2a3a">
 <title>Math Office Dashboard (preview)</title>
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="math-office.css?v=7">
+<link rel="stylesheet" href="math-office.css?v=8">
 </head>
 <body>
 <div class="mo-stage" id="mo-stage">
@@ -78,7 +83,7 @@
 
   <!-- RIGHT: graph paper. The SVG is drawn in its own 1320x1080 units. -->
   <main class="mo-paper">
-    <svg id="mo-plot" viewBox="0 0 1320 1080" aria-label="Today's schedule and the next 18 days"></svg>
+    <svg id="mo-plot" viewBox="0 0 1320 1080" aria-label="Today's schedule and the next 21 days"></svg>
     <div class="mo-countdown" id="mo-countdown">
       <div class="mo-countdown-label" id="mo-countdown-label"></div>
       <div class="mo-countdown-clock" id="mo-countdown-clock"></div>
@@ -86,7 +91,9 @@
   </main>
 </div>
 
-<script src="../data.js"></script>
-<script src="math-office.js?v=6"></script>
+<!-- data.js is served with a 1-year cache lifetime, so bump this ?v= whenever
+     the schedule data changes, or a kiosk can keep running on the old copy -->
+<script src="../data.js?v=2"></script>
+<script src="math-office.js?v=12"></script>
 </body>
 </html>

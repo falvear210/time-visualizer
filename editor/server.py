@@ -15,10 +15,19 @@ repo (a plain static server can't write files):
     POST /api/teachers          body: {"rows": [{"name","period","room"}, ...]}
         -> writes math-next/math-teachers.csv
 
-Only listens on 127.0.0.1, so nobody else on the network can reach it. The
-editor pages ARE deployed (without this file) as a read-only preview -- see
-preview-mode.js. After saving, commit and deploy as usual for the changes to
-reach the TVs.
+The pages call these as RELATIVE urls (api/teachers), so the same paths
+work under any folder: /editor/api/teachers here, /edit/api/teachers on the
+server. Any path ending in one of the routes above is accepted.
+
+Only listens on 127.0.0.1, so nobody else on the network can reach it.
+
+ON THE SERVER this same file also runs as a small service (see
+server/editor/README.md): nginx puts a password on https://sluhtime.alvear.cl/edit/
+and hands its api/ calls to this program, which then writes straight into
+the live site (SITE_ROOT) -- a save shows on the TVs within a minute, no
+deploy needed. deploy.sh pulls those online edits back into this repo before
+it uploads, so a deploy never overwrites them. The public /editor/ copy stays
+a read-only preview (preview-mode.js).
 """
 import csv
 import io
@@ -27,8 +36,12 @@ import os
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "scripts"))
+# CODE_ROOT: where this program and scripts/ live. ROOT: the site whose
+# files are read and written -- the same folder locally, but on the server
+# the service sets SITE_ROOT to the live htdocs/ (see server/editor/).
+CODE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.environ.get("SITE_ROOT") or CODE_ROOT
+sys.path.insert(0, os.path.join(CODE_ROOT, "scripts"))
 import school_events  # noqa: E402  (needs the sys.path line above)
 
 FILTER_PATH = school_events.FILTER_PATH
@@ -94,8 +107,25 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
+    def do_GET(self):
+        # On the server, nginx serves the pages itself; this service only
+        # takes Saves. Refuse to serve files there, so nothing in htdocs
+        # (e.g. the stats key) can ever be read through it.
+        if os.environ.get("SITE_ROOT"):
+            self.send_error(404)
+            return
+        super().do_GET()
+
+    def do_HEAD(self):
+        if os.environ.get("SITE_ROOT"):
+            self.send_error(404)
+            return
+        super().do_HEAD()
+
     def do_POST(self):
-        route = ROUTES.get(self.path.split("?")[0])
+        # match on the ending, so /api/x, /editor/api/x and /edit/api/x all work
+        path = self.path.split("?")[0]
+        route = next((fn for name, fn in ROUTES.items() if path.endswith(name)), None)
         if not route:
             self.send_error(404)
             return

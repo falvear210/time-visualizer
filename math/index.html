@@ -15,6 +15,16 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="math-office.css?v=14">
+<script>
+  // The math-office TV is set to open /math/, but it now shows the
+  // math-next (Desmos) redesign: this sends it there (since Nov. 11, 2026).
+  // Add ?stay to see this older page anyway. To switch the TV back, delete
+  // this script. (Changing the Pi's DASHBOARD_URL would do the same job
+  // without the hop, but needs a visit to the Pi.)
+  (function () {
+    if (!/[?&]stay\b/.test(location.search)) location.replace("../math-next/?tv=1");
+  })();
+</script>
 </head>
 <body>
 <div class="mo-dashboard">
@@ -73,7 +83,9 @@
   </div>
 </div>
 
-<script src="../data.js"></script>
+<!-- data.js is served with a 1-year cache lifetime, so bump this ?v= whenever
+     the schedule data changes, or a kiosk can keep running on the old copy -->
+<script src="../data.js?v=2"></script>
 <script src="math-office.js?v=12"></script>
 <script>
   // Fields for analytics.alvear.cl's automatic "view" event (see a.js).

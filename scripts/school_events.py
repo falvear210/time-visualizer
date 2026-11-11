@@ -32,7 +32,9 @@ from zoneinfo import ZoneInfo
 CAL_ID = "sluh.org_puustjlg2fanhl18qpavr6jp1c@group.calendar.google.com"
 ICS_URL = f"https://calendar.google.com/calendar/ical/{CAL_ID.replace('@', '%40')}/public/basic.ics"
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# The site folder whose files get read and written. Normally this repo; on
+# the server the editor's save service sets SITE_ROOT to the live htdocs/.
+ROOT = os.environ.get("SITE_ROOT") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW_PATH = os.path.join(ROOT, "data", "source", "school_calendar_raw.ics")
 OUT_PATH = os.path.join(ROOT, "data", "school-events.csv")
 

@@ -6,7 +6,7 @@
 
   Reads:  ../data/event-filter.json                  (the choices; shared)
           ../data/source/school-events-catalog.json  (every title this year)
-  Saves:  POST /api/event-filter -> rewrites data/event-filter.json and
+  Saves:  POST api/event-filter -> rewrites data/event-filter.json and
           regenerates data/school-events.csv
 
   Two levels of choice:
@@ -21,7 +21,7 @@
 <title>Event Filter</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="editor.css">
-<script src="preview-mode.js"></script>
+<script src="preview-mode.js?v=2"></script>
 <style>
   .ev-tools { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; margin-bottom: 1.2rem; }
   .ev-tools input[type="search"] { flex: 1 1 16rem; max-width: 26rem; }
@@ -307,7 +307,7 @@ saveBtn.addEventListener("click", async () => {
   saveBtn.disabled = true;
   setStatus("Saving…");
   try {
-    const result = await post("/api/event-filter", JSON.stringify(filter));
+    const result = await post("api/event-filter", JSON.stringify(filter));
     notesEl.innerHTML = "";
     await load(); // re-read: categories may have been re-assigned
     setStatus(`Saved · ${result.shown} dates on the dashboards`);
@@ -323,7 +323,7 @@ document.getElementById("refresh").addEventListener("click", async (e) => {
   e.target.disabled = true;
   setStatus("Downloading the School Calendar…");
   try {
-    const result = await post("/api/refresh-calendar", "");
+    const result = await post("api/refresh-calendar", "");
     await load();
     setStatus(`Updated · ${result.titles} different events this year`);
   } catch (err) {

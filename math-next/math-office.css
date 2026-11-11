@@ -34,7 +34,10 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;           /* kiosk display, never scrolls */
-  background: #ffffff;
+  /* The stage is always 16:9. On a screen that isn't (an iPad is 4:3), the
+     leftover space shows this dark letterbox, like a movie on a TV, so the
+     16:9 frame reads as the screen. A 16:9 TV (1080p or 4K) has none. */
+  background: #1e2a3a;
   color: var(--ink);
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;

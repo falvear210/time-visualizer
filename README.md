@@ -134,7 +134,7 @@ graph paper on the right.
   `/math-next/designs/`), and `designs/v1-columns/` keeps the previous
   three-column version, still working.
 
-#### `editor/` — editing pages (save locally; the deployed copy is a preview)
+#### `editor/` — editing pages (local, live at /edit/, preview at /editor/)
 
 ```
 python3 editor/server.py      # then open http://localhost:8421/editor/
@@ -153,11 +153,17 @@ that serves the site and lets these pages save straight to the repo:
   teacher × periods A–G + Studium, with a "where is everyone during …"
   view for any period. Saves `math-next/math-teachers.csv`.
 
-`deploy.sh` also ships these pages (but not `server.py`) to
-sluhtime.alvear.cl/editor/ so coworkers can try them. Off localhost,
-`editor/preview-mode.js` hides Save and "Get latest calendar" and shows a
-"Preview only" banner: the web server can't save, and nobody on the internet
-should be able to change what the TVs show.
+`deploy.sh` also ships these pages to the website, in two places:
+
+- **sluhtime.alvear.cl/edit/** — the live editor, behind a password only
+  Fernando has. The same `server.py` runs there as a service and saves
+  straight into the live site, so the TVs pick up a change within a minute,
+  no deploy needed. `deploy.sh` copies online edits back into the repo
+  before uploading, so a deploy never overwrites them. Setup, password and
+  troubleshooting: `server/editor/README.md`.
+- **sluhtime.alvear.cl/editor/** — a read-only preview for coworkers:
+  `editor/preview-mode.js` hides Save and "Get latest calendar" and shows a
+  "Preview only" banner.
 
 ### 3. `/mcl/` — the Modern & Classical Languages wall display
 

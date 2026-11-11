@@ -8,7 +8,7 @@
 //   countdown, today's blocks as a table, who's in which room, and weather.
 //   Right, graph paper: every block today is a ramp from 0 to 1 (so the day
 //   is a sawtooth), the whole day is one animated SLUH Navy line, and under
-//   it the next 18 days are a number line with school events above and math
+//   it the next 21 days are a number line with school events above and math
 //   birthdays below.
 //
 // Standalone: it reads the same data.js the main site uses but shares no
@@ -309,6 +309,7 @@ const BLOCK_COLOR = "#3a9ad9";
 const NAVY = "#003366";
 const EVENT_COLOR = "#005588";
 const BIRTHDAY_COLOR = "#d6336c";
+const DAYS_OFF_COLOR = "#f2b705";   // weekends and breaks on the number line (yellow)
 
 function segColor(seg) {
   return seg.kind === "block" ? BLOCK_COLOR : (PERIOD_COLORS[seg.label] || BLOCK_COLOR);
@@ -353,6 +354,9 @@ function truncate(s, n) { return s.length > n ? s.slice(0, n - 1).trimEnd() + "�
 function main() {
   fitStage();
   addEventListener("resize", fitStage);
+  // iPad: after a rotation Safari can report the old size for a moment, so
+  // fit again once the rotation has settled
+  addEventListener("orientationchange", () => setTimeout(fitStage, 300));
 
   const daysByDate = new Map(SCHOOL_YEAR_DATA.map((d) => [d.date, d]));
   const $ = (id) => document.getElementById(id);
@@ -362,7 +366,7 @@ function main() {
   const X0 = 110, X1 = 1250;          // left/right edge of both plots
   const Y0 = 590, YTOP = 300;         // y for f = 0 and f = 1
   const LY = 900;                      // the number line
-  const DAYS_AHEAD = 18;
+  const DAYS_AHEAD = 21;           // three weeks
 
   let teachersData = [], birthdaysData = [], eventsData = [], weatherData = null;
   let dataVersion = 0;                 // bumped when any CSV reloads
@@ -487,12 +491,12 @@ function main() {
     $("mo-g-expr").textContent = `(t − ${clock12(dayStart)}) / ${dayLen}`;
     $("mo-g").textContent = displayFraction(g);
 
-    // 4: the countdown as an expression
+    // 4: time left in the school day, until the last bell. (The current
+    // block's countdown is already the big number on the graph paper.)
     const row = $("mo-count-row");
-    if (info.state === "current" || info.state === "next") {
-      const target = info.state === "current" ? info.seg.end : info.seg.start;
-      $("mo-count-expr").innerHTML = `${clock12(target)} − <i>t</i>`;
-      $("mo-count-res").textContent = formatCountdownClock(target * 60000 - nowSec * 1000);
+    if (nowSec < dayEnd * 60) {
+      $("mo-count-expr").innerHTML = `${clock12(dayEnd)} − <i>t</i> <span class="mo-words">· end of day</span>`;
+      $("mo-count-res").textContent = formatCountdownClock(dayEnd * 60000 - nowSec * 1000);
       row.hidden = false;
     } else {
       row.hidden = true;
@@ -703,26 +707,40 @@ function main() {
       svgEl(dynLayer, "line", { x1: xOf(s.start), y1: yOf(0), x2: xOf(tNow), y2: yOf(f), stroke: color, "stroke-width": 8, "stroke-linecap": "round" });
     });
 
+    // The day as a progress bar, left of the y-axis on the same 0-1 scale,
+    // so its top lines up with the day point g(t) (and the dashed line
+    // below). Full after the last bell, empty before the first.
+    const gBar = Math.max(0, Math.min(1, (tNow - dayStart) / (dayEnd - dayStart)));
+    const BAR_X = 26, BAR_W = 26;
+    svgEl(dynLayer, "rect", { x: BAR_X, y: yOf(1), width: BAR_W, height: yOf(0) - yOf(1), rx: 6, fill: "#ffffff", stroke: "#c9d3de", "stroke-width": 2 });
+    if (gBar > 0) svgEl(dynLayer, "rect", { x: BAR_X, y: yOf(gBar), width: BAR_W, height: yOf(0) - yOf(gBar), rx: 6, fill: NAVY });
+
     if (!inDay) return;
     // t = now, as a vertical dashed line
     const nx = xOf(tNow);
+    // ...and g(t) = the day so far, as a horizontal dashed line from the day
+    // point across to the y-axis and the bar
+    svgEl(dynLayer, "line", { x1: BAR_X + BAR_W, y1: yOf(gBar), x2: nx, y2: yOf(gBar), stroke: NAVY, "stroke-width": 2, "stroke-dasharray": "6 6", opacity: 0.6 });
     svgEl(dynLayer, "line", { x1: nx, y1: YTOP - 40, x2: nx, y2: Y0, stroke: NAVY, "stroke-width": 2, "stroke-dasharray": "6 6", opacity: 0.6 });
 
     // labels: the day point (navy) and the live block's point (its color)
     const g = (tNow - dayStart) / (dayEnd - dayStart);
     const anchor = nx > 1000 ? "end" : "start", off = anchor === "end" ? -24 : 24;
-    pillLabel(dynLayer, nx + off, yOf(g) - 4, `day: ${displayPct(g * 100)}%`, NAVY, anchor);
     const live = segments.find((s) => segmentIsLive(s, now));
+    const f = live ? segmentProgress(live, now) : null;
+    // Two labels share the line t = now: the day's (navy) and the live
+    // block's. Whichever point is higher gets its label above it, the other
+    // gets its label below, so they can never cover each other.
+    const gAbove = f == null || g >= f;
+    pillLabel(dynLayer, nx + off, yOf(g) + (gAbove ? -30 : 30), `day: ${displayPct(g * 100)}%`, NAVY, anchor);
     if (live) {
-      const f = segmentProgress(live, now);
       svgEl(dynLayer, "circle", { cx: nx, cy: yOf(f), r: 12, fill: segColor(live) });
-      // keep the two labels apart when f and g are close
-      const fy = Math.abs(yOf(f) - yOf(g)) < 40 ? yOf(g) + 44 : yOf(f) - 26;
+      const fy = yOf(f) + (gAbove ? 30 : -30);
       pillLabel(dynLayer, nx + off, fy, `(${clock12(now.minutes)}, ${displayFraction(f)})`, segColor(live), anchor);
     }
   }
 
-  // ---------- the next 18 days as a number line ----------
+  // ---------- the next three weeks as a number line ----------
   function drawNumberLine(now) {
     const L = staticLayer;
     const first = now.dateStr, last = addDays(first, DAYS_AHEAD);
@@ -732,28 +750,27 @@ function main() {
       return Math.round((Date.UTC(b.y, b.m - 1, b.d) - Date.UTC(a.y, a.m - 1, a.d)) / 86400000);
     };
 
-    // section title, with the legend folded into it
-    const title = svgEl(L, "text", { x: X0, y: 690, class: "mo-section-label" }, `NEXT ${DAYS_AHEAD} DAYS · `);
-    svgEl(title, "tspan", { fill: EVENT_COLOR }, "school events above");
-    svgEl(title, "tspan", {}, " · ");
-    svgEl(title, "tspan", { fill: BIRTHDAY_COLOR }, "math birthdays below");
+    svgEl(L, "text", { x: X0, y: 690, class: "mo-section-label" }, `NEXT ${DAYS_AHEAD} DAYS`);
 
-    // weekends: a light navy band (an interval, not a point)
-    for (let i = 0; i <= DAYS_AHEAD; i++) {
-      if (weekdayIndex(addDays(first, i)) === 6) {
-        const a = Math.max(0, i - 0.5), b = Math.min(DAYS_AHEAD, i + 1.5);
-        svgEl(L, "rect", { x: dx(a), y: LY - 150, width: dx(b) - dx(a), height: 200, fill: NAVY, opacity: 0.05 });
-      }
-    }
-
-    // multi-day events (breaks, exams): shaded intervals labeled on top
+    // Days off -- weekends and multi-day events (breaks, exams) -- share one
+    // soft yellow band. Work out which days are shaded first, then draw one
+    // band per run of days, so a break that touches a weekend reads as one
+    // stretch instead of two overlapping (darker) boxes.
     const upcoming = eventsData.filter((e) => e.endDate >= first && e.date <= last);
     const ranges = upcoming.filter((e) => e.endDate !== e.date);
     const singles = upcoming.filter((e) => e.endDate === e.date && e.date >= first);
-    ranges.forEach((e) => {
-      const a = Math.max(-0.5, idx(e.date) - 0.5), b = Math.min(DAYS_AHEAD, idx(e.endDate) + 0.5);
-      svgEl(L, "rect", { x: dx(a), y: LY - 150, width: dx(b) - dx(a), height: 200, fill: "#fa7e19", opacity: 0.16 });
-    });
+    const shaded = [];
+    for (let i = 0; i <= DAYS_AHEAD; i++) {
+      const ds = addDays(first, i), wd = weekdayIndex(ds);
+      shaded.push(wd === 0 || wd === 6 || ranges.some((e) => e.date <= ds && ds <= e.endDate));
+    }
+    for (let i = 0; i <= DAYS_AHEAD; i++) {
+      if (!shaded[i] || (i > 0 && shaded[i - 1])) continue;   // start of a run only
+      let j = i;
+      while (j + 1 <= DAYS_AHEAD && shaded[j + 1]) j++;
+      const a = Math.max(-0.5, i - 0.5), b = Math.min(DAYS_AHEAD, j + 0.5);
+      svgEl(L, "rect", { x: dx(a), y: LY - 150, width: dx(b) - dx(a), height: 200, fill: DAYS_OFF_COLOR, opacity: 0.22 });
+    }
 
     // the axis with one tick per day; the 1st of a month shows its name
     svgEl(L, "line", { x1: X0, y1: LY, x2: X1, y2: LY, stroke: "#1e2a3a", "stroke-width": 2.5 });
@@ -763,6 +780,8 @@ function main() {
       svgEl(L, "text", { x: dx(i), y: LY + 32, "text-anchor": "middle", class: "mo-axis-label", "font-size": 21,
         fill: i === 0 ? NAVY : "#1e2a3a", "font-weight": i === 0 || d === 1 ? 600 : 400 }, d === 1 ? `${AP_MONTHS[m - 1].replace(".", "")} 1` : d);
     }
+    // today: a navy dot with a ring that pulses outward (same as "now" above)
+    svgEl(L, "circle", { cx: dx(0), cy: LY, r: 10, class: "mo-now-pulse" });
     svgEl(L, "circle", { cx: dx(0), cy: LY, r: 10, fill: NAVY });
     svgEl(L, "text", { x: dx(0), y: LY + 58, "text-anchor": "middle", class: "mo-section-label", "font-size": 16, fill: NAVY }, "TODAY");
 

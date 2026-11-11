@@ -9,9 +9,27 @@
 //   - turns off the "you have unsaved changes" prompt when leaving.
 // Loaded in <head>, before the page's own scripts, so its beforeunload
 // listener runs first and can stop theirs.
+//
+// Two places CAN save, and are left alone:
+//   - the local editor server (localhost), and
+//   - /edit/ on the server: the same pages behind a password, whose saves
+//     go straight to the live site (see server/editor/README.md).
 (function () {
   var local = ["localhost", "127.0.0.1", "[::1]", ""].indexOf(location.hostname) !== -1;
-  if (local) return;
+  var live = location.pathname.indexOf("/edit/") === 0;
+  if (live) {
+    // a reminder that Save here changes the TVs, not a draft
+    document.addEventListener("DOMContentLoaded", function () {
+      var main = document.querySelector(".ed-main");
+      if (!main) return;
+      var note = document.createElement("div");
+      note.className = "ed-note ed-preview-note";
+      note.innerHTML = "<strong>Live editor.</strong> Saving here updates the website right away, " +
+        "and the TVs pick it up within a minute.";
+      main.insertBefore(note, main.firstChild);
+    });
+  }
+  if (local || live) return;
 
   document.documentElement.classList.add("ed-preview");
 

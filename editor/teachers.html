@@ -16,7 +16,7 @@
 <title>Teacher Locations</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="editor.css">
-<script src="preview-mode.js"></script>
+<script src="preview-mode.js?v=2"></script>
 <style>
   .ed-main { max-width: 1500px; } /* room for eight columns of rooms */
   .tl-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 0.8rem; margin-bottom: 1rem; }
@@ -282,7 +282,7 @@ saveBtn.addEventListener("click", async () => {
   saveBtn.disabled = true;
   statusEl.textContent = "Saving…";
   try {
-    const res = await fetch("/api/teachers", {
+    const res = await fetch("api/teachers", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rows }),
     });
     let data = null;

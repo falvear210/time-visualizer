@@ -1,0 +1,23 @@
+# The editor's save service on server3: editor/server.py, run as the web
+# server's user so it can write the site's data files.
+#
+# Installed as /etc/systemd/system/sluhtime-editor.service. deploy.sh copies
+# the program to /opt/sluhtime-editor/ and restarts this on every deploy.
+# Only listens on 127.0.0.1:8421; nginx (nginx-editor.conf) is the only way
+# in, and it asks for the password first.
+
+[Unit]
+Description=SLUH time editor (save service for /edit/)
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+Environment=SITE_ROOT=/var/www/sluhtime.alvear.cl/htdocs
+Environment=PORT=8421
+ExecStart=/usr/bin/python3 /opt/sluhtime-editor/editor/server.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
