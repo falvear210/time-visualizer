@@ -49,7 +49,7 @@ TEACHERS_PATH = os.path.join(ROOT, "math-next", "math-teachers.csv")
 
 # periods a teacher row may name: the class letters plus the whole-school
 # blocks that have their own locations (keep in sync with editor/teachers.html)
-TEACHER_PERIODS = ["A", "B", "C", "D", "E", "F", "G", "Studium"]
+TEACHER_PERIODS = ["A", "B", "C", "D", "E", "F", "G", "Studium", "Activity Period"]
 
 
 def save_event_filter(body):

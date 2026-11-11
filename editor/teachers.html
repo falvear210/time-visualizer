@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <!--
   Teacher locations: where every math teacher is, period by period, plus
-  Studium (where teachers have their own assigned rooms). Edit any cell and
+  Studium and Activity Period (AP). A location starting or ending with *
+  ("*Cafeteria") means prefecting there, not teaching. Edit any cell and
   Save. Local tool -- run `python3 editor/server.py` and open
   http://localhost:8421/editor/teachers.html (Save needs that server).
 
@@ -66,6 +67,9 @@
   .tl-del { border: none; background: none; color: var(--text-dim); padding: 0.2rem 0.5rem; }
   .tl-del:hover { color: var(--danger); }
   .tl-add { display: flex; gap: 0.6rem; margin-top: 1rem; }
+  .tl-prefect { font-size: 0.85em; color: var(--text-dim); }
+  /* a cell marked with * (prefecting) */
+  td input.is-prefect { font-style: italic; }
 </style>
 </head>
 <body>
@@ -85,7 +89,13 @@
     Where each math teacher is, by period, for the new math dashboard. Type a
     room in any cell; leave it empty if the teacher isn't teaching then. The
     <strong>Studium</strong> column is each teacher's Studium location, which
-    the dashboard shows during Studium.
+    the dashboard shows during Studium; <strong>AP</strong> is where they are
+    during Activity Period.
+  </p>
+  <p class="ed-intro">
+    <strong>Prefecting?</strong> Put a <strong>*</strong> on the location, like
+    <code>*Cafeteria</code>. Works in any column. The dashboard then shows that
+    teacher as prefecting there instead of teaching.
   </p>
   <div id="notes"></div>
 
@@ -109,12 +119,23 @@
   <datalist id="rooms"></datalist>
 </main>
 
-<script src="../data.js"></script>
+<!-- data.js is cached for a year: keep this ?v= in step with the dashboards -->
+<script src="../data.js?v=2"></script>
 <script>
 // Columns: the seven class letters, then the whole-school blocks that have
-// their own locations. To track another block (e.g. Advisory), add it here
-// AND to TEACHER_PERIODS in editor/server.py.
-const PERIODS = ["A", "B", "C", "D", "E", "F", "G", "Studium"];
+// their own locations. A block's name must match data.js exactly ("Activity
+// Period"). To track another block (e.g. Advisory), add it here AND to
+// TEACHER_PERIODS in editor/server.py.
+const PERIODS = ["A", "B", "C", "D", "E", "F", "G", "Studium", "Activity Period"];
+const SHORT = { "Activity Period": "AP" };            // column/chip labels
+const label = (p) => SHORT[p] || p;
+
+// "*Cafeteria" or "Cafeteria*" = prefecting in the Cafeteria (not teaching)
+function parseRoom(raw) {
+  const s = (raw || "").trim();
+  const prefect = s.startsWith("*") || s.endsWith("*");
+  return { room: s.replace(/^\*+|\*+$/g, "").trim(), prefect };
+}
 const CSV_URL = "../math-next/math-teachers.csv";
 
 // teachers: [{ name, rooms: { A: "M205", Studium: "Library", ... } }]
@@ -173,20 +194,21 @@ function updateStatus() {
 // ---- rendering ----
 function renderChips() {
   document.getElementById("period-chips").innerHTML = PERIODS.map((p) =>
-    `<button class="ed-chip" data-pick="${p}" aria-pressed="${p === picked}">${p}</button>`).join("");
+    `<button class="ed-chip" data-pick="${p}" aria-pressed="${p === picked}">${escapeHtml(label(p))}</button>`).join("");
 }
 
 function renderWhere() {
-  const rows = teachers.map((t) => ({ name: t.name, room: (t.rooms[picked] || "").trim() }));
+  const rows = teachers.map((t) => ({ name: t.name, ...parseRoom(t.rooms[picked]) }));
   const busy = rows.filter((r) => r.room);
   const free = rows.filter((r) => !r.room);
+  const prefecting = busy.filter((r) => r.prefect).length;
   // no room in a class period means a free period; for Studium it means no
   // location has been entered yet
   const freeWord = picked.length === 1 ? "free" : "not set";
   document.getElementById("where").innerHTML = `
-    <h2>${escapeHtml(periodName(picked))}: ${busy.length} with a location${free.length ? `, ${free.length} ${freeWord}` : ""}</h2>
+    <h2>${escapeHtml(periodName(picked))}: ${busy.length} with a location${prefecting ? ` (${prefecting} prefecting)` : ""}${free.length ? `, ${free.length} ${freeWord}` : ""}</h2>
     <ul>
-      ${busy.map((r) => `<li><span>${escapeHtml(r.name)}</span><span class="tl-room">${escapeHtml(r.room)}</span></li>`).join("")}
+      ${busy.map((r) => `<li><span>${escapeHtml(r.name)}</span><span class="tl-room">${escapeHtml(r.room)}${r.prefect ? ` <em class="tl-prefect">prefecting</em>` : ""}</span></li>`).join("")}
       ${free.map((r) => `<li><span class="tl-free">${escapeHtml(r.name)}</span><span class="tl-free">${freeWord}</span></li>`).join("")}
     </ul>`;
 }
@@ -194,14 +216,15 @@ function renderWhere() {
 function renderTable() {
   const colClass = (p) => [p === picked ? "is-picked" : "", p === "Studium" ? "tl-col-studium" : ""].join(" ").trim();
   document.getElementById("thead").innerHTML = `<tr><th>Teacher</th>${PERIODS.map((p) =>
-    `<th class="${colClass(p)}">${p}</th>`).join("")}<th></th></tr>`;
+    `<th class="${colClass(p)}" title="${escapeHtml(periodName(p))}">${escapeHtml(label(p))}</th>`).join("")}<th></th></tr>`;
   document.getElementById("tbody").innerHTML = teachers.map((t, i) => `
     <tr>
       <th scope="row">${escapeHtml(t.name)}</th>
       ${PERIODS.map((p) => `
         <td class="${colClass(p)}">
           <input type="text" list="rooms" value="${escapeHtml(t.rooms[p] || "")}"
-                 data-i="${i}" data-p="${p}" aria-label="${escapeHtml(t.name)}, ${p}">
+                 class="${parseRoom(t.rooms[p]).prefect ? "is-prefect" : ""}"
+                 data-i="${i}" data-p="${p}" aria-label="${escapeHtml(t.name)}, ${escapeHtml(label(p))}">
         </td>`).join("")}
       <td><button class="tl-del" data-del="${i}" title="Remove ${escapeHtml(t.name)}" aria-label="Remove ${escapeHtml(t.name)}">✕</button></td>
     </tr>`).join("");
@@ -235,6 +258,7 @@ tbody.addEventListener("input", (e) => {
   if (value !== e.target.value) e.target.value = value;
   if (value.trim()) teachers[i].rooms[p] = value; else delete teachers[i].rooms[p];
   e.target.classList.add("is-changed");
+  e.target.classList.toggle("is-prefect", parseRoom(value).prefect);
   renderWhere();
   updateStatus();
 });

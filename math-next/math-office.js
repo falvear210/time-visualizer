@@ -238,6 +238,13 @@ function parseTeachersCsv(text) {
   return [...byName.values()];
 }
 
+// A room as typed in the editor: "*Cafeteria" or "Cafeteria*" means the
+// teacher is prefecting there, not teaching.
+function parseRoom(raw) {
+  const s = (raw || "").trim();
+  return { room: s.replace(/^\*+|\*+$/g, "").trim(), prefect: s.startsWith("*") || s.endsWith("*") };
+}
+
 // birthdays.csv (shared): date,name,dept -- this display only shows dept "math"
 function parseBirthdaysCsv(text) {
   const birthdays = [];
@@ -523,8 +530,8 @@ function main() {
   }
 
   // Who's where: today's class periods plus any block teachers have their
-  // own locations for (Studium, from math-teachers.csv). Other blocks are
-  // skipped, so during Advisory the list shows who teaches next.
+  // own locations for (Studium, Activity Period -- from math-teachers.csv).
+  // Other blocks are skipped, so during Advisory the list shows who teaches next.
   function teacherSlots(today, now) {
     if (!today) return [];
     const slots = today.periods.map((p) => {
@@ -561,24 +568,36 @@ function main() {
     title.hidden = table.parentElement.hidden = hide;
     if (hide) return;
     if (info.state === "done") {
-      title.textContent = "Rooms";
+      title.textContent = "Teachers teaching";
       table.innerHTML = `<tr><td class="mo-empty">All classes are done for today</td></tr>`;
       return;
     }
     const slot = info.seg;
     const when = info.state === "current" ? "now" : "next";
-    title.textContent = slot.key === "Studium" ? `Studium locations · ${when}` : `${slot.title} rooms · ${when}`;
-    const here = teachersData.filter((t) => t.periods.includes(slot.key));
+    const here = teachersData.filter((t) => t.periods.includes(slot.key))
+      .map((t) => ({ t, ...parseRoom(t.rooms[slot.key]) }));
+    // Title: "Teachers teaching", or "Teachers prefecting" when everyone listed
+    // is prefecting (usually Activity Period). Studium keeps its own name.
+    const allPrefect = here.length > 0 && here.every((h) => h.prefect);
+    const who = slot.key === "Studium" ? "Studium locations" : allPrefect ? "Teachers prefecting" : "Teachers teaching";
+    title.textContent = `${who} · ${slot.title} · ${when}`;
     if (!here.length) {
       table.innerHTML = `<tr><td class="mo-empty">No one scheduled</td></tr>`;
       return;
     }
-    const names = shortNames(here);
+    // When some are teaching and some prefecting, mark the prefects with *
+    // (in italics) and add a key row at the bottom.
+    const mark = !allPrefect && here.some((h) => h.prefect);
+    const names = shortNames(here.map((h) => h.t));
+    const cell = (j) => {
+      const h = here[j];
+      if (!h) return `<td></td><td></td>`;
+      const star = mark && h.prefect;
+      return `<td>${names[j]}</td><td${star ? ' class="mo-prefect"' : ""}>${h.room}${star ? "*" : ""}</td>`;
+    };
     let rows = "";
-    for (let i = 0; i < here.length; i += 2) {
-      const cell = (j) => (here[j] ? `<td>${names[j]}</td><td>${here[j].rooms[slot.key] || ""}</td>` : `<td></td><td></td>`);
-      rows += `<tr>${cell(i)}${cell(i + 1)}</tr>`;
-    }
+    for (let i = 0; i < here.length; i += 2) rows += `<tr>${cell(i)}${cell(i + 1)}</tr>`;
+    if (mark) rows += `<tr><td class="mo-prefect-key" colspan="4">* prefecting, not teaching</td></tr>`;
     table.innerHTML = rows;
   }
 
