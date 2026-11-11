@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!--
+  Four animation ideas for the day bar left of the y-axis on /math-next/,
+  shown side by side at the bar's real size (26 x 290 SVG units) with the day
+  67% done. Pick one; the winner goes into drawDayBar() in math-office.js.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day bar options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --navy: #003366; --light: #d7ebf8; --spirit: #88ccec; --ink: #1e2a3a; --dim: #6b7280; }
+  body { margin: 0; padding: 32px 16px; font-family: Inter, sans-serif; color: var(--ink); background: #fff; }
+  h1 { margin: 0 0 4px; font-size: 26px; color: var(--navy); }
+  .lede { margin: 0 0 28px; color: var(--dim); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; max-width: 1100px; }
+  .card { border: 1px solid #e3e3e3; border-radius: 12px; padding: 20px; background:
+    linear-gradient(#dfe9f4 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, #dfe9f4 1px, transparent 1px) 0 0 / 24px 24px, #fff; }
+  .card h2 { margin: 0 0 4px; font-size: 18px; }
+  .card p { margin: 0 0 14px; font-size: 14px; line-height: 1.4; color: #3c4450; min-height: 58px; }
+  svg { display: block; margin: 0 auto; overflow: visible; }
+  .axis { stroke: var(--ink); stroke-width: 2.5; }
+  .tick { font: 20px "Times New Roman", serif; fill: var(--ink); }
+  .dash { stroke: var(--navy); stroke-width: 2; stroke-dasharray: 6 6; opacity: .6; }
+  .pick { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 700; color: var(--navy); }
+
+  /* A: glint -- the comet from the day line, running up the bar */
+  .glint { animation: glint 2.4s ease-in-out infinite; }
+  @keyframes glint { from { transform: translateY(0); } to { transform: translateY(-260px); } }
+
+  /* B: liquid -- the top of the fill is a gently moving wave */
+  .wave { animation: wave 2.6s linear infinite; }
+  @keyframes wave { to { transform: translateX(-52px); } }
+  .bubble { fill: #ffffff; opacity: 0; animation: bubble 3.2s ease-in infinite; }
+  @keyframes bubble { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: .55; } 100% { transform: translateY(-150px); opacity: 0; } }
+
+  /* C: segments -- the live block's piece breathes */
+  .live { animation: breathe 2s ease-in-out infinite; }
+  @keyframes breathe { 50% { opacity: .55; } }
+
+  /* D: glowing top -- a pulsing cap where the fill ends */
+  .cap-pulse { transform-box: fill-box; transform-origin: center; animation: cap 2s ease-out infinite; }
+  @keyframes cap { from { transform: scale(1); opacity: .5; } to { transform: scale(2.6, 3.4); opacity: 0; } }
+</style>
+</head>
+<body>
+<h1>Day bar: four animation options</h1>
+<p class="lede">Each bar shows the day 67% done, at its real size on the TV. The animations are live.</p>
+<div class="grid">
+
+  <!-- A -->
+  <div class="card">
+    <h2>A · Glint</h2>
+    <p>Solid navy, with the same light-blue comet that runs along the day line sweeping up the bar. It matches the rest of the graph.</p>
+    <svg width="170" height="330" viewBox="0 0 170 330">
+      <defs><clipPath id="clipA"><rect x="26" y="116" width="26" height="194" rx="6"/></clipPath>
+        <linearGradient id="gA" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#88ccec" stop-opacity="0"/><stop offset=".5" stop-color="#88ccec" stop-opacity=".95"/><stop offset="1" stop-color="#88ccec" stop-opacity="0"/></linearGradient></defs>
+      <rect x="26" y="20" width="26" height="290" rx="6" fill="#fff" stroke="#c9d3de" stroke-width="2"/>
+      <rect x="26" y="116" width="26" height="194" rx="6" fill="#003366"/>
+      <g clip-path="url(#clipA)"><rect class="glint" x="26" y="290" width="26" height="70" fill="url(#gA)"/></g>
+      <line class="dash" x1="52" y1="116" x2="170" y2="116"/><line class="axis" x1="110" y1="20" x2="110" y2="310"/>
+      <text class="tick" x="96" y="316" text-anchor="end">0</text><text class="tick" x="96" y="26" text-anchor="end">1</text>
+    </svg>
+  </div>
+
+  <!-- B -->
+  <div class="card">
+    <h2>B · Liquid</h2>
+    <p>Navy liquid in a tube: the surface ripples and a few light-blue bubbles rise. Calm, and it reads as "filling up".</p>
+    <svg width="170" height="330" viewBox="0 0 170 330">
+      <defs><clipPath id="clipB"><rect x="26" y="20" width="26" height="290" rx="6"/></clipPath></defs>
+      <rect x="26" y="20" width="26" height="290" rx="6" fill="#fff" stroke="#c9d3de" stroke-width="2"/>
+      <g clip-path="url(#clipB)">
+        <g class="wave">
+          <path fill="#003366" d="M26,116 q6.5,-6 13,0 t13,0 t13,0 t13,0 t13,0 t13,0 t13,0 t13,0 V320 H26 Z"/>
+        </g>
+        <circle class="bubble" cx="34" cy="300" r="2.5" style="animation-delay:0s"/>
+        <circle class="bubble" cx="44" cy="300" r="2" style="animation-delay:1.1s"/>
+        <circle class="bubble" cx="38" cy="300" r="3" style="animation-delay:2.2s"/>
+      </g>
+      <line class="dash" x1="52" y1="116" x2="170" y2="116"/><line class="axis" x1="110" y1="20" x2="110" y2="310"/>
+      <text class="tick" x="96" y="316" text-anchor="end">0</text><text class="tick" x="96" y="26" text-anchor="end">1</text>
+    </svg>
+  </div>
+
+  <!-- C -->
+  <div class="card">
+    <h2>C · Blocks</h2>
+    <p>The bar is split into today's blocks in their own colors (like the ramps). Done blocks are solid, the live one fills and breathes, later ones are faint.</p>
+    <svg width="170" height="330" viewBox="0 0 170 330">
+      <rect x="26" y="20" width="26" height="290" rx="6" fill="#fff" stroke="#c9d3de" stroke-width="2"/>
+      <!-- F, G, Activity, A, B, C: heights proportional to a real day -->
+      <rect x="28" y="263" width="22" height="45" rx="3" fill="#d6336c"/>
+      <rect x="28" y="219" width="22" height="42" rx="3" fill="#c99a06"/>
+      <rect x="28" y="183" width="22" height="34" rx="3" fill="#3a9ad9"/>
+      <rect x="28" y="134" width="22" height="47" rx="3" fill="#c74440"/>
+      <rect x="28" y="88" width="22" height="44" rx="3" fill="#fa7e19" opacity=".25"/>
+      <rect class="live" x="28" y="116" width="22" height="16" rx="3" fill="#fa7e19"/>
+      <rect x="28" y="22" width="22" height="64" rx="3" fill="#388c46" opacity=".25"/>
+      <line class="dash" x1="52" y1="116" x2="170" y2="116"/><line class="axis" x1="110" y1="20" x2="110" y2="310"/>
+      <text class="tick" x="96" y="316" text-anchor="end">0</text><text class="tick" x="96" y="26" text-anchor="end">1</text>
+    </svg>
+  </div>
+
+  <!-- D -->
+  <div class="card">
+    <h2>D · Glowing top</h2>
+    <p>Solid navy with a bright cap at the top that pulses outward, like the "now" dot. The dashed line looks like it grows out of it.</p>
+    <svg width="170" height="330" viewBox="0 0 170 330">
+      <rect x="26" y="20" width="26" height="290" rx="6" fill="#fff" stroke="#c9d3de" stroke-width="2"/>
+      <rect x="26" y="116" width="26" height="194" rx="6" fill="#003366"/>
+      <rect class="cap-pulse" x="26" y="112" width="26" height="8" rx="4" fill="#88ccec"/>
+      <rect x="26" y="112" width="26" height="8" rx="4" fill="#88ccec"/>
+      <line class="dash" x1="52" y1="116" x2="170" y2="116"/><line class="axis" x1="110" y1="20" x2="110" y2="310"/>
+      <text class="tick" x="96" y="316" text-anchor="end">0</text><text class="tick" x="96" y="26" text-anchor="end">1</text>
+    </svg>
+  </div>
+</div>
+</body>
+</html>

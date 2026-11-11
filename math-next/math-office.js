@@ -694,35 +694,57 @@ function main() {
     for (const c of [line.pulse, line.dot]) { c.setAttribute("cx", nx); c.setAttribute("cy", ny); }
   }
 
-  // The day as a progress bar, left of the y-axis on the same 0-1 scale, so
-  // its top lines up with the day point g(t) and the dashed line to it. Full
-  // after the last bell, empty before the first. The fill is a barber-pole
-  // stripe (navy and very light blue) that keeps sliding upward. Built once,
-  // then only resized, so the animation never restarts.
-  const BAR_X = 26, BAR_W = 26, STRIPE = 28;    // STRIPE = one navy + one light band
-  let bar = null;
-  function drawDayBar(g) {
-    if (!bar) {
-      const defs = svgEl(barLayer, "defs", {});
-      const pat = svgEl(defs, "pattern", { id: "mo-barber", width: STRIPE, height: STRIPE, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" });
-      svgEl(pat, "rect", { width: STRIPE, height: STRIPE, fill: "#d7ebf8" });        // very light blue
-      svgEl(pat, "rect", { width: STRIPE, height: STRIPE / 2, fill: NAVY });
-      // slide the stripes one full band per cycle, forever (SVG's own
-      // animation, so it runs without any JS)
-      svgEl(pat, "animateTransform", { attributeName: "patternTransform", type: "translate", additive: "sum",
-        from: "0 0", to: `0 ${-STRIPE}`, dur: "1.6s", repeatCount: "indefinite" });
-      bar = {
-        track: svgEl(barLayer, "rect", { x: BAR_X, width: BAR_W, rx: 6, fill: "#ffffff", stroke: "#c9d3de", "stroke-width": 2 }),
-        fill: svgEl(barLayer, "rect", { x: BAR_X, width: BAR_W, rx: 6, fill: "url(#mo-barber)", stroke: NAVY, "stroke-width": 2 }),
-      };
+  // The day as a bar left of the y-axis, on the same 0-1 scale as g(t), so
+  // its fill line sits level with the day point and the dashed line to it.
+  // It's split into today's blocks, each in its own color (like the ramps):
+  // finished blocks are solid, upcoming ones faint, and the live one fills
+  // up to now and gently "breathes" (CSS .mo-bar-live). Gaps between pieces
+  // are the passing periods.
+  // The pieces are rebuilt only when a block starts or ends; every second
+  // just the live piece's fill is resized, so the breathing never restarts.
+  const BAR_X = 26, BAR_W = 26;
+  let bar = null, lastBarKey = null;
+  function drawDayBar(segments, tNow) {
+    if (!segments || !segments.length) { barLayer.innerHTML = ""; lastBarKey = null; return; }
+    const dayStart = segments[0].start, dayEnd = Math.max(...segments.map((s) => s.end));
+    const yAt = (min) => yOf(Math.max(0, Math.min(1, (min - dayStart) / (dayEnd - dayStart))));
+
+    // One piece per block. Lunch-wave periods (A Fr/So and A Jr/Sr) overlap
+    // in time, so they merge into one piece spanning both.
+    const pieces = [];
+    for (const s of segments) {
+      const id = `${s.kind}:${s.label}`;
+      const p = pieces.find((q) => q.id === id && s.start <= q.end && s.end >= q.start);
+      if (p) { p.start = Math.min(p.start, s.start); p.end = Math.max(p.end, s.end); }
+      else pieces.push({ id, start: s.start, end: s.end, color: segColor(s) });
     }
-    barLayer.style.display = g == null ? "none" : "";
-    if (g == null) return;
-    bar.track.setAttribute("y", yOf(1));
-    bar.track.setAttribute("height", yOf(0) - yOf(1));
-    bar.fill.setAttribute("y", yOf(g));
-    bar.fill.setAttribute("height", Math.max(0, yOf(0) - yOf(g)));
-    bar.fill.style.display = g > 0 ? "" : "none";
+    const state = (p) => (tNow >= p.end ? "done" : tNow >= p.start ? "live" : "todo");
+
+    const key = pieces.map((p) => `${p.id}@${p.start}-${p.end}:${state(p)}`).join("|");
+    if (key !== lastBarKey) {
+      lastBarKey = key;
+      barLayer.innerHTML = "";
+      bar = { liveFill: null, live: null };
+      svgEl(barLayer, "rect", { x: BAR_X, y: yOf(1), width: BAR_W, height: yOf(0) - yOf(1), rx: 6, fill: "#ffffff", stroke: "#c9d3de", "stroke-width": 2 });
+      for (const p of pieces) {
+        const top = yAt(p.end) + 1, bottom = yAt(p.start) - 1;   // 1px gap at each end
+        if (bottom - top < 1) continue;
+        const st = state(p);
+        const attrs = { x: BAR_X + 2, y: top, width: BAR_W - 4, height: bottom - top, rx: 3, fill: p.color };
+        if (st === "done") { svgEl(barLayer, "rect", attrs); continue; }
+        svgEl(barLayer, "rect", { ...attrs, opacity: 0.25 });          // upcoming (or the rest of the live one)
+        if (st === "live") {
+          bar.live = { p, bottom };
+          bar.liveFill = svgEl(barLayer, "rect", { ...attrs, class: "mo-bar-live" });
+        }
+      }
+    }
+    // the live block fills from its start up to now
+    if (bar && bar.liveFill) {
+      const top = Math.min(bar.live.bottom, Math.max(yAt(bar.live.p.end) + 1, yAt(tNow)));
+      bar.liveFill.setAttribute("y", top);
+      bar.liveFill.setAttribute("height", Math.max(0, bar.live.bottom - top));
+    }
   }
 
   function drawDynamic(segments, now) {
@@ -741,7 +763,7 @@ function main() {
 
     // the day bar left of the y-axis (its top lines up with g(t))
     const gBar = Math.max(0, Math.min(1, (tNow - dayStart) / (dayEnd - dayStart)));
-    drawDayBar(gBar);
+    drawDayBar(segments, tNow);
 
     if (!inDay) return;
     // t = now, as a vertical dashed line

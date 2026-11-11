@@ -209,6 +209,10 @@ html, body {
   100% { transform: scale(3.2); opacity: 0; }
 }
 
+/* the day bar: the live block's piece gently breathes */
+.mo-bar-live { animation: mo-breathe 2s ease-in-out infinite; }
+@keyframes mo-breathe { 50% { opacity: 0.55; } }
+
 /* the big countdown: plain large sans serif, top-right of the paper */
 .mo-countdown {
   position: absolute;
