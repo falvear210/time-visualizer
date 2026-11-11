@@ -4,40 +4,51 @@ Beth Kissel,B,M205,jrsr
 Beth Kissel,C,M205,
 Beth Kissel,D,M205,
 Beth Kissel,F,M205,jrsr
+Beth Kissel,AD,M205,
 Beth Kissel,Studium,M205,
 Craig Hannick,A,215C,jrsr
 Craig Hannick,E,215C,jrsr
 Craig Hannick,F,215C,jrsr
+Craig Hannick,AD,M118,
 Craig Hannick,Studium,215C,
 Craig Hinders,D,M219,
-Craig Hinders,E,M21 - iLab,
+Craig Hinders,E,M21 - iLab,jrsr
 Craig Hinders,F,M219,jrsr
 Craig Hinders,G,M219,
+Craig Hinders,AD,M205,
 Craig Hinders,Studium,M219,
+Craig Hinders,Activity Period,*iLab,
 Dan Becvar,C,M209,jrsr
 Dan Becvar,E,M209,jrsr
 Dan Becvar,F,M209,jrsr
 Dan Becvar,G,M209,jrsr
+Dan Becvar,AD,S201,
 Dan Becvar,Studium,M209,
 Dan See,C,215C,jrsr
 Dan See,F,M220,jrsr
 Dan See,G,M220,jrsr
+Dan See,AD,M107,
 Dan See,Studium,iLab,
+Dan See,Activity Period,*M220,
 Don Steingruby,A,M109,jrsr
 Don Steingruby,C,M109,jrsr
 Don Steingruby,D,M109,jrsr
 Don Steingruby,E,M109,
 Don Steingruby,F,M109,
+Don Steingruby,AD,M110,
 Don Steingruby,Studium,M109,
 Fernando Alvear,A,M209,
 Fernando Alvear,B,M209,
-Fernando Alvear,F,M21 - iLab,
+Fernando Alvear,F,M21 - iLab,jrsr
 Fernando Alvear,G,M21 - iLab,
+Fernando Alvear,AD,M210,
 Fernando Alvear,Studium,iLab,
+Fernando Alvear,Activity Period,*iLab,
 Frank Corley,B,M215,
 Frank Corley,C,M215,
 Frank Corley,D,M215,jrsr
 Frank Corley,E,M215,
+Frank Corley,AD,M215,
 Frank Corley,Studium,CoLab,
 Joe Stickley,B,M113,
 Joe Stickley,C,M113,jrsr
@@ -52,26 +63,31 @@ Julie Moeser,E,M207,
 Julie Moeser,G,M207,
 Julie Moeser,Studium,M207,
 Lucas Navarro,G,M113,jrsr
+Lucas Navarro,AD,M110,
 Molly Kelly,A,M217,jrsr
 Molly Kelly,B,M217,jrsr
 Molly Kelly,C,M217,
 Molly Kelly,E,*Commons,
 Molly Kelly,G,M217,jrsr
+Molly Kelly,AD,M224,
 Molly Kelly,Studium,M217,
 Nicholas Ehlman,A,M113,jrsr
 Nicholas Ehlman,B,M219,jrsr
 Nicholas Ehlman,C,M219,jrsr
 Nicholas Ehlman,E,*Media Center,
 Nicholas Ehlman,G,M113,jrsr
+Nicholas Ehlman,AD,M113,
 Nicholas Ehlman,Studium,M113,
 Tracy Lyons,B,*Collab,
 Tracy Lyons,D,M217,
 Tracy Lyons,E,M217,
 Tracy Lyons,F,M217,jrsr
+Tracy Lyons,AD,M109,
 Tracy Lyons,Studium,M217,
 Walker Yane,A,M205,jrsr
 Walker Yane,B,*Rec Room,
 Walker Yane,C,M207,jrsr
 Walker Yane,E,M205,jrsr
 Walker Yane,F,M207,jrsr
+Walker Yane,AD,J127,
 Walker Yane,Studium,M205,

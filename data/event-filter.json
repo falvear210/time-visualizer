@@ -5,131 +5,257 @@
       "id": "days-off",
       "label": "Days off & breaks",
       "show": true,
-      "patterns": ["no school", "no classes", "no freshman classes", "\\bbreak\\b", "juneteenth"]
+      "patterns": [
+        "no school",
+        "no classes",
+        "no freshman classes",
+        "\\bbreak\\b",
+        "juneteenth"
+      ]
     },
     {
       "id": "faculty-meetings",
       "label": "Faculty & department meetings, late starts",
       "show": true,
-      "patterns": ["faculty meeting", "department meeting", "late start", "calendar planning", "ic/slc"]
+      "patterns": [
+        "faculty meeting",
+        "department meeting",
+        "late start",
+        "calendar planning",
+        "ic/slc"
+      ]
     },
     {
       "id": "masses",
       "label": "Masses & liturgies",
       "show": true,
-      "patterns": ["\\bmass\\b", "ash wednesday", "confession", "examen"]
+      "patterns": [
+        "\\bmass\\b",
+        "ash wednesday",
+        "confession",
+        "examen"
+      ]
     },
     {
       "id": "assemblies",
       "label": "Assemblies & all-school events",
       "show": true,
-      "patterns": ["assembly", "pep rally", "convocation", "spirit week", "mission week", "senior project return ceremony"]
+      "patterns": [
+        "assembly",
+        "pep rally",
+        "convocation",
+        "spirit week",
+        "mission week",
+        "senior project return ceremony"
+      ]
     },
     {
       "id": "exams-grades",
       "label": "Exams, quarters & grades due",
       "show": true,
-      "patterns": ["exam", "grades due", "end of .*quarter", "psat", "\\bact\\b"]
+      "patterns": [
+        "exam",
+        "grades due",
+        "end of .*quarter",
+        "psat",
+        "\\bact\\b"
+      ]
     },
     {
       "id": "schedule",
       "label": "Schedule milestones & early dismissals",
       "show": true,
-      "patterns": ["dismissal", "first day of classes", "seniors last day", "seniors return", "start of senior project", "summer school"]
+      "patterns": [
+        "dismissal",
+        "first day of classes",
+        "seniors last day",
+        "seniors return",
+        "start of senior project",
+        "summer school"
+      ]
     },
     {
       "id": "graduation",
       "label": "Graduation",
       "show": true,
-      "patterns": ["^graduation$", "commencement", "baccalaureate"]
+      "patterns": [
+        "^graduation$",
+        "commencement",
+        "baccalaureate"
+      ]
     },
     {
       "id": "faculty-life",
       "label": "Faculty & staff retreats and socials",
       "show": true,
-      "patterns": ["faculty", "staff"]
+      "patterns": [
+        "faculty",
+        "staff"
+      ]
     },
     {
       "id": "conferences",
       "label": "Parent-teacher conferences & parent nights",
       "show": true,
-      "patterns": ["conferences", "back to school night", "open house", "parent meeting", "parent orientation", "parent mandatory", "family college"]
+      "patterns": [
+        "conferences",
+        "back to school night",
+        "open house",
+        "parent meeting",
+        "parent orientation",
+        "parent mandatory",
+        "family college"
+      ]
     },
     {
       "id": "retreats",
       "label": "Student retreats",
       "show": false,
-      "patterns": ["retreat", "kairos", "direction day", "urban encounter"]
+      "patterns": [
+        "retreat",
+        "kairos",
+        "direction day",
+        "urban encounter"
+      ]
     },
     {
       "id": "admissions",
       "label": "Admissions, visits & prospective students",
       "show": false,
-      "patterns": ["shadow", "insidesluh", "explore sluh", "admission", "class of 20\\d\\d", "college", "hspt", "transfer", "jesuit excellence"]
+      "patterns": [
+        "shadow",
+        "insidesluh",
+        "explore sluh",
+        "admission",
+        "class of 20\\d\\d",
+        "college",
+        "hspt",
+        "transfer",
+        "jesuit excellence"
+      ]
     },
     {
       "id": "arts",
       "label": "Arts: concerts, shows & auditions",
       "show": false,
-      "patterns": ["concert", "musical", "audition", "show", "performance", "follies", "festival", "music", "choir", "band", "art"]
+      "patterns": [
+        "concert",
+        "musical",
+        "audition",
+        "show",
+        "performance",
+        "follies",
+        "festival",
+        "music",
+        "choir",
+        "band",
+        "art"
+      ]
     },
     {
       "id": "student-life",
       "label": "Dances, mixers & student life",
       "show": false,
-      "patterns": ["dance", "mixer", "prom", "fun day", "fest\\b", "mix-it-up", "survey", "picture", "yearbook", "ring"]
+      "patterns": [
+        "dance",
+        "mixer",
+        "prom",
+        "fun day",
+        "fest\\b",
+        "mix-it-up",
+        "survey",
+        "picture",
+        "yearbook",
+        "ring"
+      ]
     },
     {
       "id": "clubs",
       "label": "Clubs, drives & fundraisers",
       "show": false,
-      "patterns": ["activity period meetings", "activities fair", "stuco", "drive", "sales", "cashbah", "fish fry", "sluhtique", "summit", "jamboree", "teach-in", "vocations", "heritage", "car free", "lunch advisory"]
+      "patterns": [
+        "activity period meetings",
+        "activities fair",
+        "stuco",
+        "drive",
+        "sales",
+        "cashbah",
+        "fish fry",
+        "sluhtique",
+        "summit",
+        "jamboree",
+        "teach-in",
+        "vocations",
+        "heritage",
+        "car free",
+        "lunch advisory"
+      ]
     },
     {
       "id": "parents-clubs",
       "label": "Parent clubs & family socials",
       "show": false,
-      "patterns": ["mothers?'? club", "mom prom", "mother son", "father", "parent reception", "president installation", "bunco", "trivia"]
+      "patterns": [
+        "mothers?'? club",
+        "mom prom",
+        "mother son",
+        "father",
+        "parent reception",
+        "president installation",
+        "bunco",
+        "trivia"
+      ]
     },
     {
       "id": "sports",
       "label": "Sports",
       "show": false,
-      "patterns": ["basketball", "rifle", "rowing", "running of the bills", "sport", "golf", "bowling"]
+      "patterns": [
+        "basketball",
+        "rifle",
+        "rowing",
+        "running of the bills",
+        "sport",
+        "golf",
+        "bowling"
+      ]
     },
     {
       "id": "other",
       "label": "Everything else",
       "show": false,
-      "patterns": [".*"]
+      "patterns": [
+        ".*"
+      ]
     }
   ],
   "overrides": {
-    "Mothers Club Mass and Brunch": "hide",
-    "Advent Confessions": "hide",
-    "Lent Confessions": "hide",
-    "Freshman Retreat - SLUH": "show",
-    "Sophomore Retreat (No Classes: Fr, Jr, & Sr)": "show",
-    "Second Semester Senior Exams": "hide",
-    "Open House Tour Host, Shadow Host & Student Admissions Ambassador Pizza Party (after 2nd exam concludes)": "hide",
-    "Open House Set Up (Entire Campus)": "hide",
-    "Set Up for 6th Grade Family Explore SLUH event (entire campus)": "hide",
-    "AY 28 Calendar Planning Meeting": "hide",
-    "IC/SLC Meetings": "hide",
-    "Baccalaureate Dinner": "hide",
     "ACT at SLUH": "hide",
-    "Summer School Begins": "hide",
-    "Sophomore Parent Meeting": "hide",
-    "Freshman Parent Orientation and Social": "hide",
-    "Senior Parent Mandatory Meeting": "hide",
-    "Junior Family College Kickoff": "hide",
-    "Senior Project Reflection Night": "hide",
-    "Sophomore Retreat": "hide",
-    "Parent/Teacher Conferences": "hide",
+    "AY 28 Calendar Planning Meeting": "hide",
+    "Advent Confessions": "hide",
     "All-School Mass-Feast of the Immaculate Conception": "hide",
     "Ash Wednesday": "hide",
     "Assembly Schedule-Senior Project Ceremony": "hide",
+    "Baccalaureate Dinner": "hide",
+    "Freshman Parent Orientation and Social": "hide",
+    "Freshman Retreat - SLUH": "show",
+    "Grandparent Mass": "hide",
+    "IC/SLC Meetings": "hide",
+    "Junior Family College Kickoff": "hide",
+    "Lent Confessions": "hide",
+    "Mothers Club Mass and Brunch": "hide",
+    "Open House Set Up (Entire Campus)": "hide",
+    "Open House Tour Host, Shadow Host & Student Admissions Ambassador Pizza Party (after 2nd exam concludes)": "hide",
+    "Parent/Teacher Conferences": "hide",
     "Safety Drills (internal training-not all school)": "hide",
-    "Senior Project Interview Day - All Seniors": "hide"
+    "Second Semester Senior Exams": "hide",
+    "Senior Parent Mandatory Meeting": "hide",
+    "Senior Project Interview Day - All Seniors": "hide",
+    "Senior Project Reflection Night": "hide",
+    "Set Up for 6th Grade Family Explore SLUH event (entire campus)": "hide",
+    "Sophomore Parent Meeting": "hide",
+    "Sophomore Retreat": "hide",
+    "Sophomore Retreat (No Classes: Fr, Jr, & Sr)": "show",
+    "Summer School Begins": "hide"
   }
 }

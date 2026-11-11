@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Teacher locations: where every math teacher is, period by period, plus
-  Studium and Activity Period (AP). A location starting or ending with *
+  Studium, Advisory Period (AD) and Activity Period (AP). A location starting or ending with *
   ("*Cafeteria") means prefecting there, not teaching. Each class cell (A-G)
   also has a Jr/Sr switch: on a day that period lands on lunch, Jr/Sr classes
   meet in the later wave, so the dashboard lists them at the right time. Edit any cell and
@@ -103,8 +103,10 @@
     Where each math teacher is, by period, for the new math dashboard. Type a
     room in any cell; leave it empty if the teacher isn't teaching then. The
     <strong>Studium</strong> column is each teacher's Studium location, which
-    the dashboard shows during Studium; <strong>AP</strong> is where they are
-    during Activity Period.
+    the dashboard shows during Studium; <strong>Advisory</strong> is their
+    advisory room, shown during Advisory Period (not Lunch Advisory or
+    Assembly &amp; Advisory, which happen elsewhere); <strong>AP</strong> is
+    where they are during Activity Period.
   </p>
   <p class="ed-intro">
     This grid is the quick view. Each teacher's courses, room nicknames, and
@@ -158,8 +160,10 @@
 // their own locations. A block's name must match data.js exactly ("Activity
 // Period"). To track another block (e.g. Advisory), add it here AND to
 // TEACHER_PERIODS in editor/server.py.
-const PERIODS = ["A", "B", "C", "D", "E", "F", "G", "Studium", "Activity Period"];
-const SHORT = { "Activity Period": "AP" };            // column/chip labels
+// "AD" is the advisory room (the teacher database's name for it), shown on
+// the TV during Advisory Period only.
+const PERIODS = ["A", "B", "C", "D", "E", "F", "G", "Studium", "AD", "Activity Period"];
+const SHORT = { "Activity Period": "AP", AD: "Advisory" };            // column/chip labels            // column/chip labels
 const label = (p) => SHORT[p] || p;
 
 // "*Cafeteria" or "Cafeteria*" = prefecting in the Cafeteria (not teaching)
@@ -190,7 +194,7 @@ const notesEl = document.getElementById("notes");
 function escapeHtml(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 }
-function periodName(p) { return p.length === 1 ? `Period ${p}` : p; }
+function periodName(p) { return p.length === 1 ? `Period ${p}` : p === "AD" ? "Advisory Period" : p; }
 
 // ---- which period is it now? (preselects the card) ----
 // Today's live or next class/Studium from data.js, Chicago time.
@@ -203,7 +207,8 @@ function currentPeriod() {
   if (!today) return "A";
   const mins = (+get("hour") % 24) * 60 + +get("minute");
   const slots = today.periods.map((p) => ({ key: p.label, end: p.jrsrEndMinutes || p.endMinutes }))
-    .concat((today.blocks || []).filter((b) => PERIODS.includes(b.name)).map((b) => ({ key: b.name, end: b.endMinutes })))
+    .concat((today.blocks || []).map((b) => ({ key: b.name === "Advisory Period" ? "AD" : b.name, end: b.endMinutes }))
+      .filter((s) => PERIODS.includes(s.key)))
     .sort((a, b) => a.end - b.end);
   const slot = slots.find((s) => s.end > mins);
   return slot ? slot.key : "A";

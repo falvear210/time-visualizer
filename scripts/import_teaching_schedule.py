@@ -18,7 +18,7 @@ What it writes (math-next/math-teachers-s1.csv / -s2.csv; name,period,room,wave)
     editor are kept. Differences between the file and the sheet are listed
     so they can be fixed by hand in the editor.
   - If it doesn't exist yet, it's built from the sheet. Studium rooms the
-    sheet leaves blank, and Activity Period locations, are carried over from
+    sheet leaves blank, and Advisory and Activity Period locations, are carried over from
     the Semester 1 file; room names are spelled the way Semester 1 spells
     them (e.g. "M21" -> "M21 - iLab").
 Non-math electives (gray) have no grade, so they stay Fr/So.
@@ -197,9 +197,10 @@ def import_semester(sem, sheet, s1_rows, write, s1_sheet=None):
                 if not e["Studium"]:
                     print(f"  + {last} Studium: blank in the sheet, kept Semester 1's {studium!r}")
                 rows.append({"name": name, "period": "Studium", "room": studium, "wave": ""})
-            ap = s1_by.get((name, "Activity Period"))
-            if ap:
-                rows.append({**ap, "wave": ""})
+            for block in ("AD", "Activity Period"):   # not in the sheet: keep Semester 1's
+                kept = s1_by.get((name, block))
+                if kept:
+                    rows.append({**kept, "wave": ""})
             # Semester 1 locations in a FREE period (duties: "Media Center",
             # "Collab"...) carry over when the teacher is still free then
             for p in PERIODS:

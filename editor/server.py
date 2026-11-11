@@ -59,7 +59,7 @@ TEACHERS_PATHS = {sem: os.path.join(ROOT, "math-next", f"math-teachers-s{sem}.cs
 
 # periods a teacher row may name: the class letters plus the whole-school
 # blocks that have their own locations (keep in sync with editor/teachers.html)
-TEACHER_PERIODS = ["A", "B", "C", "D", "E", "F", "G", "Studium", "Activity Period"]
+TEACHER_PERIODS = ["A", "B", "C", "D", "E", "F", "G", "Studium", "AD", "Activity Period"]
 
 # The teacher database (see scripts/build_teacher_db.py for its shape): the
 # one place teachers are edited, by editor/teacher-details.html. The location
@@ -168,7 +168,7 @@ def write_location_csvs(db):
             for s in sorted(t.get("slots", []), key=lambda s: DB_PERIODS.index(s["period"])):
                 room = name_room(str(s.get("room") or ""))
                 if s["sem"] != sem or s["period"] not in TEACHER_PERIODS or not room:
-                    continue  # other semester, advisory, or no room yet
+                    continue  # other semester, or no room yet
                 if s["kind"] == "prefecting":
                     room = "*" + room
                 wave = "jrsr" if s.get("jrsr") and len(s["period"]) == 1 and s["kind"] == "class" else ""
@@ -183,8 +183,7 @@ def write_location_csvs(db):
 def apply_grid_to_db(db, semester, rows):
     """The Teacher Locations grid saved one semester: copy its rooms, Jr/Sr
     switches and * marks into the database, keeping each slot's course info.
-    A cell the grid left empty becomes free (advisory, which the grid doesn't
-    show, is left alone)."""
+    A cell the grid left empty becomes free."""
     by_name = {t["name"]: t for t in db["teachers"]}
     grid = {}
     for name, period, room, wave in rows:

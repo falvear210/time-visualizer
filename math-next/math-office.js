@@ -518,9 +518,16 @@ function main() {
         </tr>`).join("");
   }
 
+  // A block's name in data.js -> the column it uses in the teacher file.
+  // During Advisory Period teachers are in their advisory rooms ("AD" in the
+  // teacher database). Lunch Advisory and Assembly & Advisory usually happen
+  // elsewhere, so they get no locations: the list shows who teaches next.
+  const locationKey = (blockName) => (blockName === "Advisory Period" ? "AD" : blockName);
+
   // Who's where: today's class periods plus any block teachers have their
-  // own locations for (Studium, Activity Period -- from math-teachers-s1/-s2.csv).
-  // Other blocks are skipped, so during Advisory the list shows who teaches next.
+  // own locations for (Studium, Advisory Period, Activity Period -- from
+  // math-teachers-s1/-s2.csv).
+  // Other blocks are skipped, so during them the list shows who teaches next.
   function teacherSlots(today, now) {
     if (!today) return [];
     // A period split by lunch waves spans both (Fr/So start to Jr/Sr end);
@@ -530,8 +537,9 @@ function main() {
       start: p.startMinutes, end: Math.max(p.endMinutes, p.jrsrEndMinutes || 0),
     }));
     for (const b of today.blocks || []) {
-      if (teachersData.some((t) => t.periods.includes(b.name))) {
-        slots.push({ key: b.name, title: b.name, start: b.startMinutes, end: b.endMinutes });
+      const key = locationKey(b.name);
+      if (teachersData.some((t) => t.periods.includes(key))) {
+        slots.push({ key, title: b.name, start: b.startMinutes, end: b.endMinutes });
       }
     }
     return slots.sort((a, b) => a.start - b.start);
@@ -593,6 +601,7 @@ function main() {
     const allPrefect = here.length > 0 && here.every((h) => h.prefect);
     title.textContent =
       slot.key === "Studium" ? `Studium locations · ${when}`
+      : slot.key === "AD" ? `Advisory locations · ${when}`
       : isAP ? `Activity Period · usual locations · ${when}`
       : allPrefect ? `Teachers prefecting · ${slot.title} · ${when}`
       : `Teachers teaching · ${slot.title} · ${when}`;
