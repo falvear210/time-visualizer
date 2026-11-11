@@ -4,3 +4,6 @@ __pycache__/
 # stats endpoint runtime files -- live only on the server (see stats.php)
 .stats-data.json
 .stats-key.txt
+
+# scraped from support.sluh.org (staff login) -- class sizes, duties; local only
+data/source/math-teacher-schedule.csv

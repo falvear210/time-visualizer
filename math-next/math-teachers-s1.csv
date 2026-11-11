@@ -1,5 +1,5 @@
 name,period,room,wave
-Beth Kissel,A,Media Center,
+Beth Kissel,A,*Media Center,
 Beth Kissel,B,M205,jrsr
 Beth Kissel,C,M205,
 Beth Kissel,D,M205,
@@ -10,10 +10,11 @@ Craig Hannick,E,215C,jrsr
 Craig Hannick,F,215C,jrsr
 Craig Hannick,Studium,215C,
 Craig Hinders,D,M219,
-Craig Hinders,E,M21 - iLab,
+Craig Hinders,E,M21 - iLab,jrsr
 Craig Hinders,F,M219,jrsr
 Craig Hinders,G,M219,
 Craig Hinders,Studium,M219,
+Craig Hinders,Activity Period,*iLab,
 Dan Becvar,C,M209,jrsr
 Dan Becvar,E,M209,jrsr
 Dan Becvar,F,M209,jrsr
@@ -23,6 +24,7 @@ Dan See,C,M21 - iLab,
 Dan See,D,M215,jrsr
 Dan See,E,M220,
 Dan See,Studium,iLab,
+Dan See,Activity Period,*M220,
 Don Steingruby,A,M109,jrsr
 Don Steingruby,C,M109,jrsr
 Don Steingruby,D,M109,jrsr
@@ -34,6 +36,7 @@ Fernando Alvear,B,M209,
 Fernando Alvear,D,M21 - iLab,
 Fernando Alvear,G,M21 - iLab,
 Fernando Alvear,Studium,iLab,
+Fernando Alvear,Activity Period,*iLab,
 Frank Corley,B,M215,
 Frank Corley,C,M215,
 Frank Corley,E,M215,
@@ -45,7 +48,7 @@ Joe Stickley,D,M113,
 Joe Stickley,F,M113,jrsr
 Joe Stickley,G,Collab,
 Joe Stickley,Studium,M113,
-Julie Moeser,A,Collab,
+Julie Moeser,A,*Collab,
 Julie Moeser,B,M207,
 Julie Moeser,D,M207,
 Julie Moeser,E,M207,
@@ -53,6 +56,7 @@ Julie Moeser,G,M207,
 Julie Moeser,Studium,M207,
 Lucas Navarro,A,M113,jrsr
 Lucas Navarro,G,M113,jrsr
+Lucas Navarro,Studium,Commons,
 Molly Kelly,A,M217,jrsr
 Molly Kelly,B,M217,jrsr
 Molly Kelly,C,M217,
