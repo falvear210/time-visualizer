@@ -2,12 +2,15 @@
 <!--
   Teacher locations: where every math teacher is, period by period, plus
   Studium and Activity Period (AP). A location starting or ending with *
-  ("*Cafeteria") means prefecting there, not teaching. Edit any cell and
+  ("*Cafeteria") means prefecting there, not teaching. Each class cell (A-G)
+  also has a Jr/Sr switch: on a day that period lands on lunch, Jr/Sr classes
+  meet in the later wave, so the dashboard lists them at the right time. Edit any cell and
   Save. Local tool -- run `python3 editor/server.py` and open
   http://localhost:8421/editor/teachers.html (Save needs that server).
 
-  Reads/writes ../math-next/math-teachers.csv  (name,period,room -- one row
-  per teacher per period; an empty cell = no row = not teaching/no location).
+  Reads/writes ../math-next/math-teachers.csv  (name,period,room,wave -- one
+  row per teacher per period; an empty cell = no row = not teaching/no
+  location; wave is "jrsr" for a Jr/Sr class, empty for Fr/So).
   The live /math/ display keeps its own copy and is not touched.
 -->
 <html lang="en">
@@ -70,6 +73,15 @@
   .tl-prefect { font-size: 0.85em; color: var(--text-dim); }
   /* a cell marked with * (prefecting) */
   td input.is-prefect { font-style: italic; }
+  /* a class cell: the room box plus the Jr/Sr switch */
+  .tl-cell { display: flex; align-items: center; gap: 0.25rem; }
+  .tl-wave {
+    flex: none; padding: 0.1rem 0.4rem; border: 1px solid var(--border); border-radius: 999px;
+    background: none; font-size: 0.7rem; font-weight: 600; color: var(--text-dim); opacity: 0.45;
+  }
+  .tl-wave:hover { opacity: 1; }
+  .tl-wave[aria-pressed="true"] { opacity: 1; background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tl-tag { font-size: 0.75em; font-weight: 600; color: var(--accent); }
 </style>
 </head>
 <body>
@@ -96,6 +108,12 @@
     <strong>Prefecting?</strong> Put a <strong>*</strong> on the location, like
     <code>*Cafeteria</code>. Works in any column. The dashboard then shows that
     teacher as prefecting there instead of teaching.
+  </p>
+  <p class="ed-intro">
+    <strong>Jr/Sr classes:</strong> switch on <strong>Jr/Sr</strong> next to a
+    class. When that period lands on lunch, Jr/Sr classes meet in the later
+    wave, so the dashboard shows the teacher at lunch first and teaching
+    after. Classes left off follow the Fr/So times.
   </p>
   <div id="notes"></div>
 
@@ -138,7 +156,9 @@ function parseRoom(raw) {
 }
 const CSV_URL = "../math-next/math-teachers.csv";
 
-// teachers: [{ name, rooms: { A: "M205", Studium: "Library", ... } }]
+// teachers: [{ name, rooms: { A: "M205", Studium: "Library", ... },
+//              waves: { C: "jrsr", ... } }]   (no entry = a Fr/So class)
+const CLASS_PERIODS = ["A", "B", "C", "D", "E", "F", "G"];   // only these have lunch waves
 let teachers = [];
 let saved = "";       // JSON of the last saved state, to tell if anything changed
 let picked = null;    // the period the "where is everyone" card shows
@@ -173,10 +193,11 @@ function currentPeriod() {
 function parseCsv(text) {
   const byName = new Map();
   text.split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#")).slice(1).forEach((line) => {
-    const [name, period, room] = line.split(",").map((s) => (s || "").trim());
+    const [name, period, room, wave] = line.split(",").map((s) => (s || "").trim());
     if (!name || !period) return;
-    if (!byName.has(name)) byName.set(name, { name, rooms: {} });
+    if (!byName.has(name)) byName.set(name, { name, rooms: {}, waves: {} });
     byName.get(name).rooms[period] = room;
+    if (wave === "jrsr") byName.get(name).waves[period] = "jrsr";
   });
   return [...byName.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -198,7 +219,7 @@ function renderChips() {
 }
 
 function renderWhere() {
-  const rows = teachers.map((t) => ({ name: t.name, ...parseRoom(t.rooms[picked]) }));
+  const rows = teachers.map((t) => ({ name: t.name, jrsr: t.waves[picked] === "jrsr", ...parseRoom(t.rooms[picked]) }));
   const busy = rows.filter((r) => r.room);
   const free = rows.filter((r) => !r.room);
   const prefecting = busy.filter((r) => r.prefect).length;
@@ -208,7 +229,7 @@ function renderWhere() {
   document.getElementById("where").innerHTML = `
     <h2>${escapeHtml(periodName(picked))}: ${busy.length} with a location${prefecting ? ` (${prefecting} prefecting)` : ""}${free.length ? `, ${free.length} ${freeWord}` : ""}</h2>
     <ul>
-      ${busy.map((r) => `<li><span>${escapeHtml(r.name)}</span><span class="tl-room">${escapeHtml(r.room)}${r.prefect ? ` <em class="tl-prefect">prefecting</em>` : ""}</span></li>`).join("")}
+      ${busy.map((r) => `<li><span>${escapeHtml(r.name)}</span><span class="tl-room">${escapeHtml(r.room)}${r.prefect ? ` <em class="tl-prefect">prefecting</em>` : ""}${r.jrsr ? ` <span class="tl-tag">Jr/Sr</span>` : ""}</span></li>`).join("")}
       ${free.map((r) => `<li><span class="tl-free">${escapeHtml(r.name)}</span><span class="tl-free">${freeWord}</span></li>`).join("")}
     </ul>`;
 }
@@ -221,11 +242,13 @@ function renderTable() {
     <tr>
       <th scope="row">${escapeHtml(t.name)}</th>
       ${PERIODS.map((p) => `
-        <td class="${colClass(p)}">
+        <td class="${colClass(p)}"><div class="tl-cell">
           <input type="text" list="rooms" value="${escapeHtml(t.rooms[p] || "")}"
                  class="${parseRoom(t.rooms[p]).prefect ? "is-prefect" : ""}"
                  data-i="${i}" data-p="${p}" aria-label="${escapeHtml(t.name)}, ${escapeHtml(label(p))}">
-        </td>`).join("")}
+          ${CLASS_PERIODS.includes(p) ? `<button type="button" class="tl-wave" data-wave-i="${i}" data-wave-p="${p}"
+                 aria-pressed="${t.waves[p] === "jrsr"}" title="Jr/Sr class: meets in the later lunch wave">Jr/Sr</button>` : ""}
+        </div></td>`).join("")}
       <td><button class="tl-del" data-del="${i}" title="Remove ${escapeHtml(t.name)}" aria-label="Remove ${escapeHtml(t.name)}">✕</button></td>
     </tr>`).join("");
   // room suggestions: every room already in use
@@ -263,6 +286,16 @@ tbody.addEventListener("input", (e) => {
   updateStatus();
 });
 tbody.addEventListener("click", (e) => {
+  // the Jr/Sr switch next to a class cell
+  const wave = e.target.closest("[data-wave-i]");
+  if (wave) {
+    const t = teachers[+wave.dataset.waveI], p = wave.dataset.waveP;
+    if (t.waves[p] === "jrsr") delete t.waves[p]; else t.waves[p] = "jrsr";
+    wave.setAttribute("aria-pressed", t.waves[p] === "jrsr");
+    renderWhere();
+    updateStatus();
+    return;
+  }
   const del = e.target.closest("[data-del]");
   if (!del) return;
   const t = teachers[+del.dataset.del];
@@ -279,7 +312,7 @@ document.getElementById("add").addEventListener("click", () => {
     alert(`${name} is already on the list.`);
     return;
   }
-  teachers.push({ name, rooms: {} });
+  teachers.push({ name, rooms: {}, waves: {} });
   teachers.sort((a, b) => a.name.localeCompare(b.name));
   input.value = "";
   renderAll();
@@ -302,7 +335,7 @@ saveBtn.addEventListener("click", async () => {
   if (empty.length && !confirm(`${empty.map((t) => t.name).join(", ")} ha${empty.length === 1 ? "s" : "ve"} no locations and will be dropped from the list. Save anyway?`)) return;
 
   const rows = teachers.flatMap((t) => PERIODS.filter((p) => (t.rooms[p] || "").trim())
-    .map((p) => ({ name: t.name, period: p, room: t.rooms[p].trim() })));
+    .map((p) => ({ name: t.name, period: p, room: t.rooms[p].trim(), wave: t.waves[p] || "" })));
   saveBtn.disabled = true;
   statusEl.textContent = "Saving…";
   try {

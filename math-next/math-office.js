@@ -158,23 +158,6 @@ function resolvePeriodTimes(period, wave) {
   return { startMinutes: period.startMinutes, endMinutes: period.endMinutes };
 }
 
-function isPeriodLive(day, period, now, wave) {
-  if (day.date !== now.dateStr) return false;
-  const { startMinutes, endMinutes } = resolvePeriodTimes(period, wave);
-  return now.minutes >= startMinutes && now.minutes < endMinutes;
-}
-
-// which lunch wave of a split period is live right now (Fr/So first)
-function liveWaveOf(day, period, now) {
-  if (isPeriodLive(day, period, now, "frso")) return "frso";
-  if (period.jrsrStartMinutes != null && isPeriodLive(day, period, now, "jrsr")) return "jrsr";
-  return null;
-}
-
-function effectiveWave(day, period, now) {
-  return liveWaveOf(day, period, now) || "frso";
-}
-
 // Today's schedule as one time-ordered list of "segments":
 //   { key, kind: "period" | "block", label, title, short, start, end }
 // (minutes after midnight). A period split by lunch wave becomes two
@@ -224,16 +207,18 @@ function csvRows(text) {
   return lines.slice(1);
 }
 
-// math-teachers.csv: name,period,room -- one row per teacher per period
+// math-teachers.csv: name,period,room,wave -- one row per teacher per period;
+// wave is "jrsr" for a Jr/Sr class (empty = Fr/So)
 function parseTeachersCsv(text) {
   const byName = new Map();
   for (const line of csvRows(text)) {
-    const [name, period, room] = line.split(",").map((s) => s.trim());
+    const [name, period, room, wave] = line.split(",").map((s) => (s || "").trim());
     if (!name || !period) continue;
-    if (!byName.has(name)) byName.set(name, { name, periods: [], rooms: {} });
+    if (!byName.has(name)) byName.set(name, { name, periods: [], rooms: {}, waves: {} });
     const t = byName.get(name);
     t.periods.push(period);
     t.rooms[period] = room;
+    if (wave === "jrsr") t.waves[period] = "jrsr";   // a Jr/Sr class: later lunch wave
   }
   return [...byName.values()];
 }
@@ -534,16 +519,32 @@ function main() {
   // Other blocks are skipped, so during Advisory the list shows who teaches next.
   function teacherSlots(today, now) {
     if (!today) return [];
-    const slots = today.periods.map((p) => {
-      const { startMinutes, endMinutes } = resolvePeriodTimes(p, effectiveWave(today, p, now));
-      return { key: p.label, title: `Period ${p.label}`, start: startMinutes, end: endMinutes };
-    });
+    // A period split by lunch waves spans both (Fr/So start to Jr/Sr end);
+    // renderRooms then shows each teacher by their own class's wave.
+    const slots = today.periods.map((p) => ({
+      key: p.label, title: `Period ${p.label}`, period: p,
+      start: p.startMinutes, end: Math.max(p.endMinutes, p.jrsrEndMinutes || 0),
+    }));
     for (const b of today.blocks || []) {
       if (teachersData.some((t) => t.periods.includes(b.name))) {
         slots.push({ key: b.name, title: b.name, start: b.startMinutes, end: b.endMinutes });
       }
     }
     return slots.sort((a, b) => a.start - b.start);
+  }
+
+  // During a lunch-split period that's on now, a teacher whose class is in
+  // the other wave is at lunch: Jr/Sr classes start later, Fr/So classes end
+  // earlier. Returns the text for their room cell ("lunch · 11:55" or
+  // "lunch"), or null when they're in class (or it's not a split period).
+  function lunchUntil(slot, t, now) {
+    const p = slot.period;
+    if (!p || p.jrsrStartMinutes == null || now.minutes < slot.start || now.minutes >= slot.end) return null;
+    if (parseRoom(t.rooms[slot.key]).prefect) return null;    // prefecting, not a class
+    const { startMinutes, endMinutes } = resolvePeriodTimes(p, t.waves[slot.key] === "jrsr" ? "jrsr" : "frso");
+    if (now.minutes < startMinutes) return `lunch · ${clock12(startMinutes)}`;
+    if (now.minutes >= endMinutes) return "lunch";
+    return null;
   }
 
   // Last names fit the narrow column; a shared last name gets a first initial.
@@ -559,7 +560,10 @@ function main() {
     const today = daysByDate.get(now.dateStr);
     const slots = teacherSlots(today, now);
     const info = currentOrNext(slots, now);
-    const key = `${now.dateStr}|${info.state}|${info.seg ? info.seg.key : ""}|${dataVersion}`;
+    // a lunch-split period changes within itself (a wave starts or ends), so
+    // re-check it every minute
+    const split = info.seg && info.seg.period && info.seg.period.jrsrStartMinutes != null;
+    const key = `${now.dateStr}|${info.state}|${info.seg ? info.seg.key : ""}|${dataVersion}|${split ? now.minutes : ""}`;
     if (key === lastRoomsKey) return;
     lastRoomsKey = key;
 
@@ -575,7 +579,8 @@ function main() {
     const slot = info.seg;
     const when = info.state === "current" ? "now" : "next";
     const here = teachersData.filter((t) => t.periods.includes(slot.key))
-      .map((t) => ({ t, ...parseRoom(t.rooms[slot.key]) }));
+      .map((t) => ({ t, ...parseRoom(t.rooms[slot.key]), lunch: lunchUntil(slot, t, now) }))
+      .sort((a, b) => !!a.lunch - !!b.lunch);   // anyone at lunch goes last (stable: names stay in order)
     // Title: "Teachers teaching", or "Teachers prefecting" when everyone listed
     // is prefecting (usually Activity Period). Studium keeps its own name.
     const allPrefect = here.length > 0 && here.every((h) => h.prefect);
@@ -592,6 +597,9 @@ function main() {
     const cell = (j) => {
       const h = here[j];
       if (!h) return `<td></td><td></td>`;
+      // at lunch while the period is on: gray, with when their class starts
+      // (or "lunch" alone once it's over)
+      if (h.lunch) return `<td class="mo-at-lunch">${names[j]}</td><td class="mo-at-lunch">${h.lunch}</td>`;
       const star = mark && h.prefect;
       return `<td>${names[j]}</td><td${star ? ' class="mo-prefect"' : ""}>${h.room}${star ? "*" : ""}</td>`;
     };

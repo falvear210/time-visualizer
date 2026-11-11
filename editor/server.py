@@ -12,7 +12,7 @@ repo (a plain static server can't write files):
            (data/school-events.csv + the catalog the page lists)
     POST /api/refresh-calendar  (no body)
         -> downloads a fresh copy of the School Calendar and re-filters
-    POST /api/teachers          body: {"rows": [{"name","period","room"}, ...]}
+    POST /api/teachers          body: {"rows": [{"name","period","room","wave"}, ...]}
         -> writes math-next/math-teachers.csv
 
 The pages call these as RELATIVE urls (api/teachers), so the same paths
@@ -72,11 +72,13 @@ def save_event_filter(body):
 def save_teachers(body):
     rows = json.loads(body)["rows"]
     out = io.StringIO()
-    out.write("name,period,room\n")
+    # wave: "jrsr" for a Jr/Sr class (meets in the later lunch wave), else
+    # empty (Fr/So). Only class periods have waves.
+    out.write("name,period,room,wave\n")
     w = csv.writer(out, lineterminator="\n")
     kept = 0
     for r in rows:
-        name, period, room = (str(r.get(k, "")).strip() for k in ("name", "period", "room"))
+        name, period, room, wave = (str(r.get(k, "") or "").strip() for k in ("name", "period", "room", "wave"))
         if not name or not room:
             continue  # an empty cell means "not teaching / no location"
         if period not in TEACHER_PERIODS:
@@ -84,7 +86,11 @@ def save_teachers(body):
         if "," in name or "," in room:
             # the dashboard's CSV reader splits on commas without quoting
             raise ValueError(f"no commas allowed in names or rooms: {name!r} / {room!r}")
-        w.writerow([name, period, room])
+        if wave not in ("", "jrsr"):
+            raise ValueError(f"unknown wave {wave!r} (expected 'jrsr' or empty)")
+        if wave and len(period) != 1:
+            wave = ""  # only class periods A-G have lunch waves
+        w.writerow([name, period, room, wave])
         kept += 1
     with open(TEACHERS_PATH, "w", encoding="utf-8") as f:
         f.write(out.getvalue())

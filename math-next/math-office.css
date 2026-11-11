@@ -151,6 +151,7 @@ html, body {
 .mo-table tr.is-done td { opacity: 0.55; }
 .mo-table tr.is-live td { font-weight: 700; background: #f3f6fa; }
 .mo-rooms td:nth-child(even) { color: var(--blue); font-weight: 600; }
+.mo-rooms td.mo-at-lunch { color: var(--muted); font-weight: 400; }
 .mo-rooms td.mo-prefect { font-style: italic; color: var(--text-dim); }
 .mo-rooms td.mo-prefect-key { font-size: 16px; font-weight: 400; color: var(--text-dim); border: none; padding-top: 6px; }
 .mo-rooms td.mo-empty { color: var(--text-dim); font-weight: 400; white-space: normal; }
