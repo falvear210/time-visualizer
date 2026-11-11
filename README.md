@@ -112,8 +112,8 @@ graph paper on the right.
 - **The left column** has a slider for *t* = now, *f*(*t*) (block progress),
   *g*(*t*) (day progress), today's blocks as a table, the rooms for the
   current or next period, and weather as a one-line note. During Studium the
-  rooms list shows each teacher's Studium location, if `math-teachers.csv`
-  has `Studium` rows.
+  rooms list shows each teacher's Studium location, from the semester's
+  `math-teachers-s1/-s2.csv`.
 - **The next 18 days** are a number line under the graph: school events
   above it (from `data/school-events.csv`), birthdays of the math department
   only below it (`dept` = `math` in `data/birthdays.csv`). Multi-day events
@@ -151,7 +151,13 @@ that serves the site and lets these pages save straight to the repo:
   the School Calendar first.
 - **Teacher locations** (`editor/teachers.html`): a grid of every math
   teacher × periods A–G + Studium, with a "where is everyone during …"
-  view for any period. Saves `math-next/math-teachers.csv`.
+  view for any period, a Jr/Sr switch per class and `*` for prefecting.
+  One file per semester (a Semester 1 / Semester 2 switch at the top):
+  saves `math-next/math-teachers-s1.csv` or `-s2.csv`; the dashboard reads
+  Semester 2's from Jan. 4, 2027 (`SEMESTER_2_START`). To refill them from
+  the department's color-coded teaching schedule (.xlsx), run
+  `python3 scripts/import_teaching_schedule.py "<file>.xlsx"` (a report;
+  add `--write` to save): it reads Jr/Sr from the cell colors.
 
 `deploy.sh` also ships these pages to the website, in two places:
 

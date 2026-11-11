@@ -8,7 +8,8 @@
   Save. Local tool -- run `python3 editor/server.py` and open
   http://localhost:8421/editor/teachers.html (Save needs that server).
 
-  Reads/writes ../math-next/math-teachers.csv  (name,period,room,wave -- one
+  One file per semester -- a switch at the top picks which one is edited.
+  Reads/writes ../math-next/math-teachers-s1.csv or -s2.csv  (name,period,room,wave -- one
   row per teacher per period; an empty cell = no row = not teaching/no
   location; wave is "jrsr" for a Jr/Sr class, empty for Fr/So).
   The live /math/ display keeps its own copy and is not touched.
@@ -115,6 +116,13 @@
     wave, so the dashboard shows the teacher at lunch first and teaching
     after. Classes left off follow the Fr/So times.
   </p>
+  <div class="tl-pick">
+    <span class="tl-pick-label">Editing</span>
+    <div class="ed-chips" id="semester-chips" role="group" aria-label="Pick a semester">
+      <button class="ed-chip" data-sem="1">Semester 1</button>
+      <button class="ed-chip" data-sem="2">Semester 2</button>
+    </div>
+  </div>
   <div id="notes"></div>
 
   <div class="tl-pick">
@@ -154,7 +162,13 @@ function parseRoom(raw) {
   const prefect = s.startsWith("*") || s.endsWith("*");
   return { room: s.replace(/^\*+|\*+$/g, "").trim(), prefect };
 }
-const CSV_URL = "../math-next/math-teachers.csv";
+// One file per semester. The dashboard switches to Semester 2's on this date
+// (keep in step with SEMESTER_2_START in math-next/math-office.js); the
+// editor opens on whichever semester is current.
+const SEMESTER_2_START = "20270104";
+const todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago" }).format(new Date()).replace(/-/g, "");
+let semester = todayStr >= SEMESTER_2_START ? 2 : 1;
+const csvUrl = () => `../math-next/math-teachers-s${semester}.csv`;
 
 // teachers: [{ name, rooms: { A: "M205", Studium: "Library", ... },
 //              waves: { C: "jrsr", ... } }]   (no entry = a Fr/So class)
@@ -207,7 +221,7 @@ function isDirty() { return snapshot() !== saved; }
 
 function updateStatus() {
   const dirty = isDirty();
-  statusEl.textContent = dirty ? "Unsaved changes" : `${teachers.length} teachers`;
+  statusEl.textContent = dirty ? "Unsaved changes" : `${teachers.length} teachers · Semester ${semester}`;
   statusEl.className = "ed-status" + (dirty ? " is-dirty" : "");
   saveBtn.disabled = !dirty;
 }
@@ -321,9 +335,20 @@ document.getElementById("new-name").addEventListener("keydown", (e) => {
   if (e.key === "Enter") document.getElementById("add").click();
 });
 
+// ---- switching semesters ----
+document.getElementById("semester-chips").addEventListener("click", (e) => {
+  const chip = e.target.closest("[data-sem]");
+  if (!chip || +chip.dataset.sem === semester) return;
+  if (isDirty() && !confirm("You have unsaved changes in this semester. Switch anyway and lose them?")) return;
+  semester = +chip.dataset.sem;
+  notesEl.innerHTML = "";
+  load();
+});
+
 // ---- loading and saving ----
 async function load() {
-  const text = await fetch(`${CSV_URL}?t=${Date.now()}`, { cache: "no-store" }).then((r) => r.text());
+  document.querySelectorAll("[data-sem]").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.sem === semester));
+  const text = await fetch(`${csvUrl()}?t=${Date.now()}`, { cache: "no-store" }).then((r) => r.text());
   teachers = parseCsv(text);
   saved = snapshot();
   renderAll();
@@ -340,7 +365,7 @@ saveBtn.addEventListener("click", async () => {
   statusEl.textContent = "Saving…";
   try {
     const res = await fetch("api/teachers", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rows }),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rows, semester }),
     });
     let data = null;
     try { data = await res.json(); } catch (e) { /* not the editor server */ }
@@ -348,7 +373,7 @@ saveBtn.addEventListener("click", async () => {
     if (!data.ok) throw new Error(data.error);
     notesEl.innerHTML = "";
     await load();
-    statusEl.textContent = `Saved · ${data.rows} locations`;
+    statusEl.textContent = `Saved · Semester ${semester} · ${data.rows} locations`;
   } catch (err) {
     notesEl.innerHTML = `<div class="ed-note is-error">${escapeHtml(err.message)}</div>`;
     statusEl.textContent = "Not saved";

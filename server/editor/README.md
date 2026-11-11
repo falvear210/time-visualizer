@@ -27,7 +27,7 @@ browser ── https://sluhtime.alvear.cl/edit/...  (nginx asks for the password
 | (password) | `/etc/nginx/htpasswd-sluhtime-editor` (root:www-data, 640) |
 
 The files the editor writes, all owned by www-data:
-`math-next/math-teachers.csv`, `data/event-filter.json`,
+`math-next/math-teachers-s1.csv` and `-s2.csv`, `data/event-filter.json`,
 `data/school-events.csv`, `data/source/school-events-catalog.json`,
 `data/source/school_calendar_raw.ics` (nginx refuses to serve the `.ics`).
 

@@ -196,7 +196,11 @@ function segmentProgress(seg, now) {
 
 // ---- 4. CSV data ----
 
-const TEACHERS_CSV_URL = "math-teachers.csv";
+// Teacher locations are per semester (schedules change in January):
+// math-teachers-s1.csv until Christmas Break, -s2.csv from this date on.
+// Keep in step with SEMESTER_2_START in editor/teachers.html.
+const SEMESTER_2_START = "20270104";
+const teachersCsvUrl = (dateStr) => (dateStr >= SEMESTER_2_START ? "math-teachers-s2.csv" : "math-teachers-s1.csv");
 const BIRTHDAYS_CSV_URL = "../data/birthdays.csv";
 const EVENTS_CSV_URL = "../data/school-events.csv";
 const DATA_REFRESH_MS = 30 * 60 * 1000;
@@ -207,7 +211,7 @@ function csvRows(text) {
   return lines.slice(1);
 }
 
-// math-teachers.csv: name,period,room,wave -- one row per teacher per period;
+// math-teachers-s1/-s2.csv: name,period,room,wave -- one row per teacher per period;
 // wave is "jrsr" for a Jr/Sr class (empty = Fr/So)
 function parseTeachersCsv(text) {
   const byName = new Map();
@@ -376,7 +380,7 @@ function main() {
   }
   async function reloadData() {
     [teachersData, birthdaysData, eventsData] = await Promise.all([
-      fetchCsv(TEACHERS_CSV_URL, parseTeachersCsv, teachersData),
+      fetchCsv(teachersCsvUrl(nowInChicago().dateStr), parseTeachersCsv, teachersData),
       fetchCsv(BIRTHDAYS_CSV_URL, parseBirthdaysCsv, birthdaysData),
       fetchCsv(EVENTS_CSV_URL, parseEventsCsv, eventsData),
     ]);
@@ -515,7 +519,7 @@ function main() {
   }
 
   // Who's where: today's class periods plus any block teachers have their
-  // own locations for (Studium, Activity Period -- from math-teachers.csv).
+  // own locations for (Studium, Activity Period -- from math-teachers-s1/-s2.csv).
   // Other blocks are skipped, so during Advisory the list shows who teaches next.
   function teacherSlots(today, now) {
     if (!today) return [];

@@ -13,7 +13,8 @@ repo (a plain static server can't write files):
     POST /api/refresh-calendar  (no body)
         -> downloads a fresh copy of the School Calendar and re-filters
     POST /api/teachers          body: {"rows": [{"name","period","room","wave"}, ...]}
-        -> writes math-next/math-teachers.csv
+        body also has "semester": 1 or 2
+        -> writes math-next/math-teachers-s1.csv or -s2.csv
 
 The pages call these as RELATIVE urls (api/teachers), so the same paths
 work under any folder: /editor/api/teachers here, /edit/api/teachers on the
@@ -45,7 +46,8 @@ sys.path.insert(0, os.path.join(CODE_ROOT, "scripts"))
 import school_events  # noqa: E402  (needs the sys.path line above)
 
 FILTER_PATH = school_events.FILTER_PATH
-TEACHERS_PATH = os.path.join(ROOT, "math-next", "math-teachers.csv")
+# teacher locations, one file per semester (the dashboard picks by date)
+TEACHERS_PATHS = {sem: os.path.join(ROOT, "math-next", f"math-teachers-s{sem}.csv") for sem in (1, 2)}
 
 # periods a teacher row may name: the class letters plus the whole-school
 # blocks that have their own locations (keep in sync with editor/teachers.html)
@@ -70,7 +72,11 @@ def save_event_filter(body):
 
 
 def save_teachers(body):
-    rows = json.loads(body)["rows"]
+    data = json.loads(body)
+    rows = data["rows"]
+    semester = int(data.get("semester") or 1)
+    if semester not in TEACHERS_PATHS:
+        raise ValueError(f"unknown semester {semester!r}")
     out = io.StringIO()
     # wave: "jrsr" for a Jr/Sr class (meets in the later lunch wave), else
     # empty (Fr/So). Only class periods have waves.
@@ -92,7 +98,7 @@ def save_teachers(body):
             wave = ""  # only class periods A-G have lunch waves
         w.writerow([name, period, room, wave])
         kept += 1
-    with open(TEACHERS_PATH, "w", encoding="utf-8") as f:
+    with open(TEACHERS_PATHS[semester], "w", encoding="utf-8") as f:
         f.write(out.getvalue())
     return {"rows": kept}
 

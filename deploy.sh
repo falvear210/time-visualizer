@@ -46,7 +46,8 @@ date +%s > version.txt
 # the edit shows up in git, ready to commit). A file edited here more
 # recently (e.g. with the local editor) wins and is uploaded as usual.
 EDITABLE_FILES=(
-  "math-next/math-teachers.csv"
+  "math-next/math-teachers-s1.csv"
+  "math-next/math-teachers-s2.csv"
   "data/event-filter.json"
   "data/school-events.csv"
   "data/source/school-events-catalog.json"
